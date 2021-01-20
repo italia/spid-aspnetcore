@@ -86,18 +86,32 @@ namespace SPID.AspNetCore.Authentication
 
             // Create the SPID request id
             string samlAuthnRequestId = Guid.NewGuid().ToString();
+
             // Select the Identity Provider
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
 
+
+            var securityTokenCreatingContext = new SecurityTokenCreatingContext(Context, Scheme, Options, properties)
+            {
+                TokenOptions = new SecurityTokenCreatingOptions
+                {
+                    EntityId = Options.EntityId,
+                    Certificate = Options.Certificate,
+                    AssertionConsumerServiceIndex = Options.AssertionConsumerServiceIndex,
+                    AttributeConsumingServiceIndex = Options.AttributeConsumingServiceIndex
+                }
+            };
+            await Events.TokenCreating(securityTokenCreatingContext);
+
             // Create the signed SAML request
             var (signedBase64, original, serializedOriginal) = SamlHelper.BuildAuthnPostRequest(
-                uuid: samlAuthnRequestId,
-                destination: idp.SingleSignOnServiceUrl,
-                entityId: Options.EntityId,
-                assertionConsumerServiceIndex: Options.AssertionConsumerServiceIndex,
-                securityLevel: 2,
-                certificate: Options.Certificate,
-                identityProvider: idp);
+                samlAuthnRequestId,
+                securityTokenCreatingContext.TokenOptions.EntityId,
+                securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceIndex,
+                securityTokenCreatingContext.TokenOptions.AttributeConsumingServiceIndex,
+                2,
+                securityTokenCreatingContext.TokenOptions.Certificate,
+                idp);
 
             GenerateCorrelationId(properties);
 
@@ -118,13 +132,24 @@ namespace SPID.AspNetCore.Authentication
             properties.Items.Add("Request", serializedOriginal);
 
             Response.Cookies.Append("SPID-Properties", Options.StateDataFormat.Protect(properties));
-
-            string redirectUri = GetRedirectUrl(idp.SingleSignOnServiceUrl, samlAuthnRequestId, signedBase64, Options.Certificate);
-            if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
+            if (idp.Method == RequestMethod.Post)
             {
-                Logger.MalformedRedirectUri(redirectUri);
+                await Response.WriteAsync($"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{idp.SingleSignOnServiceUrl}\" method=\"post\">" +
+                      $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{signedBase64}\" />" +
+                      $"<input type=\"hidden\" name=\"RelayState\" value=\"{samlAuthnRequestId}\" />" +
+                      $"<button id=\"btnLogin\">Login</button>" +
+                      "<script>document.getElementById('btnLogin').click()</script>" +
+                      "</form></body></html>");
             }
-            Response.Redirect(redirectUri);
+            else
+            {
+                string redirectUri = GetRedirectUrl(idp.SingleSignOnServiceUrl, samlAuthnRequestId, signedBase64, Options.Certificate);
+                if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
+                {
+                    Logger.MalformedRedirectUri(redirectUri);
+                }
+                Response.Redirect(redirectUri);
+            }
         }
 
         public string GetRedirectUrl(string signOnSignOutUrl, string samlAuthnRequestId, string data, X509Certificate2 certificate)
@@ -141,16 +166,16 @@ namespace SPID.AspNetCore.Authentication
             dict.Add("RelayState", samlAuthnRequestId);
             dict.Add("SigAlg", SamlConst.SignatureMethod);
 
-            var queryStringNoSignature = BuildURLParametersString(parameters: new QueryCollection(dict)).Substring(1);
+            var queryStringNoSignature = BuildURLParametersString(dict).Substring(1);
 
             var signatureQuery = queryStringNoSignature.CreateSignature(certificate);
 
             dict.Add("Signature", signatureQuery);
 
-            return samlEndpoint + queryStringSeparator + BuildURLParametersString(parameters: new QueryCollection(dict)).Substring(1);
+            return samlEndpoint + queryStringSeparator + BuildURLParametersString(dict).Substring(1);
         }
 
-        private string BuildURLParametersString(IQueryCollection parameters)
+        private string BuildURLParametersString(Dictionary<string, StringValues> parameters)
         {
             UriBuilder uriBuilder = new UriBuilder();
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
@@ -242,12 +267,12 @@ namespace SPID.AspNetCore.Authentication
                 {
                     // Override any session persistence to match the token lifetime.
                     var issued = validFrom;
-                    if (issued != DateTime.MinValue)
+                    if (issued != DateTimeOffset.MinValue)
                     {
                         properties.IssuedUtc = issued.Value.ToUniversalTime();
                     }
                     var expires = validTo;
-                    if (expires != DateTime.MinValue)
+                    if (expires != DateTimeOffset.MinValue)
                     {
                         properties.ExpiresUtc = expires.Value.ToUniversalTime();
                     }
@@ -309,7 +334,7 @@ namespace SPID.AspNetCore.Authentication
                 new Claim( SamlConst.registeredOffice, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.registeredOffice.Equals(x.Name) || SamlConst.registeredOffice.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
                 new Claim( SamlConst.spidCode, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.spidCode.Equals(x.Name) || SamlConst.spidCode.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
             };
-            var identity = new ClaimsIdentity(claims, Scheme.Name);
+            var identity = new ClaimsIdentity(claims, Scheme.Name, SamlConst.email, null);
 
             var returnedPrincipal = new ClaimsPrincipal(identity);
             return (returnedPrincipal, DateTimeOffset.Parse(idpAuthnResponse.IssueInstant), DateTimeOffset.Parse(idpAuthnResponse.Assertion.Subject.SubjectConfirmation.SubjectConfirmationData.NotOnOrAfter));

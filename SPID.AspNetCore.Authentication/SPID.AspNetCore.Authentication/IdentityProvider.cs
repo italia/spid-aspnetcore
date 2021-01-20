@@ -10,9 +10,10 @@
         public string OrganizationLogoUrl { get; set; }
         public string SingleSignOnServiceUrl { get; set; }
         public string SingleSignOutServiceUrl { get; set; }
-        public string Method { get; set; }
+        public RequestMethod Method { get; set; } = RequestMethod.Post;
         public string DateTimeFormat { get; internal set; }
-        public string NowDelta { get; internal set; }
+        public double? NowDelta { get; internal set; }
         public string SubjectNameIdRemoveText { get; set; } = "SPID-";
+        public ProviderType ProviderType { get; set; } = ProviderType.IdentityProvider;
     }
 }

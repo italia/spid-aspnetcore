@@ -29,6 +29,11 @@ namespace SPID.AspNetCore.Authentication.Events
         public Func<RemoteSignOutContext, Task> OnRemoteSignOut { get; set; } = context => Task.CompletedTask;
 
         /// <summary>
+        /// Invoked before creating saml token
+        /// </summary>
+        public Func<SecurityTokenCreatingContext, Task> OnTokenCreating { get; set; } = context => Task.CompletedTask;
+
+        /// <summary>
         /// Invoked if exceptions are thrown during request processing. The exceptions will be re-thrown after this event unless suppressed.
         /// </summary>
         public virtual Task AuthenticationFailed(AuthenticationFailedContext context) => OnAuthenticationFailed(context);
@@ -48,5 +53,9 @@ namespace SPID.AspNetCore.Authentication.Events
         /// </summary>
         public virtual Task RemoteSignOut(RemoteSignOutContext context) => OnRemoteSignOut(context);
 
+        /// <summary>
+        /// Invoked before creating saml token
+        /// </summary>
+        public virtual Task TokenCreating(SecurityTokenCreatingContext context) => OnTokenCreating(context);
     }
 }
