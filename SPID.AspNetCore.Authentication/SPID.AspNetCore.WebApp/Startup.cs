@@ -28,20 +28,6 @@ namespace SPID.AspNetCore.WebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var identityProviders = Configuration
-                        .GetSection("Spid")
-                        .GetSection("Providers")
-                        .GetChildren()
-                        .ToList()
-                        .Select(x => new IdentityProvider
-                        {
-                            Method = x.GetValue<RequestMethod>("Method"),
-                            Name = x.GetValue<string>("Name"),
-                            OrganizationDisplayName = x.GetValue<string>("OrganizationDisplayName"),
-                            SingleSignOnServiceUrl = x.GetValue<string>("SingleSignOnServiceUrl"),
-                            SingleSignOutServiceUrl = x.GetValue<string>("SingleSignOutServiceUrl"),
-                            ProviderType = x.GetValue<ProviderType>("Type"),
-                        });
             services.AddControllersWithViews();
             services
                 .AddAuthentication(o => {
@@ -51,15 +37,7 @@ namespace SPID.AspNetCore.WebApp
                 })
                 .AddSpid(o => {
                     o.Events.OnTokenCreating = async (s) => await s.HttpContext.RequestServices.GetRequiredService<CustomSpidEvents>().TokenCreating(s);
-                    o.AddIdentityProviders(identityProviders);
-                    o.AssertionConsumerServiceIndex = 0;
-                    o.AttributeConsumingServiceIndex = 1;
-                    o.EntityId = "https://localhost:44369/";
-                    o.Certificate = X509Helper.GetCertificateFromStore(
-                                        StoreLocation.CurrentUser, StoreName.My,
-                                        X509FindType.FindBySubjectName,
-                                        "HackDevelopers",
-                                        validOnly: false);
+                    o.LoadFromConfiguration(Configuration.GetSection("Spid"));
                 })
                 .AddCookie();
             services.AddScoped<CustomSpidEvents>();
