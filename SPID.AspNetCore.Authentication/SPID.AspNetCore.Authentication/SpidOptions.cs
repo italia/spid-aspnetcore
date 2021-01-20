@@ -9,7 +9,7 @@ namespace SPID.AspNetCore.Authentication
 {
     public class SpidOptions : RemoteAuthenticationOptions
     {
-        private List<IdentityProvider> _identityProviders = new();
+        private readonly List<IdentityProvider> _identityProviders = new();
 
         public SpidOptions()
         {

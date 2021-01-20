@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SPID.AspNetCore.Authentication;
+using SPID.AspNetCore.Authentication.Events;
 using SPID.AspNetCore.Authentication.Helpers;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,10 @@ namespace SPID.AspNetCore.WebApp
                         {
                             Method = x.GetValue<RequestMethod>("Method"),
                             Name = x.GetValue<string>("Name"),
-                            OrganizationDisplayName = x.GetValue<string>("OrganizationDisplayName")
+                            OrganizationDisplayName = x.GetValue<string>("OrganizationDisplayName"),
+                            SingleSignOnServiceUrl = x.GetValue<string>("SingleSignOnServiceUrl"),
+                            SingleSignOutServiceUrl = x.GetValue<string>("SingleSignOutServiceUrl"),
+                            ProviderType = x.GetValue<ProviderType>("Type"),
                         });
             services.AddControllersWithViews();
             services
@@ -45,8 +49,8 @@ namespace SPID.AspNetCore.WebApp
                     o.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     o.DefaultChallengeScheme = SpidDefaults.AuthenticationScheme;
                 })
-                .AddSpid(o => 
-                {
+                .AddSpid(o => {
+                    o.Events.OnTokenCreating = async (s) => await s.HttpContext.RequestServices.GetRequiredService<CustomSpidEvents>().TokenCreating(s);
                     o.AddIdentityProviders(identityProviders);
                     o.AssertionConsumerServiceIndex = 0;
                     o.AttributeConsumingServiceIndex = 1;
@@ -58,6 +62,7 @@ namespace SPID.AspNetCore.WebApp
                                         validOnly: false);
                 })
                 .AddCookie();
+            services.AddScoped<CustomSpidEvents>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -85,6 +90,19 @@ namespace SPID.AspNetCore.WebApp
                                     name: "default",
                                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
+        }
+
+        public class CustomSpidEvents : Authentication.Events.SpidEvents
+        {
+            public CustomSpidEvents(IServiceProvider serviceProvider)
+            {
+
+            }
+
+            public override Task TokenCreating(SecurityTokenCreatingContext context)
+            {
+                return base.TokenCreating(context);
+            }
         }
     }
 }
