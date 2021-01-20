@@ -11,9 +11,11 @@ using SPID.AspNetCore.Authentication.Models.IdP;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using System.Web;
@@ -143,13 +145,25 @@ namespace SPID.AspNetCore.Authentication
             }
             else
             {
-                string redirectUri = GetRedirectUrl(idp.SingleSignOnServiceUrl, samlAuthnRequestId, signedBase64, Options.Certificate);
+                string redirectUri = GetRedirectUrl(idp.SingleSignOnServiceUrl, samlAuthnRequestId, serializedOriginal, Options.Certificate);
                 if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
                 {
                     Logger.MalformedRedirectUri(redirectUri);
                 }
                 Response.Redirect(redirectUri);
             }
+        }
+
+        public static string ZipStr(String str)
+        {
+            using MemoryStream output = new MemoryStream();
+            using (DeflateStream gzip = new DeflateStream(output, CompressionMode.Compress))
+            {
+                using StreamWriter writer = new StreamWriter(gzip, System.Text.Encoding.UTF8);
+                writer.Write(str);
+            }
+
+            return Convert.ToBase64String(output.ToArray());
         }
 
         public string GetRedirectUrl(string signOnSignOutUrl, string samlAuthnRequestId, string data, X509Certificate2 certificate)
@@ -160,11 +174,10 @@ namespace SPID.AspNetCore.Authentication
 
             var dict = new Dictionary<string, StringValues>()
             {
-                { "SAMLRequest", data }
+                { "SAMLRequest", ZipStr("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + data) },
+                { "RelayState", samlAuthnRequestId },
+                { "SigAlg", SamlConst.SignatureMethod}
             };
-
-            dict.Add("RelayState", samlAuthnRequestId);
-            dict.Add("SigAlg", SamlConst.SignatureMethod);
 
             var queryStringNoSignature = BuildURLParametersString(dict).Substring(1);
 
