@@ -159,6 +159,7 @@ namespace SPID.AspNetCore.Authentication
                     SingleSignOnServiceUrl = x.GetValue<string>("SingleSignOnServiceUrl"),
                     SingleSignOutServiceUrl = x.GetValue<string>("SingleSignOutServiceUrl"),
                     SubjectNameIdRemoveText = x.GetValue<string>("SubjectNameIdRemoveText"),
+                    PerformFullResponseValidation = x.GetValue<bool>("PerformFullResponseValidation"),
                 }));
             IsStagingValidatorEnabled = configuration.GetValue<bool?>("IsStagingValidatorEnabled") ?? false;
             IsLocalValidatorEnabled = configuration.GetValue<bool?>("IsLocalValidatorEnabled") ?? false;
