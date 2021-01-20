@@ -55,11 +55,11 @@ namespace SPID.AspNetCore.WebApp
                     o.AssertionConsumerServiceIndex = 0;
                     o.AttributeConsumingServiceIndex = 1;
                     o.EntityId = "https://localhost:44369/";
-                    o.Certificate = X509Helper.GetCertificateFromStore(
-                                        StoreLocation.CurrentUser, StoreName.My,
-                                        X509FindType.FindBySubjectName,
-                                        "HackDevelopers",
-                                        validOnly: false);
+                    //o.Certificate = X509Helper.GetCertificateFromStore(
+                    //                    StoreLocation.CurrentUser, StoreName.My,
+                    //                    X509FindType.FindBySubjectName,
+                    //                    "HackDevelopers",
+                    //                    validOnly: false);
                 })
                 .AddCookie();
             services.AddScoped<CustomSpidEvents>();

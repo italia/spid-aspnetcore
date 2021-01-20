@@ -1,5 +1,6 @@
 ﻿using SPID.AspNetCore.Authentication.Resources;
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
@@ -113,12 +114,18 @@ namespace SPID.AspNetCore.Authentication.Helpers
             return true;
         }
 
+        private static readonly Dictionary<Type, XmlSerializer> serializers = new Dictionary<Type, XmlSerializer>();
+
         public static XmlElement SerializeToXmlElement(this object o)
         {
             XmlDocument doc = new XmlDocument();
 
             using XmlWriter writer = doc.CreateNavigator().AppendChild();
-            new XmlSerializer(o.GetType()).Serialize(writer, o);
+            if (!serializers.ContainsKey(o.GetType()))
+            {
+                serializers.Add(o.GetType(), new XmlSerializer(o.GetType()));
+            }
+            serializers[o.GetType()].Serialize(writer, o);
 
             return doc.DocumentElement;
         }
@@ -128,7 +135,11 @@ namespace SPID.AspNetCore.Authentication.Helpers
             XmlDocument doc = new XmlDocument() { PreserveWhitespace = true };
 
             using XmlWriter writer = doc.CreateNavigator().AppendChild();
-            new XmlSerializer(o.GetType()).Serialize(writer, o);
+            if (!serializers.ContainsKey(o.GetType()))
+            {
+                serializers.Add(o.GetType(), new XmlSerializer(o.GetType()));
+            }
+            serializers[o.GetType()].Serialize(writer, o);
 
             return doc;
         }

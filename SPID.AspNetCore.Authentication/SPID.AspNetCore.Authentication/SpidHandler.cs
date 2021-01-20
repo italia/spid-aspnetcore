@@ -174,7 +174,7 @@ namespace SPID.AspNetCore.Authentication
 
             var dict = new Dictionary<string, StringValues>()
             {
-                { "SAMLRequest", ZipStr("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + data) },
+                { "SAMLRequest", ZipStr(data) },
                 { "RelayState", samlAuthnRequestId },
                 { "SigAlg", SamlConst.SignatureMethod}
             };
@@ -316,14 +316,17 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
-        private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) ElaborateSamlResponse(Response idpAuthnResponse, string id, AuthnRequestType request, string idPName)
+        private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) ElaborateSamlResponse(Response idpAuthnResponse, 
+            string id, 
+            AuthnRequestType request, 
+            string idPName)
         {
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idPName);
 
             EntityDescriptor metadataIdp = !string.IsNullOrWhiteSpace(idp.OrganizationUrlMetadata)
                 ? idp.OrganizationUrlMetadata.DownloadMetadataIDP()
                 : new EntityDescriptor();
-            idpAuthnResponse.ValidateAuthnResponse(request, metadataIdp, true);
+            idpAuthnResponse.ValidateAuthnResponse(request, metadataIdp, idp.PerformFullResponseValidation);
 
             var claims = new Claim[]
             {

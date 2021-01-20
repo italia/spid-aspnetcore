@@ -11,39 +11,39 @@ using System.Threading.Tasks;
 
 namespace SPID.AspNetCore.WebApp.Controllers
 {
-	public class HomeController : Controller
-	{
-		private readonly ILogger<HomeController> _logger;
-
-		public HomeController(ILogger<HomeController> logger)
-		{
-			_logger = logger;
-		}
-
-		public IActionResult Index()
-		{
-			return View();
-		}
-
-		public IActionResult Privacy()
-		{
-			return View();
-		}
-
-		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-		public IActionResult Error()
-		{
-			return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-		}
-
-		public IActionResult Login()
-		{
-			return Challenge(new AuthenticationProperties {  RedirectUri = "/home/loggedin" }, SpidDefaults.AuthenticationScheme);
-		}
-
-    public IActionResult Loggedin()
+    public class HomeController : Controller
     {
-      return Content(User.Identity.Name);
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger)
+        {
+            _logger = logger;
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public IActionResult Login()
+        {
+            return Challenge(new AuthenticationProperties { RedirectUri = "/home/loggedin" }, SpidDefaults.AuthenticationScheme);
+        }
+
+        public IActionResult Loggedin()
+        {
+            return Content(User.Identity.Name);
+        }
     }
-  }
 }
