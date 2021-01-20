@@ -45,7 +45,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <param name="certFilePath"></param>
         /// <param name="certPassword"></param>
         /// <returns></returns>
-        public static X509Certificate2 CertificateFromStrings(string certificateString64, string privateKeyXml)
+        public static X509Certificate2 GetCertificateFromStrings(string certificateString64, string privateKeyXml)
         {
             try
             {

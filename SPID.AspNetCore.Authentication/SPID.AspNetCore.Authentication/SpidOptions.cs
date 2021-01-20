@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using SPID.AspNetCore.Authentication.Events;
+using SPID.AspNetCore.Authentication.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -125,11 +127,6 @@ namespace SPID.AspNetCore.Authentication
 
         public bool IsLocalValidatorEnabled { get; set; }
 
-        public void AddIdentityProviders(IEnumerable<IdentityProvider> identityProviders)
-        {
-            _identityProviders.AddRange(identityProviders);
-        }
-        
         /// <summary>
         /// Gets or sets the certificate.
         /// </summary>
@@ -137,5 +134,76 @@ namespace SPID.AspNetCore.Authentication
         /// The certificate.
         /// </value>
         public X509Certificate2 Certificate { get; set; }
+
+        public void AddIdentityProviders(IEnumerable<IdentityProvider> identityProviders)
+        {
+            _identityProviders.AddRange(identityProviders);
+        }
+
+        public void LoadFromConfiguration(IConfigurationSection configuration)
+        {
+            _identityProviders.AddRange(configuration
+                .GetSection("Providers")
+                .GetChildren()
+                .ToList()
+                .Select(x => new IdentityProvider
+                {
+                    Method = x.GetValue<RequestMethod>("Method"),
+                    Name = x.GetValue<string>("Name"),
+                    OrganizationDisplayName = x.GetValue<string>("OrganizationDisplayName"),
+                    OrganizationLogoUrl = x.GetValue<string>("OrganizationLogoUrl"),
+                    OrganizationName = x.GetValue<string>("OrganizationName"),
+                    OrganizationUrl = x.GetValue<string>("OrganizationUrl"),
+                    OrganizationUrlMetadata = x.GetValue<string>("OrganizationUrlMetadata"),
+                    ProviderType = x.GetValue<ProviderType>("Type"),
+                    SingleSignOnServiceUrl = x.GetValue<string>("SingleSignOnServiceUrl"),
+                    SingleSignOutServiceUrl = x.GetValue<string>("SingleSignOutServiceUrl"),
+                    SubjectNameIdRemoveText = x.GetValue<string>("SubjectNameIdRemoveText"),
+                }));
+            IsStagingValidatorEnabled = configuration.GetValue<bool?>("IsStagingValidatorEnabled") ?? false;
+            IsLocalValidatorEnabled = configuration.GetValue<bool?>("IsLocalValidatorEnabled") ?? false;
+            AllowUnsolicitedLogins = configuration.GetValue<bool?>("AllowUnsolicitedLogins") ?? false;
+            AssertionConsumerServiceIndex = configuration.GetValue<ushort?>("AssertionConsumerServiceIndex") ?? 0;
+            AttributeConsumingServiceIndex = configuration.GetValue<ushort?>("AttributeConsumingServiceIndex") ?? 0;
+            CallbackPath = configuration.GetValue<string>("CallbackPath") ?? CallbackPath;
+            EntityId = configuration.GetValue<string>("EntityId");
+            RemoteSignOutPath = configuration.GetValue<string>("RemoteSignOutPath") ?? RemoteSignOutPath;
+            SignOutScheme = configuration.GetValue<string>("SignOutScheme");
+            UseTokenLifetime = configuration.GetValue<bool?>("UseTokenLifetime") ?? false;
+            SkipUnrecognizedRequests = configuration.GetValue<bool?>("SkipUnrecognizedRequests") ?? true;
+            var certificateSection = configuration.GetSection("Certificate");
+            if (certificateSection != null) 
+            {
+                var certificateSource = certificateSection.GetValue<string>("Source");
+                if (certificateSource == "Store")
+                {
+                    var storeConfiguration = certificateSection.GetSection("Store");
+                    var location = configuration.GetValue<StoreLocation>("Location");
+                    var name = configuration.GetValue<StoreName>("Name");
+                    var findType = configuration.GetValue<X509FindType>("FindType");
+                    var findValue = configuration.GetValue<string>("FindValue");
+                    var validOnly = configuration.GetValue<bool>("validOnly");
+                    Certificate = X509Helper.GetCertificateFromStore(
+                                        StoreLocation.CurrentUser, StoreName.My,
+                                        X509FindType.FindBySubjectName,
+                                        "HackDevelopers",
+                                        validOnly: false);
+                }
+                else if (certificateSource == "File")
+                {
+                    var storeConfiguration = certificateSection.GetSection("File");
+                    var path = configuration.GetValue<string>("Path");
+                    var password = configuration.GetValue<string>("Password");
+                    Certificate = X509Helper.GetCertificateFromFile(path, password);
+                }
+                else
+                {
+                    var storeConfiguration = certificateSection.GetSection("Raw");
+                    var certificate = configuration.GetValue<string>("Certificate");
+                    var key = configuration.GetValue<string>("Key");
+                    Certificate = X509Helper.GetCertificateFromStrings(certificate, key);
+                }
+            }
+        }
     }
 }
