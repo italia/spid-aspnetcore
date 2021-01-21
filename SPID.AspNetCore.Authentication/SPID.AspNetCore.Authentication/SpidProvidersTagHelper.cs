@@ -1,0 +1,116 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace SPID.AspNetCore.Authentication
+{
+    public class SpidProvidersTagHelper : TagHelper
+    {
+        private static Dictionary<SpidButtonSize, (string ShortClassName, string LongClassName)> _classNames = new()
+        {
+            { SpidButtonSize.Small, ("s", "small") },
+            { SpidButtonSize.Medium, ("m", "medium") },
+            { SpidButtonSize.Large, ("l", "large") },
+            { SpidButtonSize.ExtraLarge, ("xl", "xlarge") }
+        };
+
+        SpidConfiguration _options;
+        IUrlHelper _urlHelper;
+
+        public SpidProvidersTagHelper(IOptionsSnapshot<SpidConfiguration> options, IUrlHelper urlHelper)
+        {
+            _options = options.Value;
+            _urlHelper = urlHelper;
+        }
+
+        public SpidButtonSize Size { get; set; }
+
+        public string CircleImagePath { get; set; } = "~/spid/spid-ico-circle-bb.png";
+
+        public string ChallengeUrl { get; set; }
+
+        public override void Process(TagHelperContext context, TagHelperOutput output)
+        {
+            output.TagName = "div";
+            output.Content.AppendHtml(CreateHeader());
+            output.Content.AppendHtml(CreateButtons());
+        }
+
+        private TagBuilder CreateHeader()
+        {
+            var spanIcon = new TagBuilder("span");
+            spanIcon.AddCssClass("italia-it-button-icon");
+
+            var imgIcon = new TagBuilder("img");
+            imgIcon.Attributes.Add("src", _urlHelper.Content(CircleImagePath));
+            imgIcon.Attributes.Add("alt", string.Empty);
+            spanIcon.AddCssClass("italia-it-button-icon");
+            spanIcon.InnerHtml.AppendHtml(imgIcon);
+
+            var spanText = new TagBuilder("span");
+            spanText.AddCssClass("italia-it-button-text");
+            spanText.InnerHtml.Append("Entra con SPID");
+
+            var a = new TagBuilder("a");
+            a.Attributes.Add("href", "javascript:;");
+            a.Attributes.Add("class", $"italia-it-button italia-it-button-size-{_classNames[Size].ShortClassName} button-spid");
+            a.Attributes.Add("spid-idp-button", $"#spid-idp-button-{_classNames[Size].LongClassName}-get");
+            a.Attributes.Add("aria-haspopup", "true");
+            a.Attributes.Add("aria-expanded", "false");
+
+            a.InnerHtml.AppendHtml(spanIcon).AppendHtml(spanText);
+            return a;
+        }
+
+        private TagBuilder CreateButtons()
+        {
+            var container = new TagBuilder("div");
+            container.Attributes.Add("id", $"spid-idp-button-{_classNames[Size].LongClassName}-get");
+            container.AddCssClass("spid-idp-button spid-idp-button-tip spid-idp-button-relative");
+            var listContainer = new TagBuilder("ul");
+            listContainer.Attributes.Add("id", $"spid-idp-list-{_classNames[Size].LongClassName}-root-get");
+            listContainer.Attributes.Add("aria-labelledby", "spid-idp");
+            listContainer.AddCssClass("spid-idp-button-menu");
+
+            foreach(var idp in _options.IdentityProviders)
+            {
+                var itemContainer = new TagBuilder("li");
+                itemContainer.AddCssClass("spid-idp-button-link");
+                itemContainer.Attributes.Add("data-idp", idp.Name);
+
+                var item = new TagBuilder("a");
+                item.Attributes.Add("href", $"{ChallengeUrl}?idpname={idp.Name}");
+
+                var span = new TagBuilder("span");
+                span.AddCssClass("spid-sr-only");
+                span.InnerHtml.Append(idp.OrganizationDisplayName);
+
+                var img = new TagBuilder("img");
+                img.Attributes.Add("src", idp.OrganizationLogoUrl);
+                img.Attributes.Add("alt", idp.Name);
+                span.InnerHtml.Append(idp.OrganizationDisplayName);
+
+                item.InnerHtml.AppendHtml(span).AppendHtml(img);
+                itemContainer.InnerHtml.AppendHtml(item);
+                listContainer.InnerHtml.AppendHtml(itemContainer);
+            }
+            container.InnerHtml.AppendHtml(listContainer);
+            return container;
+        }
+    }
+
+    public enum SpidButtonSize
+    {
+        Small,
+        Medium,
+        Large,
+        ExtraLarge
+    }
+}

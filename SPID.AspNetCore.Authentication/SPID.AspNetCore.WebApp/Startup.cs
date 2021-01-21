@@ -35,9 +35,9 @@ namespace SPID.AspNetCore.WebApp
                     o.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     o.DefaultChallengeScheme = SpidDefaults.AuthenticationScheme;
                 })
-                .AddSpid(o => {
+                .AddSpid(Configuration, o => {
                     o.Events.OnTokenCreating = async (s) => await s.HttpContext.RequestServices.GetRequiredService<CustomSpidEvents>().TokenCreating(s);
-                    o.LoadFromConfiguration(Configuration.GetSection("Spid"));
+                    o.LoadFromConfiguration(Configuration);
                 })
                 .AddCookie();
             services.AddScoped<CustomSpidEvents>();
@@ -70,7 +70,7 @@ namespace SPID.AspNetCore.WebApp
             });
         }
 
-        public class CustomSpidEvents : Authentication.Events.SpidEvents
+        public class CustomSpidEvents : SpidEvents
         {
             public CustomSpidEvents(IServiceProvider serviceProvider)
             {

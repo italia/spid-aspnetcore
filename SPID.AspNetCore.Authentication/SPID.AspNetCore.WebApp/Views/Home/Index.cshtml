@@ -1,8 +1,17 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+	ViewData["Title"] = "Home Page";
+}
+@section styles {
+	<link rel="stylesheet" href="~/spid/spid.css" />
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p><a href="https://localhost:44369/home/login?idpname=Local">Login</a>.</p>
+	<h1 class="display-4">Welcome</h1>
+	<spid-providers challenge-url="/home/login" size="Medium" class="text-left"></spid-providers>
+	<p><a href="https://localhost:44369/home/login?idpname=Local">Login</a>.</p>
 </div>
+
+
+@section scripts {
+	<script src="~/spid/spid.js"></script>
+}

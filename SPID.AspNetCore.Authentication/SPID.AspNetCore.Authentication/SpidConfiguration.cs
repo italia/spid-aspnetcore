@@ -1,36 +1,20 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using SPID.AspNetCore.Authentication.Events;
-using SPID.AspNetCore.Authentication.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
 namespace SPID.AspNetCore.Authentication
 {
-    public class SpidOptions : RemoteAuthenticationOptions
+    public class SpidConfiguration
     {
         private readonly List<IdentityProvider> _identityProviders = new();
 
-        public SpidOptions()
-        {
-            CallbackPath = "/signin-spid";
-            // In ADFS the cleanup messages are sent to the same callback path as the initial login.
-            // In AAD it sends the cleanup message to a random Reply Url and there's no deterministic way to configure it.
-            //  If you manage to get it configured, then you can set RemoteSignOutPath accordingly.
-            RemoteSignOutPath = "/signout-spid";
-            Events = new SpidEvents();
-        }
-
         /// <summary>
-        /// Check that the options are valid.  Should throw an exception if things are not ok.
+        ///  Requests received on this path will cause the handler to invoke SignIn using the SignInScheme.
         /// </summary>
-        public override void Validate()
-        {
-            base.Validate();
-
-        }
+        public PathString CallbackPath { get; set; }
 
         /// <summary>
         ///  Requests received on this path will cause the handler to invoke SignOut using the SignOutScheme.
@@ -44,20 +28,6 @@ namespace SPID.AspNetCore.Authentication
         /// This is disabled by default.
         /// </summary>
         public bool SkipUnrecognizedRequests { get; set; }
-
-        /// <summary>
-        /// Gets or sets the <see cref="SpidEvents"/> to call when processing Spid messages.
-        /// </summary>
-        public new SpidEvents Events
-        {
-            get => (SpidEvents)base.Events;
-            set => base.Events = value;
-        }
-
-        /// <summary>
-        /// Gets or sets the type used to secure data handled by the middleware.
-        /// </summary>
-        public ISecureDataFormat<AuthenticationProperties> StateDataFormat { get; set; }
 
         /// <summary>
         /// Indicates that the authentication session lifetime (e.g. cookies) should match that of the authentication token.
@@ -108,8 +78,10 @@ namespace SPID.AspNetCore.Authentication
         /// <value>
         /// The identity providers.
         /// </value>
-        public IEnumerable<IdentityProvider> IdentityProviders 
-        { 
+        public IEnumerable<IdentityProvider> IdentityProviders => _identityProviders;
+
+        public IEnumerable<IdentityProvider> FilteredIdentityProviders
+        {
             get
             {
                 var result = _identityProviders.AsEnumerable();
@@ -140,22 +112,21 @@ namespace SPID.AspNetCore.Authentication
             _identityProviders.AddRange(identityProviders);
         }
 
-        public void LoadFromConfiguration(IConfiguration configuration)
-        {
-            var conf = OptionsHelper.CreateFromConfiguration(configuration);
-            _identityProviders.AddRange(conf.IdentityProviders);
-            IsStagingValidatorEnabled = conf.IsStagingValidatorEnabled;
-            IsLocalValidatorEnabled = conf.IsLocalValidatorEnabled;
-            AllowUnsolicitedLogins = conf.AllowUnsolicitedLogins;
-            AssertionConsumerServiceIndex = conf.AssertionConsumerServiceIndex;
-            AttributeConsumingServiceIndex = conf.AttributeConsumingServiceIndex;
-            CallbackPath = conf.CallbackPath.HasValue ? conf.CallbackPath: CallbackPath;
-            EntityId = conf.EntityId;
-            RemoteSignOutPath = conf.RemoteSignOutPath.HasValue ? conf.RemoteSignOutPath : RemoteSignOutPath;
-            SignOutScheme = conf.SignOutScheme;
-            UseTokenLifetime = conf.UseTokenLifetime;
-            SkipUnrecognizedRequests = conf.SkipUnrecognizedRequests;
-            Certificate = conf.Certificate;
-        }
+        //public void LoadFromConfiguration(IConfigurationSection configuration)
+        //{
+        //    var conf = OptionsHelper.CreateFromConfiguration(configuration);
+        //    _identityProviders.AddRange(conf.IdentityProviders);
+        //    IsStagingValidatorEnabled = conf.IsStagingValidatorEnabled;
+        //    IsLocalValidatorEnabled = conf.IsLocalValidatorEnabled;
+        //    AllowUnsolicitedLogins = conf.AllowUnsolicitedLogins;
+        //    AssertionConsumerServiceIndex = conf.AssertionConsumerServiceIndex;
+        //    AttributeConsumingServiceIndex = conf.AttributeConsumingServiceIndex;
+        //    CallbackPath = conf.CallbackPath.HasValue ? conf.CallbackPath : CallbackPath;
+        //    EntityId = conf.EntityId;
+        //    RemoteSignOutPath = conf.RemoteSignOutPath.HasValue ? conf.RemoteSignOutPath : RemoteSignOutPath;
+        //    SignOutScheme = conf.SignOutScheme;
+        //    UseTokenLifetime = conf.UseTokenLifetime;
+        //    SkipUnrecognizedRequests = conf.SkipUnrecognizedRequests;
+        //}
     }
 }
