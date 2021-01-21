@@ -419,7 +419,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <param name="subjectNameId"></param>
         /// <param name="authnStatementSessionIndex"></param>
         /// <returns></returns>
-        public static (string, LogoutRequestType) BuildLogoutPostRequest(string uuid, string consumerServiceURL, X509Certificate2 certificate,
+        public static (string, LogoutRequestType, string) BuildLogoutPostRequest(string uuid, string consumerServiceURL, X509Certificate2 certificate,
                                                     IdentityProvider identityProvider, string subjectNameId, string authnStatementSessionIndex)
         {
 
@@ -464,9 +464,9 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 },
                 Item = new NameIDType
                 {
-                    SPNameQualifier = consumerServiceURL,
+                    NameQualifier = consumerServiceURL,
                     Format = "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
-                    Value = subjectNameId.Replace(subjectNameIdRemoveText, "")
+                    Value = subjectNameIdRemoveText == null ? subjectNameId : subjectNameId.Replace(subjectNameIdRemoveText, String.Empty)
                 },
                 NotOnOrAfterSpecified = true,
                 NotOnOrAfter = now.AddMinutes(10),
@@ -499,7 +499,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             XmlElement signature = XmlSigningHelper.SignXMLDoc(doc, certificate, "_" + uuid);
             doc.DocumentElement.InsertBefore(signature, doc.DocumentElement.ChildNodes[1]);
 
-            return (Convert.ToBase64String(Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + doc.OuterXml)), logoutRequest);
+            return (Convert.ToBase64String(Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + doc.OuterXml)), logoutRequest, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + samlString);
         }
 
         /// <summary>
@@ -581,11 +581,11 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// Check the validity of IdP logout response
         /// </summary>
         /// <param name="idpLogoutResponse"></param>
-        /// <param name="samlRequestId"></param>
+        /// <param name="request"></param>
         /// <returns>True if valid, false otherwise</returns>
-        public static bool ValidLogoutResponse(IdpLogoutResponse idpLogoutResponse, string samlRequestId)
+        public static bool ValidateLogoutResponse(IdpLogoutResponse idpLogoutResponse, LogoutRequestType request)
         {
-            return (idpLogoutResponse.InResponseTo == "_" + samlRequestId);
+            return (idpLogoutResponse.InResponseTo == request.ID);
         }
 
     }

@@ -56,6 +56,17 @@ namespace SPID.AspNetCore.Authentication
         /// <returns>A new instance of the events instance.</returns>
         protected override Task<object> CreateEventsAsync() => Task.FromResult<object>(new SpidEvents());
 
+
+        public override async Task<bool> ShouldHandleRequestAsync()
+        {
+            var result = await base.ShouldHandleRequestAsync();
+            if (!result)
+            {
+                result = Options.RemoteSignOutPath == Request.Path;
+            }
+            return result;
+        }
+
         /// <summary>
         /// Overridden to handle remote signout requests
         /// </summary>
@@ -63,7 +74,7 @@ namespace SPID.AspNetCore.Authentication
         public override Task<bool> HandleRequestAsync()
         {
             // RemoteSignOutPath and CallbackPath may be the same, fall through if the message doesn't match.
-            if (Options.RemoteSignOutPath.HasValue && Options.RemoteSignOutPath == Request.Path && HttpMethods.IsGet(Request.Method))
+            if (Options.RemoteSignOutPath.HasValue && Options.RemoteSignOutPath == Request.Path)
             {
                 // We've received a remote sign-out request
                 return HandleRemoteSignOutAsync();
@@ -201,6 +212,8 @@ namespace SPID.AspNetCore.Authentication
         }
 
         private static readonly XmlSerializer requestSerializer = new XmlSerializer(typeof(AuthnRequestType));
+        private static readonly XmlSerializer logoutRequestSerializer = new XmlSerializer(typeof(LogoutRequestType));
+
         /// <summary>
         /// Invoked to process incoming authentication messages.
         /// </summary>
@@ -380,9 +393,9 @@ namespace SPID.AspNetCore.Authentication
             requestProperties.Items.TryGetValue("SessionIndex", out var sessionIndex);
             var idp = Options.IdentityProviders.FirstOrDefault(i => i.Name == idpName);
 
-            var (signed, logoutRequest) = SamlHelper.BuildLogoutPostRequest(
+            var (signed, logoutRequest, serializedOriginal) = SamlHelper.BuildLogoutPostRequest(
                 uuid: samlAuthnRequestId,
-                consumerServiceURL: idp.SingleSignOnServiceUrl,
+                consumerServiceURL: Options.EntityId,
                 subjectNameId: subjectNameId,
                 authnStatementSessionIndex: sessionIndex,
                 certificate: Options.Certificate,
@@ -394,14 +407,29 @@ namespace SPID.AspNetCore.Authentication
             };
             await Events.RedirectToIdentityProvider(redirectContext);
 
+            properties.Items.Add("Request", serializedOriginal);
+            Response.Cookies.Append("SPID-Properties", Options.StateDataFormat.Protect(properties));
+
             if (!redirectContext.Handled)
             {
-                var redirectUri = GetRedirectUrl(idp.SingleSignOutServiceUrl, samlAuthnRequestId, signed, Options.Certificate);
-                if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
+                if (idp.Method == RequestMethod.Post)
                 {
-                    Logger.MalformedRedirectUri(redirectUri);
+                    await Response.WriteAsync($"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{idp.SingleSignOutServiceUrl}\" method=\"post\">" +
+                          $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{signed}\" />" +
+                          $"<input type=\"hidden\" name=\"RelayState\" value=\"{samlAuthnRequestId}\" />" +
+                          $"<button id=\"btnLogout\">Logout</button>" +
+                          "<script>document.getElementById('btnLogout').click()</script>" +
+                          "</form></body></html>");
                 }
-                Response.Redirect(redirectUri);
+                else
+                {
+                    var redirectUri = GetRedirectUrl(idp.SingleSignOutServiceUrl, samlAuthnRequestId, signed, Options.Certificate);
+                    if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
+                    {
+                        Logger.MalformedRedirectUri(redirectUri);
+                    }
+                    Response.Redirect(redirectUri);
+                }
             }
         }
 
@@ -424,7 +452,17 @@ namespace SPID.AspNetCore.Authentication
                 SpidMessage = SamlHelper.GetLogoutResponse(form["SAMLResponse"].ToString());
             }
 
-            if (!SpidMessage.IsSuccessful || !SamlHelper.ValidLogoutResponse(SpidMessage, SpidMessage.Id))
+            Request.Cookies.TryGetValue("SPID-Properties", out var state);
+            var requestProperties = Options.StateDataFormat.Unprotect(state);
+
+            // Extract the user state from properties and reset.
+            requestProperties.Items.TryGetValue("Request", out var serializedRequest);
+            using var stringReader = new StringReader(serializedRequest);
+            using XmlReader requestReader = XmlReader.Create(stringReader);
+            var request = logoutRequestSerializer.Deserialize(requestReader) as LogoutRequestType;
+
+
+            if (!SpidMessage.IsSuccessful || !SamlHelper.ValidateLogoutResponse(SpidMessage, request))
             {
                 Logger.RemoteSignOutFailed();
                 return false;
@@ -450,25 +488,8 @@ namespace SPID.AspNetCore.Authentication
             Logger.RemoteSignOut();
 
             await Context.SignOutAsync(Options.SignOutScheme);
+            Response.Redirect(requestProperties.RedirectUri);
             return true;
-        }
-
-        /// <summary>
-        /// Build a redirect path if the given path is a relative path.
-        /// </summary>
-        private string BuildRedirectUriIfRelative(string uri)
-        {
-            if (string.IsNullOrEmpty(uri))
-            {
-                return uri;
-            }
-
-            if (!uri.StartsWith("/", StringComparison.Ordinal))
-            {
-                return uri;
-            }
-
-            return BuildRedirectUri(uri);
         }
     }
 }

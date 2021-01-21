@@ -93,7 +93,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
                                    signedDocument.GetElementsByTagName("ds:Signature") :
                                    signedDocument.GetElementsByTagName("Signature");
 
-            for (int i = 0; i <= nodeList.Count; i++)
+            for (int i = 0; i < nodeList.Count; i++)
             {
                 signedXml.LoadXml((XmlElement)nodeList[i]);
                 if (!signedXml.CheckSignature()) return false;
