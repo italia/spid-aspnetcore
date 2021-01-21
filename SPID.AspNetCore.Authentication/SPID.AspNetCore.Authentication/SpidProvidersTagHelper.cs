@@ -32,7 +32,7 @@ namespace SPID.AspNetCore.Authentication
 
         public SpidButtonSize Size { get; set; }
 
-        public string CircleImagePath { get; set; } = "~/spid/spid-ico-circle-bb.png";
+        public string CircleImagePath { get; set; } = "~/images/spid-ico-circle-bb.png";
 
         public string ChallengeUrl { get; set; }
 
@@ -86,7 +86,7 @@ namespace SPID.AspNetCore.Authentication
                 itemContainer.Attributes.Add("data-idp", idp.Name);
 
                 var item = new TagBuilder("a");
-                item.Attributes.Add("href", $"{ChallengeUrl}?idpname={idp.Name}");
+                item.Attributes.Add("href", $"{ChallengeUrl}&idpname={idp.Name}");
 
                 var span = new TagBuilder("span");
                 span.AddCssClass("spid-sr-only");

@@ -14,6 +14,14 @@ namespace SPID.AspNetCore.Authentication.Events
         public Func<AuthenticationFailedContext, Task> OnAuthenticationFailed { get; set; } = context => Task.CompletedTask;
 
         /// <summary>
+        /// Gets or sets the on authentication success.
+        /// </summary>
+        /// <value>
+        /// The on authentication success.
+        /// </value>
+        public Func<AuthenticationSuccessContext, Task> OnAuthenticationSuccess { get; set; } = context => Task.CompletedTask;
+
+        /// <summary>
         /// Invoked when a protocol message is first received.
         /// </summary>
         public Func<MessageReceivedContext, Task> OnMessageReceived { get; set; } = context => Task.CompletedTask;
@@ -57,5 +65,12 @@ namespace SPID.AspNetCore.Authentication.Events
         /// Invoked before creating saml token
         /// </summary>
         public virtual Task TokenCreating(SecurityTokenCreatingContext context) => OnTokenCreating(context);
+
+        /// <summary>
+        /// Authentications the success.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <returns></returns>
+        public virtual Task AuthenticationSuccess(AuthenticationSuccessContext context) => OnAuthenticationSuccess(context);
     }
 }
