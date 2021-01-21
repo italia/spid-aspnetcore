@@ -106,6 +106,7 @@ namespace SPID.AspNetCore.Authentication
 
             var securityTokenCreatingContext = new SecurityTokenCreatingContext(Context, Scheme, Options, properties)
             {
+                SamlAuthnRequestId = samlAuthnRequestId,
                 TokenOptions = new SecurityTokenCreatingOptions
                 {
                     EntityId = Options.EntityId,
@@ -309,7 +310,14 @@ namespace SPID.AspNetCore.Authentication
                 properties.Items.Add("SessionIndex", SpidMessage.Assertion.AuthnStatement.SessionIndex);
                 Response.Cookies.Append("SPID-Properties", Options.StateDataFormat.Protect(properties));
 
-                return HandleRequestResult.Success(new AuthenticationTicket(principal, properties, Scheme.Name));
+                var ticket = new AuthenticationTicket(principal, properties, Scheme.Name);
+                var authenticationSuccessContext = new AuthenticationSuccessContext(Context, Scheme, Options)
+                {
+                    SamlAuthnRequestId = id,
+                    AuthenticationTicket = ticket
+                };
+                await Events.AuthenticationSuccess(authenticationSuccessContext);
+                return HandleRequestResult.Success(ticket);
             }
             catch (Exception exception)
             {
@@ -330,9 +338,9 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
-        private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) ElaborateSamlResponse(Response idpAuthnResponse, 
-            string id, 
-            AuthnRequestType request, 
+        private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) ElaborateSamlResponse(Response idpAuthnResponse,
+            string id,
+            AuthnRequestType request,
             string idPName)
         {
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idPName);

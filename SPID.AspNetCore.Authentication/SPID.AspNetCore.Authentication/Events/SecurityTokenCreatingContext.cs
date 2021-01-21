@@ -11,6 +11,13 @@ namespace SPID.AspNetCore.Authentication.Events
         public SecurityTokenCreatingContext(HttpContext context, AuthenticationScheme scheme, SpidOptions options, AuthenticationProperties properties)
             : base(context, scheme, options, properties) { }
 
-        public SecurityTokenCreatingOptions TokenOptions { get; set; }
+        public SecurityTokenCreatingOptions TokenOptions { get; internal set; }
+        /// <summary>
+        /// Gets the saml authn request identifier.
+        /// </summary>
+        /// <value>
+        /// The saml authn request identifier.
+        /// </value>
+        public string SamlAuthnRequestId { get; internal set; }
     }
 }
