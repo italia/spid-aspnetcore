@@ -200,6 +200,7 @@ namespace SPID.AspNetCore.Authentication
             return uriBuilder.Query;
         }
 
+        private static readonly XmlSerializer requestSerializer = new XmlSerializer(typeof(AuthnRequestType));
         /// <summary>
         /// Invoked to process incoming authentication messages.
         /// </summary>
@@ -250,7 +251,6 @@ namespace SPID.AspNetCore.Authentication
                 properties.Items.TryGetValue("IdpName", out var idpName);
                 properties.Items.TryGetValue("Request", out var serializedRequest);
 
-                XmlSerializer requestSerializer = new XmlSerializer(typeof(AuthnRequestType));
                 using var stringReader = new StringReader(serializedRequest);
                 using XmlReader requestReader = XmlReader.Create(stringReader);
                 var request = requestSerializer.Deserialize(requestReader) as AuthnRequestType;

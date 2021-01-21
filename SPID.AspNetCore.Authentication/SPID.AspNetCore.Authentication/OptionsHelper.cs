@@ -49,11 +49,11 @@ namespace SPID.AspNetCore.Authentication
                 if (certificateSource == "Store")
                 {
                     var storeConfiguration = certificateSection.GetSection("Store");
-                    var location = section.GetValue<StoreLocation>("Location");
-                    var name = section.GetValue<StoreName>("Name");
-                    var findType = section.GetValue<X509FindType>("FindType");
-                    var findValue = section.GetValue<string>("FindValue");
-                    var validOnly = section.GetValue<bool>("validOnly");
+                    var location = storeConfiguration.GetValue<StoreLocation>("Location");
+                    var name = storeConfiguration.GetValue<StoreName>("Name");
+                    var findType = storeConfiguration.GetValue<X509FindType>("FindType");
+                    var findValue = storeConfiguration.GetValue<string>("FindValue");
+                    var validOnly = storeConfiguration.GetValue<bool>("validOnly");
                     options.Certificate = X509Helper.GetCertificateFromStore(
                                         StoreLocation.CurrentUser, StoreName.My,
                                         X509FindType.FindBySubjectName,
@@ -63,15 +63,15 @@ namespace SPID.AspNetCore.Authentication
                 else if (certificateSource == "File")
                 {
                     var storeConfiguration = certificateSection.GetSection("File");
-                    var path = section.GetValue<string>("Path");
-                    var password = section.GetValue<string>("Password");
+                    var path = storeConfiguration.GetValue<string>("Path");
+                    var password = storeConfiguration.GetValue<string>("Password");
                     options.Certificate = X509Helper.GetCertificateFromFile(path, password);
                 }
                 else
                 {
                     var storeConfiguration = certificateSection.GetSection("Raw");
-                    var certificate = section.GetValue<string>("Certificate");
-                    var key = section.GetValue<string>("Key");
+                    var certificate = storeConfiguration.GetValue<string>("Certificate");
+                    var key = storeConfiguration.GetValue<string>("Key");
                     options.Certificate = X509Helper.GetCertificateFromStrings(certificate, key);
                 }
             }

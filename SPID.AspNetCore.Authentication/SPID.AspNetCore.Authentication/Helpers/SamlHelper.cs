@@ -121,13 +121,13 @@ namespace SPID.AspNetCore.Authentication.Helpers
                     Comparison = AuthnContextComparisonType.exact,
                     ComparisonSpecified = true,
                     Items = new string[1]
-                {
-            SamlConst.SpidL2
-                },
+                    {
+                        SamlConst.SpidL2
+                    },
                     ItemsElementName = new ItemsChoiceType7[1]
-                {
-            ItemsChoiceType7.AuthnContextClassRef
-                }
+                    {
+                        ItemsChoiceType7.AuthnContextClassRef
+                    }
                 }
             };
 
