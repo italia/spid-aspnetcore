@@ -294,6 +294,7 @@ namespace SPID.AspNetCore.Authentication
 
                 properties.Items.Add("SubjectNameId", SpidMessage.Assertion.Subject?.NameID?.Text);
                 properties.Items.Add("SessionIndex", SpidMessage.Assertion.AuthnStatement.SessionIndex);
+                Response.Cookies.Append("SPID-Properties", Options.StateDataFormat.Protect(properties));
 
                 return HandleRequestResult.Success(new AuthenticationTicket(principal, properties, Scheme.Name));
             }
