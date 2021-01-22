@@ -302,3 +302,11 @@ public class CustomSpidEvents : SpidEvents
 }
 ```
 
+# Compatibilità con Bootstrap
+Se la WebApp utilizza Bootstrap, è necessario aggiungere la seguente classe al fine di visualizzare correttamente il pulsante "Entra con SPID"
+
+```css
+.spid-idp-button * {
+  box-sizing: content-box;
+}
+```
