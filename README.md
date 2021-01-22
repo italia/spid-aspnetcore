@@ -1,4 +1,4 @@
-# SPID Remote Authenticator for AspNetCore
+# AspNetCore Remote Authenticator for SPID
 This is a custom implementation of an AspNetCore RemoteAuthenticationHandler for SPID (a.k.a. the Italian 'Sistema Pubblico di Identità Digitale').
 Since it's an Italian-only thing, there's no point in struggling with an english README, just italian from now on.
 
