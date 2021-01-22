@@ -223,7 +223,7 @@ namespace SPID.AspNetCore.Authentication
         {
             Response SpidMessage = null;
             AuthenticationProperties properties = null;
-
+            string id = null;
             // assumption: if the ContentType is "application/x-www-form-urlencoded" it should be safe to read as it is small.
             if (HttpMethods.IsPost(Request.Method)
               && !string.IsNullOrEmpty(Request.ContentType)
@@ -234,6 +234,7 @@ namespace SPID.AspNetCore.Authentication
                 var form = await Request.ReadFormAsync();
 
                 SpidMessage = SamlHelper.GetAuthnResponse(form["SAMLResponse"].ToString());
+                id = form["RelayState"].ToString();
             }
 
             if (SpidMessage == null)
@@ -249,8 +250,6 @@ namespace SPID.AspNetCore.Authentication
 
             try
             {
-                var id = SpidMessage.InResponseTo.Replace("_", "");
-
                 Request.Cookies.TryGetValue("SPID-Properties", out var state);
                 properties = Options.StateDataFormat.Unprotect(state);
 
@@ -288,7 +287,7 @@ namespace SPID.AspNetCore.Authentication
                     return HandleRequestResult.Fail("Correlation failed.", properties);
                 }
 
-                var (principal, validFrom, validTo) = ElaborateSamlResponse(SpidMessage, id, request, idpName);
+                var (principal, validFrom, validTo) = ElaborateSamlResponse(SpidMessage, request, idpName);
 
                 if (Options.UseTokenLifetime && validFrom != null && validTo != null)
                 {
@@ -339,7 +338,6 @@ namespace SPID.AspNetCore.Authentication
         }
 
         private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) ElaborateSamlResponse(Response idpAuthnResponse,
-            string id,
             AuthnRequestType request,
             string idPName)
         {
@@ -352,6 +350,8 @@ namespace SPID.AspNetCore.Authentication
 
             var claims = new Claim[]
             {
+                new Claim( ClaimTypes.NameIdentifier, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
+                new Claim( ClaimTypes.Email, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
                 new Claim( SamlConst.name, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.name.Equals(x.Name) || SamlConst.name.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
                 new Claim( SamlConst.email, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
                 new Claim( SamlConst.familyName, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.familyName.Equals(x.Name) || SamlConst.familyName.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),

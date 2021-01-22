@@ -45,18 +45,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <param name="certFilePath"></param>
         /// <param name="certPassword"></param>
         /// <returns></returns>
-        public static X509Certificate2 GetCertificateFromStrings(string certificateString64, string privateKeyXml)
+        public static X509Certificate2 GetCertificateFromStrings(string certificateString64, string password)
         {
             try
             {
-                var rsaCryptoServiceProvider = new RSACryptoServiceProvider();
-                rsaCryptoServiceProvider.FromXmlString(privateKeyXml);
-
                 var certificateBytes = Convert.FromBase64String(certificateString64);
-                var x509Certificate2 = new X509Certificate2(certificateBytes)
-                {
-                    PrivateKey = rsaCryptoServiceProvider
-                };
+                var x509Certificate2 = new X509Certificate2(certificateBytes, password);
 
                 return x509Certificate2;
             }

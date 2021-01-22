@@ -57,7 +57,7 @@ namespace SPID.AspNetCore.Authentication
                     options.Certificate = X509Helper.GetCertificateFromStore(
                                         StoreLocation.CurrentUser, StoreName.My,
                                         X509FindType.FindBySubjectName,
-                                        "HackDevelopers",
+                                        findValue,
                                         validOnly: false);
                 }
                 else if (certificateSource == "File")
@@ -67,11 +67,11 @@ namespace SPID.AspNetCore.Authentication
                     var password = storeConfiguration.GetValue<string>("Password");
                     options.Certificate = X509Helper.GetCertificateFromFile(path, password);
                 }
-                else
+                else if(certificateSource == "Raw")
                 {
                     var storeConfiguration = certificateSection.GetSection("Raw");
                     var certificate = storeConfiguration.GetValue<string>("Certificate");
-                    var key = storeConfiguration.GetValue<string>("Key");
+                    var key = storeConfiguration.GetValue<string>("Password");
                     options.Certificate = X509Helper.GetCertificateFromStrings(certificate, key);
                 }
             }
