@@ -43,10 +43,10 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-In questo modo vengono aggiunti i middleware necessari per la gestione delle richieste/risposte di login e logout da/verso SPID.
+In questo modo vengono aggiunti i middleware necessari per la gestione delle richieste/risposte di login/logout da/verso SPID.
 
-Nella libreraè inclusa anche l'implementazione di un TagHelper per la renderizzazione del pulsante "Entra con SPID" conforme alle direttive.
-Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla View dove lo si desidera posizionare:
+Nella libreria è inclusa anche l'implementazione di un TagHelper per la renderizzazione (conforme alle specifiche) del pulsante "Entra con SPID".
+Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla View Razor dove lo si desidera posizionare:
 
 ```razor
 @using SPID.AspNetCore.Authentication
@@ -69,7 +69,7 @@ Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla V
 }
 ```
 
-Il TagHelper `spid-providers` si occuperà di generare automaticamente il codice HTML necessario per la renderizzazione della lista di IdentityProviders, inizializzata tra le SpidOptions in fase di startup.
+Il TagHelper `spid-providers` si occuperà di generare automaticamente il codice HTML necessario per la renderizzazione della lista di IdentityProviders che è stata inizializzata tra le SpidOptions in fase di startup.
 
 # Configurazione
 E' possibile configurare la libreria leggendo le impostazioni da Configurazione, tramite il comando
@@ -77,6 +77,7 @@ E' possibile configurare la libreria leggendo le impostazioni da Configurazione,
 ```csharp
 o.LoadFromConfiguration(Configuration);
 ```
+
 In particolare è possibile aggiungere alla configurazione una sezione 'Spid' che ha il seguente formato
 
 ```json
@@ -134,7 +135,99 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "Type": "IdentityProvider",
         "PerformFullResponseValidation": false
       },
-      ........
+      {
+        "Name": "Intesa",
+        "OrganizationName": "IN.TE.S.A. S.p.A.",
+        "OrganizationDisplayName": "IN.TE.S.A. S.p.A.",
+        "OrganizationUrlMetadata": "https://spid.intesa.it/metadata/metadata.xml",
+        "OrganizationUrl": "https://www.intesa.it/",
+        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-intesaid.png",
+        "SingleSignOnServiceUrl": "https://spid.intesa.it/Time4UserServices/services/idp/AuthnRequest/",
+        "SingleSignOutServiceUrl": "https://spid.intesa.it/Time4UserServices/services/idp/SingleLogout",
+        "Method": "Post",
+        "Type": "IdentityProvider",
+        "PerformFullResponseValidation": false
+      },
+      {
+        "Name": "Infocert",
+        "OrganizationName": "InfoCert S.p.A.",
+        "OrganizationDisplayName": "InfoCert S.p.A.",
+        "OrganizationUrlMetadata": "https://identity.infocert.it/metadata/metadata.xml",
+        "OrganizationUrl": "https://www.infocert.it",
+        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-infocertid.png",
+        "SingleSignOnServiceUrl": "https://identity.infocert.it/spid/samlsso",
+        "SingleSignOutServiceUrl": "https://identity.infocert.it/spid/samlslo",
+        "Method": "Post",
+        "Type": "IdentityProvider",
+        "PerformFullResponseValidation": false
+      },
+      {
+        "Name": "Lepida",
+        "OrganizationName": "Lepida S.p.A.",
+        "OrganizationDisplayName": "Lepida S.p.A.",
+        "OrganizationUrlMetadata": "https://id.lepida.it/idp/shibboleth",
+        "OrganizationUrl": "https://www.lepida.it",
+        "OrganizationLogoUrl": "https://id.lepida.it/idm/app/pubblica/lepida_spid.png",
+        "SingleSignOnServiceUrl": "https://id.lepida.it/idp/profile/SAML2/POST/SSO",
+        "SingleSignOutServiceUrl": "https://id.lepida.it/idp/profile/SAML2/POST/SLO",
+        "Method": "Post",
+        "Type": "IdentityProvider",
+        "PerformFullResponseValidation": false
+      },
+      {
+        "Name": "Namirial",
+        "OrganizationName": "Namirial S.p.a.",
+        "OrganizationDisplayName": "Namirial S.p.a.",
+        "OrganizationUrlMetadata": "https://idp.namirialtsp.com/idp/metadata",
+        "OrganizationUrl": "https://www.namirialtsp.com",
+        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-namirialid.png",
+        "SingleSignOnServiceUrl": "https://idp.namirialtsp.com/idp/profile/SAML2/POST/SSO",
+        "SingleSignOutServiceUrl": "https://idp.namirialtsp.com/idp/profile/SAML2/POST/SLO",
+        "Method": "Post",
+        "Type": "IdentityProvider",
+        "PerformFullResponseValidation": false
+      },
+      {
+        "Name": "Register",
+        "OrganizationName": "Register.it S.p.A.",
+        "OrganizationDisplayName": "Register.it S.p.A.",
+        "OrganizationUrlMetadata": "https://spid.register.it/login/metadata",
+        "OrganizationUrl": "https//www.register.it",
+        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-spiditalia.png",
+        "SingleSignOnServiceUrl": "https://spid.register.it/login/sso",
+        "SingleSignOutServiceUrl": "https://spid.register.it/login/singleLogout",
+        "Method": "Post",
+        "Type": "IdentityProvider",
+        "PerformFullResponseValidation": false
+      },
+      {
+        "Name": "Sielte",
+        "OrganizationName": "Sielte S.p.A.",
+        "OrganizationDisplayName": "Sielte S.p.A.",
+        "OrganizationUrlMetadata": "https://identity.sieltecloud.it/simplesaml/metadata.xml",
+        "OrganizationUrl": "http://www.sielte.it",
+        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-sielteid.png",
+        "SingleSignOnServiceUrl": "https://identity.sieltecloud.it/simplesaml/saml2/idp/SSO.php",
+        "SingleSignOutServiceUrl": "https://identity.sieltecloud.it/simplesaml/saml2/idp/SLO.php",
+        "Method": "Post",
+        "Type": "IdentityProvider",
+        "NowDelta": -2,
+        "PerformFullResponseValidation": false
+      },
+      {
+        "Name": "Tim",
+        "OrganizationName": "Trust Technologies srl",
+        "OrganizationDisplayName": "Trust Technologies srl",
+        "OrganizationUrlMetadata": "https://login.id.tim.it/spid-services/MetadataBrowser/idp",
+        "OrganizationUrl": "https://www.trusttechnologies.it",
+        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-timid.png",
+        "SingleSignOnServiceUrl": "https://login.id.tim.it/affwebservices/public/saml2sso",
+        "SingleSignOutServiceUrl": "https://login.id.tim.it/affwebservices/public/saml2slo",
+        "Method": "Post",
+        "Type": "IdentityProvider",
+        "NowDelta": -2,
+        "PerformFullResponseValidation": false
+      }
     ],
     "Certificate": {
       "Source": "Store/File/Raw/None",
@@ -208,3 +301,4 @@ public class CustomSpidEvents : SpidEvents
     }
 }
 ```
+
