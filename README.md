@@ -7,18 +7,19 @@ Lo scopo di questo progetto è quello di fornire uno strumento semplice ed immed
 # Integrazione
 
 La libreria viene distribuita sotto forma di pacchetto NuGet, installabile tramite il comando
+
 `Install-Package SPID.AspNetCore.Authentication`
 
 Una volta installato, il pacchetto crea nel progetto i link simbolici ad alcuni file di contenuti, necessari per la renderizzazione del pulsante "Entra con SPID"
 
 ```
-- wwwroot
-  - js
-    - spid.js
-  - css
-    - spid.css
-  - images
-    - spid-ico-circle-bb.png
+/ wwwroot
+  / js
+    / spid.js
+  / css
+    / spid.css
+  / images
+    / spid-ico-circle-bb.png
 ```
 
 ed aggiunge al progetto il reference a `SPID.AspNetCore.Authentication.dll`.
