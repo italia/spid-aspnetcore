@@ -56,7 +56,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <param name="certificate"></param>
         /// <param name="identityProvider"></param>
         /// <returns>Returns a Base64 Encoded String of the SAML request</returns>
-        public static (string signedBase64, AuthnRequestType original, string serializedOriginal) BuildAuthnPostRequest(string uuid,
+        public static (string Base64SignedMessage, AuthnRequestType Message) BuildAuthnPostRequest(string uuid,
             string entityId,
             ushort? assertionConsumerServiceIndex,
             ushort? attributeConsumingServiceIndex,
@@ -131,24 +131,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 }
             };
 
-            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
-            ns.Add(SamlConst.samlp, SamlConst.Saml2pProtocol);
-            ns.Add(SamlConst.saml, SamlConst.Saml2Assertion);
-
-            using StringWriter stringWriter = new StringWriter();
-            XmlWriterSettings settings = new XmlWriterSettings
-            {
-                OmitXmlDeclaration = true,
-                Indent = false,
-                Encoding = Encoding.UTF8
-            };
-
-            using XmlWriter responseWriter = XmlTextWriter.Create(stringWriter, settings);
-            responseSerializer.Serialize(responseWriter, authnRequest, ns);
-            responseWriter.Close();
-
-            string samlString = stringWriter.ToString();
-            stringWriter.Close();
+            string samlString = SerializeMessage(authnRequest);
 
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(samlString);
@@ -157,8 +140,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             doc.DocumentElement.InsertBefore(signature, doc.DocumentElement.ChildNodes[1]);
 
             return (Convert.ToBase64String(Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + doc.OuterXml), Base64FormattingOptions.None),
-                      authnRequest,
-                      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + samlString);
+                      authnRequest);
         }
 
         /// <summary>
@@ -588,5 +570,33 @@ namespace SPID.AspNetCore.Authentication.Helpers
             return (idpLogoutResponse.InResponseTo == request.ID);
         }
 
+
+        public static T DeserializeMessage<T>(string message) where T : class
+        {
+            var serializer = new XmlSerializer(typeof(T));
+            using var stringReader = new StringReader(message);
+            using XmlReader requestReader = XmlReader.Create(stringReader);
+            return serializer.Deserialize(requestReader) as T;
+        }
+
+        public static string SerializeMessage<T>(T message) where T : class
+        {
+            var serializer = new XmlSerializer(typeof(T));
+            var ns = new XmlSerializerNamespaces();
+            ns.Add(SamlConst.samlp, SamlConst.Saml2pProtocol);
+            ns.Add(SamlConst.saml, SamlConst.Saml2Assertion);
+
+            var settings = new XmlWriterSettings
+            {
+                OmitXmlDeclaration = true,
+                Indent = false,
+                Encoding = Encoding.UTF8
+            };
+
+            using var stringWriter = new StringWriter();
+            using var responseWriter = XmlTextWriter.Create(stringWriter, settings);
+            serializer.Serialize(responseWriter, message, ns);
+            return stringWriter.ToString();
+        }
     }
 }

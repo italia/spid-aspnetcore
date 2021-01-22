@@ -27,7 +27,7 @@ namespace SPID.AspNetCore.Authentication
     public class SpidHandler : RemoteAuthenticationHandler<SpidOptions>, IAuthenticationSignOutHandler
     {
         private const string CorrelationProperty = ".xsrf";
-
+        EventsHandler _eventsHandler;
         /// <summary>
         /// Creates a new SpidAuthenticationHandler
         /// </summary>
@@ -38,6 +38,7 @@ namespace SPID.AspNetCore.Authentication
         public SpidHandler(IOptionsMonitor<SpidOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
             : base(options, logger, encoder, clock)
         {
+            _eventsHandler = new EventsHandler(Events);
         }
 
         /// <summary>
@@ -55,7 +56,6 @@ namespace SPID.AspNetCore.Authentication
         /// </summary>
         /// <returns>A new instance of the events instance.</returns>
         protected override Task<object> CreateEventsAsync() => Task.FromResult<object>(new SpidEvents());
-
 
         public override async Task<bool> ShouldHandleRequestAsync()
         {
@@ -104,21 +104,10 @@ namespace SPID.AspNetCore.Authentication
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
 
 
-            var securityTokenCreatingContext = new SecurityTokenCreatingContext(Context, Scheme, Options, properties)
-            {
-                SamlAuthnRequestId = samlAuthnRequestId,
-                TokenOptions = new SecurityTokenCreatingOptions
-                {
-                    EntityId = Options.EntityId,
-                    Certificate = Options.Certificate,
-                    AssertionConsumerServiceIndex = Options.AssertionConsumerServiceIndex,
-                    AttributeConsumingServiceIndex = Options.AttributeConsumingServiceIndex
-                }
-            };
-            await Events.TokenCreating(securityTokenCreatingContext);
+            var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context, Scheme, Options, properties, samlAuthnRequestId);
 
             // Create the signed SAML request
-            var (signedBase64, original, serializedOriginal) = SamlHelper.BuildAuthnPostRequest(
+            var (base64SignedMessage, message) = SamlHelper.BuildAuthnPostRequest(
                 samlAuthnRequestId,
                 securityTokenCreatingContext.TokenOptions.EntityId,
                 securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceIndex,
@@ -129,27 +118,21 @@ namespace SPID.AspNetCore.Authentication
 
             GenerateCorrelationId(properties);
 
-            var redirectContext = new RedirectContext(Context, Scheme, Options, properties)
-            {
-                SignedProtocolMessage = signedBase64
-            };
-            await Events.RedirectToIdentityProvider(redirectContext);
-
-            if (redirectContext.Handled)
+            var (redirectHandled, afterRedirectBase64SignedMessage) = await _eventsHandler.HandleRedirectToIdentityProvider(Context, Scheme, Options, properties, base64SignedMessage);
+            if (redirectHandled)
             {
                 return;
             }
+            base64SignedMessage = afterRedirectBase64SignedMessage;
 
-            signedBase64 = redirectContext.SignedProtocolMessage;
+            properties.SetIdentityProviderName(idpName);
+            properties.SetAuthenticationRequest(message);
+            properties.Save(Response, Options.StateDataFormat);
 
-            properties.Items.Add("IdpName", idpName);
-            properties.Items.Add("Request", serializedOriginal);
-
-            Response.Cookies.Append("SPID-Properties", Options.StateDataFormat.Protect(properties));
             if (idp.Method == RequestMethod.Post)
             {
                 await Response.WriteAsync($"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{idp.SingleSignOnServiceUrl}\" method=\"post\">" +
-                      $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{signedBase64}\" />" +
+                      $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{base64SignedMessage}\" />" +
                       $"<input type=\"hidden\" name=\"RelayState\" value=\"{samlAuthnRequestId}\" />" +
                       $"<button id=\"btnLogin\">Login</button>" +
                       "<script>document.getElementById('btnLogin').click()</script>" +
@@ -157,7 +140,7 @@ namespace SPID.AspNetCore.Authentication
             }
             else
             {
-                string redirectUri = GetRedirectUrl(idp.SingleSignOnServiceUrl, samlAuthnRequestId, serializedOriginal, Options.Certificate);
+                string redirectUri = GetRedirectUrl(idp.SingleSignOnServiceUrl, samlAuthnRequestId, SamlHelper.SerializeMessage(message), Options.Certificate);
                 if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
                 {
                     Logger.MalformedRedirectUri(redirectUri);
@@ -212,7 +195,6 @@ namespace SPID.AspNetCore.Authentication
             return uriBuilder.Query;
         }
 
-        private static readonly XmlSerializer requestSerializer = new XmlSerializer(typeof(AuthnRequestType));
         private static readonly XmlSerializer logoutRequestSerializer = new XmlSerializer(typeof(LogoutRequestType));
 
         /// <summary>
@@ -222,7 +204,9 @@ namespace SPID.AspNetCore.Authentication
         protected override async Task<HandleRequestResult> HandleRemoteAuthenticateAsync()
         {
             Response SpidMessage = null;
-            AuthenticationProperties properties = null;
+            AuthenticationProperties properties = new AuthenticationProperties();
+            properties.Load(Request, Options.StateDataFormat);
+
             string id = null;
             // assumption: if the ContentType is "application/x-www-form-urlencoded" it should be safe to read as it is small.
             if (HttpMethods.IsPost(Request.Method)
@@ -250,8 +234,7 @@ namespace SPID.AspNetCore.Authentication
 
             try
             {
-                Request.Cookies.TryGetValue("SPID-Properties", out var state);
-                properties = Options.StateDataFormat.Unprotect(state);
+                var id = SpidMessage.InResponseTo.Replace("_", "");
 
                 if (properties == null)
                 {
@@ -261,12 +244,8 @@ namespace SPID.AspNetCore.Authentication
                     }
                 }
                 // Extract the user state from properties and reset.
-                properties.Items.TryGetValue("IdpName", out var idpName);
-                properties.Items.TryGetValue("Request", out var serializedRequest);
-
-                using var stringReader = new StringReader(serializedRequest);
-                using XmlReader requestReader = XmlReader.Create(stringReader);
-                var request = requestSerializer.Deserialize(requestReader) as AuthnRequestType;
+                var idpName = properties.GetIdentityProviderName();
+                var request = properties.GetAuthenticationRequest();
 
                 var messageReceivedContext = new MessageReceivedContext(Context, Scheme, Options, properties)
                 {
@@ -281,8 +260,7 @@ namespace SPID.AspNetCore.Authentication
                 properties = messageReceivedContext.Properties; // Provides a new instance if not set.
 
                 // If state did flow from the challenge then validate it. See AllowUnsolicitedLogins above.
-                if (properties.Items.TryGetValue(CorrelationProperty, out string correlationId)
-                    && !ValidateCorrelationId(properties))
+                if (properties.GetCorrelationProperty() != null && !ValidateCorrelationId(properties))
                 {
                     return HandleRequestResult.Fail("Correlation failed.", properties);
                 }
@@ -305,9 +283,9 @@ namespace SPID.AspNetCore.Authentication
                     properties.AllowRefresh = false;
                 }
 
-                properties.Items.Add("SubjectNameId", SpidMessage.Assertion.Subject?.NameID?.Text);
-                properties.Items.Add("SessionIndex", SpidMessage.Assertion.AuthnStatement.SessionIndex);
-                Response.Cookies.Append("SPID-Properties", Options.StateDataFormat.Protect(properties));
+                properties.SetSubjectNameId(SpidMessage.Assertion.Subject?.NameID?.Text);
+                properties.SetSessionIndex(SpidMessage.Assertion.AuthnStatement.SessionIndex);
+                properties.Save(Response, Options.StateDataFormat);
 
                 var ticket = new AuthenticationTicket(principal, properties, Scheme.Name);
                 var authenticationSuccessContext = new AuthenticationSuccessContext(Context, Scheme, Options)
@@ -498,6 +476,95 @@ namespace SPID.AspNetCore.Authentication
             await Context.SignOutAsync(Options.SignOutScheme);
             Response.Redirect(requestProperties.RedirectUri);
             return true;
+        }
+
+
+
+        private class EventsHandler
+        {
+            private SpidEvents _events;
+            public EventsHandler(SpidEvents events)
+            {
+                _events = events;
+            }
+
+            public async Task<SecurityTokenCreatingContext> HandleSecurityTokenCreatingContext(HttpContext context, AuthenticationScheme scheme, SpidOptions options, AuthenticationProperties properties, string samlAuthnRequestId)
+            {
+                var securityTokenCreatingContext = new SecurityTokenCreatingContext(context, scheme, options, properties)
+                {
+                    SamlAuthnRequestId = samlAuthnRequestId,
+                    TokenOptions = new SecurityTokenCreatingOptions
+                    {
+                        EntityId = options.EntityId,
+                        Certificate = options.Certificate,
+                        AssertionConsumerServiceIndex = options.AssertionConsumerServiceIndex,
+                        AttributeConsumingServiceIndex = options.AttributeConsumingServiceIndex
+                    }
+                };
+                await _events.TokenCreating(securityTokenCreatingContext);
+                return securityTokenCreatingContext;
+            }
+
+            public async Task<(bool, string)> HandleRedirectToIdentityProvider(HttpContext context, AuthenticationScheme scheme, SpidOptions options, AuthenticationProperties properties, string signedBase64)
+            {
+                var redirectContext = new RedirectContext(context, scheme, options, properties)
+                {
+                    SignedProtocolMessage = signedBase64
+                };
+                await _events.RedirectToIdentityProvider(redirectContext);
+
+                return (redirectContext.Handled, redirectContext.SignedProtocolMessage);
+            }
+        }
+    }
+
+}
+
+    internal static class AuthenticationPropertiesExtensions
+    {
+        public static void SetIdentityProviderName(this AuthenticationProperties properties, string name) => properties.Items["IdentityProviderName"] = name;
+        public static string GetIdentityProviderName(this AuthenticationProperties properties) => properties.Items["IdentityProviderName"];
+
+        public static void SetAuthenticationRequest(this AuthenticationProperties properties, AuthnRequestType request) => 
+            properties.Items["AuthenticationRequest"] = SamlHelper.SerializeMessage(request);
+        public static AuthnRequestType GetAuthenticationRequest(this AuthenticationProperties properties) => 
+            SamlHelper.DeserializeMessage<AuthnRequestType>(properties.Items["AuthenticationRequest"]);
+
+        public static void SetLogoutRequest(this AuthenticationProperties properties, LogoutRequestType request) =>
+            properties.Items["LogoutRequest"] = SamlHelper.SerializeMessage(request);
+        public static LogoutRequestType GetLogoutRequest(this AuthenticationProperties properties) =>
+            SamlHelper.DeserializeMessage<LogoutRequestType>(properties.Items["LogoutRequest"]);
+
+        public static void SetSubjectNameId(this AuthenticationProperties properties, string subjectNameId) => properties.Items["subjectNameId"] = subjectNameId;
+        public static string GetSubjectNameId(this AuthenticationProperties properties) => properties.Items["subjectNameId"];
+
+        public static void SetSessionIndex(this AuthenticationProperties properties, string sessionIndex) => properties.Items["SessionIndex"] = sessionIndex;
+        public static string GetSessionIndex(this AuthenticationProperties properties) => properties.Items["SessionIndex"];
+
+        public static void SetCorrelationProperty(this AuthenticationProperties properties, string correlationProperty) => properties.Items[".xsrf"] = correlationProperty;
+        public static string GetCorrelationProperty(this AuthenticationProperties properties) => properties.Items[".xsrf"];
+
+        public static void Save(this AuthenticationProperties properties, HttpResponse response, ISecureDataFormat<AuthenticationProperties> encryptor)
+        {
+            response.Cookies.Append("SPID-Properties", encryptor.Protect(properties));
+        }
+
+        public static void Load(this AuthenticationProperties properties, HttpRequest request, ISecureDataFormat<AuthenticationProperties> encryptor)
+        {
+            AuthenticationProperties cookieProperties = encryptor.Unprotect(request.Cookies["SPID-Properties"]);
+            properties.AllowRefresh = cookieProperties.AllowRefresh;
+            properties.ExpiresUtc = cookieProperties.ExpiresUtc;
+            properties.IsPersistent = cookieProperties.IsPersistent;
+            properties.IssuedUtc = cookieProperties.IssuedUtc;
+            foreach(var item in cookieProperties.Items)
+            {
+                properties.Items.Add(item);
+            }
+            foreach (var item in cookieProperties.Parameters)
+            {
+                properties.Parameters.Add(item);
+            }
+            properties.RedirectUri = cookieProperties.RedirectUri;
         }
     }
 }
