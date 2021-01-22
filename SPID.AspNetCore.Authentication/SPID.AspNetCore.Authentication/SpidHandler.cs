@@ -103,7 +103,6 @@ namespace SPID.AspNetCore.Authentication
             // Select the Identity Provider
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
 
-
             var securityTokenCreatingContext = new SecurityTokenCreatingContext(Context, Scheme, Options, properties)
             {
                 SamlAuthnRequestId = samlAuthnRequestId,
@@ -157,7 +156,7 @@ namespace SPID.AspNetCore.Authentication
             }
             else
             {
-                string redirectUri = GetRedirectUrl(idp.SingleSignOnServiceUrl, samlAuthnRequestId, serializedOriginal, Options.Certificate);
+                string redirectUri = GetRedirectUrl(idp.SingleSignOnServiceUrl, samlAuthnRequestId, serializedOriginal, securityTokenCreatingContext.TokenOptions.Certificate);
                 if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
                 {
                     Logger.MalformedRedirectUri(redirectUri);
@@ -401,12 +400,25 @@ namespace SPID.AspNetCore.Authentication
             requestProperties.Items.TryGetValue("SessionIndex", out var sessionIndex);
             var idp = Options.IdentityProviders.FirstOrDefault(i => i.Name == idpName);
 
+            var securityTokenCreatingContext = new SecurityTokenCreatingContext(Context, Scheme, Options, properties)
+            {
+                SamlAuthnRequestId = samlAuthnRequestId,
+                TokenOptions = new SecurityTokenCreatingOptions
+                {
+                    EntityId = Options.EntityId,
+                    Certificate = Options.Certificate,
+                    AssertionConsumerServiceIndex = Options.AssertionConsumerServiceIndex,
+                    AttributeConsumingServiceIndex = Options.AttributeConsumingServiceIndex
+                }
+            };
+            await Events.TokenCreating(securityTokenCreatingContext);
+
             var (signed, logoutRequest, serializedOriginal) = SamlHelper.BuildLogoutPostRequest(
                 uuid: samlAuthnRequestId,
-                consumerServiceURL: Options.EntityId,
+                consumerServiceURL: securityTokenCreatingContext.TokenOptions.EntityId,
                 subjectNameId: subjectNameId,
                 authnStatementSessionIndex: sessionIndex,
-                certificate: Options.Certificate,
+                certificate: securityTokenCreatingContext.TokenOptions.Certificate,
                 identityProvider: idp);
 
             var redirectContext = new RedirectContext(Context, Scheme, Options, properties)
@@ -431,7 +443,7 @@ namespace SPID.AspNetCore.Authentication
                 }
                 else
                 {
-                    var redirectUri = GetRedirectUrl(idp.SingleSignOutServiceUrl, samlAuthnRequestId, signed, Options.Certificate);
+                    var redirectUri = GetRedirectUrl(idp.SingleSignOutServiceUrl, samlAuthnRequestId, signed, securityTokenCreatingContext.TokenOptions.Certificate);
                     if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
                     {
                         Logger.MalformedRedirectUri(redirectUri);
