@@ -79,7 +79,7 @@ namespace SPID.AspNetCore.Authentication
             listContainer.Attributes.Add("aria-labelledby", "spid-idp");
             listContainer.AddCssClass("spid-idp-button-menu");
 
-            foreach(var idp in _options.IdentityProviders)
+            foreach(var idp in _options.FilteredIdentityProviders)
             {
                 var itemContainer = new TagBuilder("li");
                 itemContainer.AddCssClass("spid-idp-button-link");
