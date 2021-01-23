@@ -28,35 +28,25 @@ namespace SPID.AspNetCore.Authentication
     {
         private const string CorrelationProperty = ".xsrf";
         EventsHandler _eventsHandler;
-        /// <summary>
-        /// Creates a new SpidAuthenticationHandler
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="encoder"></param>
-        /// <param name="clock"></param>
-        /// <param name="logger"></param>
+        RequestGenerator _requestGenerator;
+
         public SpidHandler(IOptionsMonitor<SpidOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
             : base(options, logger, encoder, clock)
         {
-            _eventsHandler = new EventsHandler(Events);
         }
 
-        /// <summary>
-        /// The handler calls methods on the events which give the application control at certain points where processing is occurring.
-        /// If it is not provided a default instance is supplied which does nothing when the methods are called.
-        /// </summary>
         protected new SpidEvents Events
         {
             get { return (SpidEvents)base.Events; }
             set { base.Events = value; }
         }
 
-        /// <summary>
-        /// Creates a new instance of the events instance.
-        /// </summary>
-        /// <returns>A new instance of the events instance.</returns>
         protected override Task<object> CreateEventsAsync() => Task.FromResult<object>(new SpidEvents());
 
+        /// <summary>
+        /// Decides whether this handler should handle request based on request path. If it's true, HandleRequestAsync method is invoked.
+        /// </summary>
+        /// <returns>value indicating whether the request should be handled or not</returns>
         public override async Task<bool> ShouldHandleRequestAsync()
         {
             var result = await base.ShouldHandleRequestAsync();
@@ -68,11 +58,14 @@ namespace SPID.AspNetCore.Authentication
         }
 
         /// <summary>
-        /// Overridden to handle remote signout requests
+        /// Handle the request and de
         /// </summary>
         /// <returns></returns>
         public override Task<bool> HandleRequestAsync()
         {
+            _eventsHandler = new EventsHandler(Events);
+            _requestGenerator = new RequestGenerator(Response, Logger);
+
             // RemoteSignOutPath and CallbackPath may be the same, fall through if the message doesn't match.
             if (Options.RemoteSignOutPath.HasValue && Options.RemoteSignOutPath == Request.Path)
             {
@@ -83,10 +76,6 @@ namespace SPID.AspNetCore.Authentication
             return base.HandleRequestAsync();
         }
 
-        /// <summary>
-        /// Handles Challenge
-        /// </summary>
-        /// <returns></returns>
         protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
         {
             // Save the original challenge URI so we can redirect back to it when we're done.
@@ -95,20 +84,19 @@ namespace SPID.AspNetCore.Authentication
                 properties.RedirectUri = OriginalPathBase + OriginalPath + Request.QueryString;
             }
 
-            var idpName = Request.Query["idpName"];
-
             // Create the SPID request id
-            string samlAuthnRequestId = Guid.NewGuid().ToString();
+            string authenticationRequestId = Guid.NewGuid().ToString();
 
             // Select the Identity Provider
+            var idpName = Request.Query["idpName"];
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
 
 
-            var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context, Scheme, Options, properties, samlAuthnRequestId);
+            var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context, Scheme, Options, properties, authenticationRequestId);
 
             // Create the signed SAML request
-            var (base64SignedMessage, message) = SamlHelper.BuildAuthnPostRequest(
-                samlAuthnRequestId,
+            var message = SamlHelper.BuildAuthnPostRequest(
+                authenticationRequestId,
                 securityTokenCreatingContext.TokenOptions.EntityId,
                 securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceIndex,
                 securityTokenCreatingContext.TokenOptions.AttributeConsumingServiceIndex,
@@ -118,206 +106,199 @@ namespace SPID.AspNetCore.Authentication
 
             GenerateCorrelationId(properties);
 
-            var (redirectHandled, afterRedirectBase64SignedMessage) = await _eventsHandler.HandleRedirectToIdentityProvider(Context, Scheme, Options, properties, base64SignedMessage);
+            var (redirectHandled, afterRedirectMessage) = await _eventsHandler.HandleRedirectToIdentityProviderForAuthentication(Context, Scheme, Options, properties, message);
             if (redirectHandled)
             {
                 return;
             }
-            base64SignedMessage = afterRedirectBase64SignedMessage;
+            message = afterRedirectMessage;
 
             properties.SetIdentityProviderName(idpName);
             properties.SetAuthenticationRequest(message);
             properties.Save(Response, Options.StateDataFormat);
 
-            if (idp.Method == RequestMethod.Post)
-            {
-                await Response.WriteAsync($"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{idp.SingleSignOnServiceUrl}\" method=\"post\">" +
-                      $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{base64SignedMessage}\" />" +
-                      $"<input type=\"hidden\" name=\"RelayState\" value=\"{samlAuthnRequestId}\" />" +
-                      $"<button id=\"btnLogin\">Login</button>" +
-                      "<script>document.getElementById('btnLogin').click()</script>" +
-                      "</form></body></html>");
-            }
-            else
-            {
-                string redirectUri = GetRedirectUrl(idp.SingleSignOnServiceUrl, samlAuthnRequestId, SamlHelper.SerializeMessage(message), Options.Certificate);
-                if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
-                {
-                    Logger.MalformedRedirectUri(redirectUri);
-                }
-                Response.Redirect(redirectUri);
-            }
+            await _requestGenerator.HandleAuthenticationRequest(message, securityTokenCreatingContext.TokenOptions.Certificate, idp.SingleSignOnServiceUrl, idp.Method);
         }
 
-        public static string ZipStr(String str)
-        {
-            using MemoryStream output = new MemoryStream();
-            using (DeflateStream gzip = new DeflateStream(output, CompressionMode.Compress))
-            {
-                using StreamWriter writer = new StreamWriter(gzip, System.Text.Encoding.UTF8);
-                writer.Write(str);
-            }
-
-            return Convert.ToBase64String(output.ToArray());
-        }
-
-        public string GetRedirectUrl(string signOnSignOutUrl, string samlAuthnRequestId, string data, X509Certificate2 certificate)
-        {
-            var samlEndpoint = signOnSignOutUrl;
-
-            var queryStringSeparator = samlEndpoint.Contains("?") ? "&" : "?";
-
-            var dict = new Dictionary<string, StringValues>()
-            {
-                { "SAMLRequest", ZipStr(data) },
-                { "RelayState", samlAuthnRequestId },
-                { "SigAlg", SamlConst.SignatureMethod}
-            };
-
-            var queryStringNoSignature = BuildURLParametersString(dict).Substring(1);
-
-            var signatureQuery = queryStringNoSignature.CreateSignature(certificate);
-
-            dict.Add("Signature", signatureQuery);
-
-            return samlEndpoint + queryStringSeparator + BuildURLParametersString(dict).Substring(1);
-        }
-
-        private string BuildURLParametersString(Dictionary<string, StringValues> parameters)
-        {
-            UriBuilder uriBuilder = new UriBuilder();
-            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-            foreach (var urlParameter in parameters)
-            {
-                query[urlParameter.Key] = urlParameter.Value;
-            }
-            uriBuilder.Query = query.ToString();
-            return uriBuilder.Query;
-        }
-
-        private static readonly XmlSerializer logoutRequestSerializer = new XmlSerializer(typeof(LogoutRequestType));
-
-        /// <summary>
-        /// Invoked to process incoming authentication messages.
-        /// </summary>
-        /// <returns></returns>
         protected override async Task<HandleRequestResult> HandleRemoteAuthenticateAsync()
         {
-            Response SpidMessage = null;
             AuthenticationProperties properties = new AuthenticationProperties();
             properties.Load(Request, Options.StateDataFormat);
 
-            string id = null;
-            // assumption: if the ContentType is "application/x-www-form-urlencoded" it should be safe to read as it is small.
-            if (HttpMethods.IsPost(Request.Method)
-              && !string.IsNullOrEmpty(Request.ContentType)
-              // May have media/type; charset=utf-8, allow partial match.
-              && Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)
-              && Request.Body.CanRead)
-            {
-                var form = await Request.ReadFormAsync();
+            var (id, message) = await ExtractInfoFromAuthenticationResponse();
 
-                SpidMessage = SamlHelper.GetAuthnResponse(form["SAMLResponse"].ToString());
-                id = form["RelayState"].ToString();
-            }
-
-            if (SpidMessage == null)
-            {
-                if (Options.SkipUnrecognizedRequests)
-                {
-                    // Not for us?
-                    return HandleRequestResult.SkipHandler();
-                }
-
-                return HandleRequestResult.Fail("No message.");
-            }
+            var validationMessageResult = ValidateAuthenticationResponse(message, properties);
+            if (validationMessageResult != null)
+                return validationMessageResult;
 
             try
             {
-                var id = SpidMessage.InResponseTo.Replace("_", "");
-
-                if (properties == null)
-                {
-                    if (!Options.AllowUnsolicitedLogins)
-                    {
-                        return HandleRequestResult.Fail("Unsolicited logins are not allowed.");
-                    }
-                }
-                // Extract the user state from properties and reset.
                 var idpName = properties.GetIdentityProviderName();
                 var request = properties.GetAuthenticationRequest();
 
-                var messageReceivedContext = new MessageReceivedContext(Context, Scheme, Options, properties)
+                var responseMessageReceivedResult = await _eventsHandler.HandleAuthenticationResponseMessageReceived(Context, Scheme, Options, properties, message);
+                if (responseMessageReceivedResult.Result != null)
                 {
-                    ProtocolMessage = SpidMessage
-                };
-                await Events.MessageReceived(messageReceivedContext);
-                if (messageReceivedContext.Result != null)
-                {
-                    return messageReceivedContext.Result;
+                    return responseMessageReceivedResult.Result;
                 }
-                SpidMessage = messageReceivedContext.ProtocolMessage;
-                properties = messageReceivedContext.Properties; // Provides a new instance if not set.
+                message = responseMessageReceivedResult.ProtocolMessage;
+                properties = responseMessageReceivedResult.Properties;
 
-                // If state did flow from the challenge then validate it. See AllowUnsolicitedLogins above.
-                if (properties.GetCorrelationProperty() != null && !ValidateCorrelationId(properties))
+                var correlationValidationResult = ValidateCorrelation(properties);
+                if (correlationValidationResult != null)
                 {
-                    return HandleRequestResult.Fail("Correlation failed.", properties);
+                    return correlationValidationResult;
                 }
 
-                var (principal, validFrom, validTo) = ElaborateSamlResponse(SpidMessage, request, idpName);
+                var (principal, validFrom, validTo) = CreatePrincipal(message, request, idpName);
 
-                if (Options.UseTokenLifetime && validFrom != null && validTo != null)
-                {
-                    // Override any session persistence to match the token lifetime.
-                    var issued = validFrom;
-                    if (issued != DateTimeOffset.MinValue)
-                    {
-                        properties.IssuedUtc = issued.Value.ToUniversalTime();
-                    }
-                    var expires = validTo;
-                    if (expires != DateTimeOffset.MinValue)
-                    {
-                        properties.ExpiresUtc = expires.Value.ToUniversalTime();
-                    }
-                    properties.AllowRefresh = false;
-                }
+                AdjustAuthenticationPropertiesDates(properties, validFrom, validTo);
 
-                properties.SetSubjectNameId(SpidMessage.Assertion.Subject?.NameID?.Text);
-                properties.SetSessionIndex(SpidMessage.Assertion.AuthnStatement.SessionIndex);
+                properties.SetSubjectNameId(message.Assertion.Subject?.NameID?.Text);
+                properties.SetSessionIndex(message.Assertion.AuthnStatement.SessionIndex);
                 properties.Save(Response, Options.StateDataFormat);
 
                 var ticket = new AuthenticationTicket(principal, properties, Scheme.Name);
-                var authenticationSuccessContext = new AuthenticationSuccessContext(Context, Scheme, Options)
-                {
-                    SamlAuthnRequestId = id,
-                    AuthenticationTicket = ticket
-                };
-                await Events.AuthenticationSuccess(authenticationSuccessContext);
+                await _eventsHandler.HandleAuthenticationSuccess(Context, Scheme, Options, id, ticket);
                 return HandleRequestResult.Success(ticket);
             }
             catch (Exception exception)
             {
                 Logger.ExceptionProcessingMessage(exception);
 
-                var authenticationFailedContext = new AuthenticationFailedContext(Context, Scheme, Options)
-                {
-                    ProtocolMessage = SpidMessage,
-                    Exception = exception
-                };
-                await Events.AuthenticationFailed(authenticationFailedContext);
-                if (authenticationFailedContext.Result != null)
-                {
-                    return authenticationFailedContext.Result;
-                }
-
-                return HandleRequestResult.Fail(exception, properties);
+                var authenticationFailedResult = await _eventsHandler.HandleAuthenticationFailed(Context, Scheme, Options, message, exception);
+                return authenticationFailedResult.Result ?? HandleRequestResult.Fail(exception, properties);
             }
         }
 
-        private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) ElaborateSamlResponse(Response idpAuthnResponse,
-            AuthnRequestType request,
-            string idPName)
+        public async virtual Task SignOutAsync(AuthenticationProperties properties)
+        {
+            var target = ResolveTarget(Options.ForwardSignOut);
+            if (target != null)
+            {
+                await Context.SignOutAsync(target, properties);
+                return;
+            }
+
+            string authenticationRequestId = Guid.NewGuid().ToString();
+
+            var requestProperties = new AuthenticationProperties();
+            requestProperties.Load(Request, Options.StateDataFormat);
+
+            // Extract the user state from properties and reset.
+            var idpName = requestProperties.GetIdentityProviderName();
+            var subjectNameId = requestProperties.GetSubjectNameId();
+            var sessionIndex = requestProperties.GetSessionIndex();
+
+            var idp = Options.IdentityProviders.FirstOrDefault(i => i.Name == idpName);
+
+            var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context, Scheme, Options, properties, authenticationRequestId);
+
+            var message = SamlHelper.BuildLogoutPostRequest(
+                authenticationRequestId,
+                securityTokenCreatingContext.Options.EntityId,
+                securityTokenCreatingContext.Options.Certificate,
+                idp,
+                subjectNameId,
+                sessionIndex);
+
+            var (redirectHandled, afterRedirectMessage) = await _eventsHandler.HandleRedirectToIdentityProviderForSignOut(Context, Scheme, Options, properties, message);
+            if (redirectHandled)
+            {
+                return;
+            }
+            message = afterRedirectMessage;
+
+            properties.SetLogoutRequest(message);
+            properties.Save(Response, Options.StateDataFormat);
+
+            await _requestGenerator.HandleLogoutRequest(message, Options.Certificate, idp.SingleSignOutServiceUrl, idp.Method);
+        }
+
+        protected virtual async Task<bool> HandleRemoteSignOutAsync()
+        {
+            var (id, message) = await ExtractInfoFromSignOutResponse();
+
+            AuthenticationProperties requestProperties = new AuthenticationProperties();
+            requestProperties.Load(Request, Options.StateDataFormat);
+
+            var logoutRequest = requestProperties.GetLogoutRequest();
+
+            var validSignOut = ValidateSignOutResponse(message, logoutRequest);
+            if (!validSignOut)
+                return false;
+
+            var remoteSignOutContext = await _eventsHandler.HandleRemoteSignOut(Context, Scheme, Options, message);
+            if (remoteSignOutContext.Result != null)
+            {
+                if (remoteSignOutContext.Result.Handled)
+                {
+                    Logger.RemoteSignOutHandledResponse();
+                    return true;
+                }
+                if (remoteSignOutContext.Result.Skipped)
+                {
+                    Logger.RemoteSignOutSkipped();
+                    return false;
+                }
+            }
+
+            Logger.RemoteSignOut();
+
+            await Context.SignOutAsync(Options.SignOutScheme);
+            Response.Redirect(requestProperties.RedirectUri);
+            return true;
+        }
+
+        private HandleRequestResult ValidateAuthenticationResponse(Response message, AuthenticationProperties properties)
+        {
+            if (message == null)
+            {
+                if (Options.SkipUnrecognizedRequests)
+                {
+                    return HandleRequestResult.SkipHandler();
+                }
+
+                return HandleRequestResult.Fail("No message.");
+            }
+
+            if (properties == null && !Options.AllowUnsolicitedLogins)
+            {
+                return HandleRequestResult.Fail("Unsolicited logins are not allowed.");
+            }
+
+            return null;
+        }
+
+        private HandleRequestResult ValidateCorrelation(AuthenticationProperties properties)
+        {
+            if (properties.GetCorrelationProperty() != null && !ValidateCorrelationId(properties))
+            {
+                return HandleRequestResult.Fail("Correlation failed.", properties);
+            }
+            return null;
+        }
+
+        private void AdjustAuthenticationPropertiesDates(AuthenticationProperties properties, DateTimeOffset? validFrom, DateTimeOffset? validTo)
+        {
+            if (Options.UseTokenLifetime && validFrom != null && validTo != null)
+            {
+                // Override any session persistence to match the token lifetime.
+                var issued = validFrom;
+                if (issued != DateTimeOffset.MinValue)
+                {
+                    properties.IssuedUtc = issued.Value.ToUniversalTime();
+                }
+                var expires = validTo;
+                if (expires != DateTimeOffset.MinValue)
+                {
+                    properties.ExpiresUtc = expires.Value.ToUniversalTime();
+                }
+                properties.AllowRefresh = false;
+            }
+        }
+
+        private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) CreatePrincipal(Response idpAuthnResponse, AuthnRequestType request, string idPName)
         {
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idPName);
 
@@ -356,77 +337,8 @@ namespace SPID.AspNetCore.Authentication
             return (returnedPrincipal, DateTimeOffset.Parse(idpAuthnResponse.IssueInstant), DateTimeOffset.Parse(idpAuthnResponse.Assertion.Subject.SubjectConfirmation.SubjectConfirmationData.NotOnOrAfter));
         }
 
-        /// <summary>
-        /// Handles Signout
-        /// </summary>
-        /// <returns></returns>
-        public async virtual Task SignOutAsync(AuthenticationProperties properties)
+        private async Task<(string Id, Response Message)> ExtractInfoFromAuthenticationResponse()
         {
-            var target = ResolveTarget(Options.ForwardSignOut);
-            if (target != null)
-            {
-                await Context.SignOutAsync(target, properties);
-                return;
-            }
-
-            string samlAuthnRequestId = Guid.NewGuid().ToString();
-            Request.Cookies.TryGetValue("SPID-Properties", out var state);
-            var requestProperties = Options.StateDataFormat.Unprotect(state);
-
-            // Extract the user state from properties and reset.
-            requestProperties.Items.TryGetValue("IdpName", out var idpName);
-            requestProperties.Items.TryGetValue("SubjectNameId", out var subjectNameId);
-            requestProperties.Items.TryGetValue("SessionIndex", out var sessionIndex);
-            var idp = Options.IdentityProviders.FirstOrDefault(i => i.Name == idpName);
-
-            var (signed, logoutRequest, serializedOriginal) = SamlHelper.BuildLogoutPostRequest(
-                uuid: samlAuthnRequestId,
-                consumerServiceURL: Options.EntityId,
-                subjectNameId: subjectNameId,
-                authnStatementSessionIndex: sessionIndex,
-                certificate: Options.Certificate,
-                identityProvider: idp);
-
-            var redirectContext = new RedirectContext(Context, Scheme, Options, properties)
-            {
-                SignedProtocolMessage = signed
-            };
-            await Events.RedirectToIdentityProvider(redirectContext);
-
-            properties.Items.Add("Request", serializedOriginal);
-            Response.Cookies.Append("SPID-Properties", Options.StateDataFormat.Protect(properties));
-
-            if (!redirectContext.Handled)
-            {
-                if (idp.Method == RequestMethod.Post)
-                {
-                    await Response.WriteAsync($"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{idp.SingleSignOutServiceUrl}\" method=\"post\">" +
-                          $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{signed}\" />" +
-                          $"<input type=\"hidden\" name=\"RelayState\" value=\"{samlAuthnRequestId}\" />" +
-                          $"<button id=\"btnLogout\">Logout</button>" +
-                          "<script>document.getElementById('btnLogout').click()</script>" +
-                          "</form></body></html>");
-                }
-                else
-                {
-                    var redirectUri = GetRedirectUrl(idp.SingleSignOutServiceUrl, samlAuthnRequestId, signed, Options.Certificate);
-                    if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
-                    {
-                        Logger.MalformedRedirectUri(redirectUri);
-                    }
-                    Response.Redirect(redirectUri);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Handles wsignoutcleanup1.0 messages sent to the RemoteSignOutPath
-        /// </summary>
-        /// <returns></returns>
-        protected virtual async Task<bool> HandleRemoteSignOutAsync()
-        {
-            IdpLogoutResponse SpidMessage = null;
-
             if (HttpMethods.IsPost(Request.Method)
               && !string.IsNullOrEmpty(Request.ContentType)
               // May have media/type; charset=utf-8, allow partial match.
@@ -435,54 +347,47 @@ namespace SPID.AspNetCore.Authentication
             {
                 var form = await Request.ReadFormAsync();
 
-                SpidMessage = SamlHelper.GetLogoutResponse(form["SAMLResponse"].ToString());
+                return (
+                    form["RelayState"].ToString(),
+                    SamlHelper.GetAuthnResponse(form["SAMLResponse"][0])
+                );
             }
-
-            Request.Cookies.TryGetValue("SPID-Properties", out var state);
-            var requestProperties = Options.StateDataFormat.Unprotect(state);
-
-            // Extract the user state from properties and reset.
-            requestProperties.Items.TryGetValue("Request", out var serializedRequest);
-            using var stringReader = new StringReader(serializedRequest);
-            using XmlReader requestReader = XmlReader.Create(stringReader);
-            var request = logoutRequestSerializer.Deserialize(requestReader) as LogoutRequestType;
-
-
-            if (!SpidMessage.IsSuccessful || !SamlHelper.ValidateLogoutResponse(SpidMessage, request))
-            {
-                Logger.RemoteSignOutFailed();
-                return false;
-            }
-
-            var remoteSignOutContext = new RemoteSignOutContext(Context, Scheme, Options, SpidMessage);
-            await Events.RemoteSignOut(remoteSignOutContext);
-
-            if (remoteSignOutContext.Result != null)
-            {
-                if (remoteSignOutContext.Result.Handled)
-                {
-                    Logger.RemoteSignOutHandledResponse();
-                    return true;
-                }
-                if (remoteSignOutContext.Result.Skipped)
-                {
-                    Logger.RemoteSignOutSkipped();
-                    return false;
-                }
-            }
-
-            Logger.RemoteSignOut();
-
-            await Context.SignOutAsync(Options.SignOutScheme);
-            Response.Redirect(requestProperties.RedirectUri);
-            return true;
+            return (null, null);
         }
 
+        private async Task<(string Id, IdpLogoutResponse Message)> ExtractInfoFromSignOutResponse()
+        {
+            if (HttpMethods.IsPost(Request.Method)
+              && !string.IsNullOrEmpty(Request.ContentType)
+              && Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)
+              && Request.Body.CanRead)
+            {
+                var form = await Request.ReadFormAsync();
 
+                return (
+                    form["RelayState"].ToString(),
+                    SamlHelper.GetLogoutResponse(form["SAMLResponse"][0])
+                );
+            }
+            return (null, null);
+        }
+
+        private bool ValidateSignOutResponse(IdpLogoutResponse message, LogoutRequestType logoutRequest)
+        {
+            var valid = message.IsSuccessful && SamlHelper.ValidateLogoutResponse(message, logoutRequest);
+            if (valid)
+            {
+                return true;
+            }
+
+            Logger.RemoteSignOutFailed();
+            return false;
+        }
 
         private class EventsHandler
         {
             private SpidEvents _events;
+
             public EventsHandler(SpidEvents events)
             {
                 _events = events;
@@ -505,29 +410,164 @@ namespace SPID.AspNetCore.Authentication
                 return securityTokenCreatingContext;
             }
 
-            public async Task<(bool, string)> HandleRedirectToIdentityProvider(HttpContext context, AuthenticationScheme scheme, SpidOptions options, AuthenticationProperties properties, string signedBase64)
+            public async Task<(bool, AuthnRequestType)> HandleRedirectToIdentityProviderForAuthentication(HttpContext context, AuthenticationScheme scheme, SpidOptions options, AuthenticationProperties properties, AuthnRequestType message)
             {
-                var redirectContext = new RedirectContext(context, scheme, options, properties)
-                {
-                    SignedProtocolMessage = signedBase64
-                };
+                var redirectContext = new RedirectContext(context, scheme, options, properties, message);
                 await _events.RedirectToIdentityProvider(redirectContext);
-
-                return (redirectContext.Handled, redirectContext.SignedProtocolMessage);
+                return (redirectContext.Handled, (AuthnRequestType)redirectContext.SignedProtocolMessage);
             }
+
+            public async Task<(bool, LogoutRequestType)> HandleRedirectToIdentityProviderForSignOut(HttpContext context, AuthenticationScheme scheme, SpidOptions options, AuthenticationProperties properties, LogoutRequestType message)
+            {
+                var redirectContext = new RedirectContext(context, scheme, options, properties, message);
+                await _events.RedirectToIdentityProvider(redirectContext);
+                return (redirectContext.Handled, (LogoutRequestType)redirectContext.SignedProtocolMessage);
+            }
+
+            public async Task<MessageReceivedContext> HandleAuthenticationResponseMessageReceived(HttpContext context, AuthenticationScheme scheme, SpidOptions options, AuthenticationProperties properties, Response message)
+            {
+                var messageReceivedContext = new MessageReceivedContext(context, scheme, options, properties, message);
+                await _events.MessageReceived(messageReceivedContext);
+                return messageReceivedContext;
+            }
+
+            public async Task<AuthenticationSuccessContext> HandleAuthenticationSuccess(HttpContext context, AuthenticationScheme scheme, SpidOptions options, string authenticationRequestId, AuthenticationTicket ticket)
+            {
+                var authenticationSuccessContext = new AuthenticationSuccessContext(context, scheme, options, authenticationRequestId, ticket);
+                await _events.AuthenticationSuccess(authenticationSuccessContext);
+                return authenticationSuccessContext;
+            }
+
+            public async Task<AuthenticationFailedContext> HandleAuthenticationFailed(HttpContext context, AuthenticationScheme scheme, SpidOptions options, Response message, Exception exception)
+            {
+                var authenticationFailedContext = new AuthenticationFailedContext(context, scheme, options, message, exception);
+                await _events.AuthenticationFailed(authenticationFailedContext);
+                return authenticationFailedContext;
+            }
+
+            public async Task<RemoteSignOutContext> HandleRemoteSignOut(HttpContext context, AuthenticationScheme scheme, SpidOptions options, IdpLogoutResponse message)
+            {
+                var remoteSignOutContext = new RemoteSignOutContext(context, scheme, options, message);
+                await _events.RemoteSignOut(remoteSignOutContext);
+                return remoteSignOutContext;
+            }
+        }
+
+        private class RequestGenerator
+        {
+            HttpResponse _response;
+            ILogger _logger;
+
+            public RequestGenerator(HttpResponse response, ILogger logger)
+            {
+                _response = response;
+                _logger = logger;
+            }
+
+            public async Task HandleAuthenticationRequest(AuthnRequestType message, X509Certificate2 certificate, string signOnUrl, RequestMethod method)
+            {
+                var messageGuid = message.ID.Replace("_", String.Empty);
+
+                if (method == RequestMethod.Post)
+                {
+                    await _response.WriteAsync($"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{signOnUrl}\" method=\"post\">" +
+                          $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{SamlHelper.SignRequest(message, certificate, message.ID)}\" />" +
+                          $"<input type=\"hidden\" name=\"RelayState\" value=\"{messageGuid}\" />" +
+                          $"<button id=\"btnLogin\">Login</button>" +
+                          "<script>document.getElementById('btnLogin').click()</script>" +
+                          "</form></body></html>");
+                }
+                else
+                {
+                    string redirectUri = GetRedirectUrl(signOnUrl, messageGuid, SamlHelper.SerializeMessage(message), certificate);
+                    if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
+                    {
+                        _logger.MalformedRedirectUri(redirectUri);
+                    }
+                    _response.Redirect(redirectUri);
+                }
+            }
+
+            public async Task HandleLogoutRequest(LogoutRequestType message, X509Certificate2 certificate, string signOutUrl, RequestMethod method)
+            {
+                var messageGuid = message.ID.Replace("_", String.Empty);
+
+                if (method == RequestMethod.Post)
+                {
+                    await _response.WriteAsync($"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{signOutUrl}\" method=\"post\">" +
+                          $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{SamlHelper.SignRequest(message, certificate, message.ID)}\" />" + //signed
+                          $"<input type=\"hidden\" name=\"RelayState\" value=\"{messageGuid}\" />" + //samlAuthnRequestId
+                          $"<button id=\"btnLogout\">Logout</button>" +
+                          "<script>document.getElementById('btnLogout').click()</script>" +
+                          "</form></body></html>");
+                }
+                else
+                {
+                    var redirectUri = GetRedirectUrl(signOutUrl, messageGuid, "", /*signed, */certificate);
+                    if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
+                    {
+                        _logger.MalformedRedirectUri(redirectUri);
+                    }
+                    _response.Redirect(redirectUri);
+                }
+            }
+
+            private string GetRedirectUrl(string signOnSignOutUrl, string samlAuthnRequestId, string data, X509Certificate2 certificate)
+            {
+                var samlEndpoint = signOnSignOutUrl;
+
+                var queryStringSeparator = samlEndpoint.Contains("?") ? "&" : "?";
+
+                var dict = new Dictionary<string, StringValues>()
+                {
+                    { "SAMLRequest", DeflateString(data) },
+                    { "RelayState", samlAuthnRequestId },
+                    { "SigAlg", SamlConst.SignatureMethod}
+                };
+
+                var queryStringNoSignature = BuildURLParametersString(dict).Substring(1);
+
+                var signatureQuery = queryStringNoSignature.CreateSignature(certificate);
+
+                dict.Add("Signature", signatureQuery);
+
+                return samlEndpoint + queryStringSeparator + BuildURLParametersString(dict).Substring(1);
+            }
+
+            private string DeflateString(string value)
+            {
+                using MemoryStream output = new MemoryStream();
+                using DeflateStream gzip = new DeflateStream(output, CompressionMode.Compress);
+                using StreamWriter writer = new StreamWriter(gzip, Encoding.UTF8);
+                writer.Write(value);
+
+                return Convert.ToBase64String(output.ToArray());
+            }
+
+            private string BuildURLParametersString(Dictionary<string, StringValues> parameters)
+            {
+                UriBuilder uriBuilder = new UriBuilder();
+                var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+                foreach (var urlParameter in parameters)
+                {
+                    query[urlParameter.Key] = urlParameter.Value;
+                }
+                uriBuilder.Query = query.ToString();
+                return uriBuilder.Query;
+            }
+
         }
     }
 
-}
 
     internal static class AuthenticationPropertiesExtensions
     {
         public static void SetIdentityProviderName(this AuthenticationProperties properties, string name) => properties.Items["IdentityProviderName"] = name;
         public static string GetIdentityProviderName(this AuthenticationProperties properties) => properties.Items["IdentityProviderName"];
 
-        public static void SetAuthenticationRequest(this AuthenticationProperties properties, AuthnRequestType request) => 
+        public static void SetAuthenticationRequest(this AuthenticationProperties properties, AuthnRequestType request) =>
             properties.Items["AuthenticationRequest"] = SamlHelper.SerializeMessage(request);
-        public static AuthnRequestType GetAuthenticationRequest(this AuthenticationProperties properties) => 
+        public static AuthnRequestType GetAuthenticationRequest(this AuthenticationProperties properties) =>
             SamlHelper.DeserializeMessage<AuthnRequestType>(properties.Items["AuthenticationRequest"]);
 
         public static void SetLogoutRequest(this AuthenticationProperties properties, LogoutRequestType request) =>
@@ -556,7 +596,7 @@ namespace SPID.AspNetCore.Authentication
             properties.ExpiresUtc = cookieProperties.ExpiresUtc;
             properties.IsPersistent = cookieProperties.IsPersistent;
             properties.IssuedUtc = cookieProperties.IssuedUtc;
-            foreach(var item in cookieProperties.Items)
+            foreach (var item in cookieProperties.Items)
             {
                 properties.Items.Add(item);
             }

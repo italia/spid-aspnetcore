@@ -12,17 +12,22 @@ namespace SPID.AspNetCore.Authentication.Events
         /// <param name="scheme"></param>
         /// <param name="options"></param>
         /// <param name="properties"></param>
+        /// <param name="signedProtocolMessage"></param>
         public RedirectContext(
             HttpContext context,
             AuthenticationScheme scheme,
             SpidOptions options,
-            AuthenticationProperties properties)
-            : base(context, scheme, options, properties) { }
+            AuthenticationProperties properties,
+            object signedProtocolMessage)
+            : base(context, scheme, options, properties) 
+        {
+            SignedProtocolMessage = signedProtocolMessage;
+        }
 
         /// <summary>
-        /// The <see cref="LogoutRequestType"/> used to compose the redirect.
+        /// The message used to compose the redirect.
         /// </summary>
-        public string SignedProtocolMessage { get; set; }
+        public object SignedProtocolMessage { get; set; }
 
         /// <summary>
         /// If true, will skip any default logic for this redirect.

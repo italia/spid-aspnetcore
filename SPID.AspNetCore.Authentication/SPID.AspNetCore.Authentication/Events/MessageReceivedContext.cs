@@ -17,8 +17,12 @@ namespace SPID.AspNetCore.Authentication.Events
             HttpContext context,
             AuthenticationScheme scheme,
             SpidOptions options,
-            AuthenticationProperties properties)
-            : base(context, scheme, options, properties) { }
+            AuthenticationProperties properties,
+            Response protocolMessage)
+            : base(context, scheme, options, properties)
+        {
+            ProtocolMessage = protocolMessage;
+        }
 
         /// <summary>
         /// The <see cref="Response"/> received on this request.

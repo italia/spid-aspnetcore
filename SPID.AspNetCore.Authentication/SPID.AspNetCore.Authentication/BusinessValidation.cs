@@ -1,5 +1,4 @@
-﻿using ObjectsComparer;
-using SPID.AspNetCore.Authentication.Resources;
+﻿using SPID.AspNetCore.Authentication.Resources;
 using System;
 using System.Threading.Tasks;
 
@@ -11,7 +10,6 @@ namespace SPID.AspNetCore.Authentication
         {
             if (input is string && string.IsNullOrWhiteSpace(input.ToString()) || input == default(T)) throw new ArgumentNullException(error);
         }
-
 
         public static void ValidationCondition(Func<bool> condition, string error)
         {
@@ -29,7 +27,6 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
-
         public static void ValidationTry(Action action, string error)
         {
             try
@@ -43,7 +40,6 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
-
         public static void ValidationNotNullNotWhitespace(string input, string nameVariable)
         {
             if (string.IsNullOrWhiteSpace(input))
@@ -52,17 +48,11 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
-
         public static T ValidationNotNullNotEmpty<T>(T input, string nameVariable) where T : class, new()
         {
             var instance = new T();
-            var compare = new Comparer();
-            if (compare.Compare(input, instance)) throw new Exception(string.Format(ErrorLocalization.NotSpecified, nameVariable));
-            else if (input == default(T)) throw new Exception(string.Format(ErrorLocalization.NotDefined, nameVariable));
+            if (input == default(T)) throw new Exception(string.Format(ErrorLocalization.NotDefined, nameVariable));
             return input;
         }
-
-
-
     }
 }

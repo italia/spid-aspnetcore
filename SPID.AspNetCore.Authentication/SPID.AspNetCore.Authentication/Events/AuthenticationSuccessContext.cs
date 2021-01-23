@@ -13,9 +13,12 @@ namespace SPID.AspNetCore.Authentication.Events
         /// <param name="context"></param>
         /// <param name="scheme"></param>
         /// <param name="options"></param>
-        public AuthenticationSuccessContext(HttpContext context, AuthenticationScheme scheme, SpidOptions options)
+        public AuthenticationSuccessContext(HttpContext context, AuthenticationScheme scheme, SpidOptions options, string authenticationRequestId, AuthenticationTicket authenticationTicket)
             : base(context, scheme, options, new AuthenticationProperties())
-        { }
+        {
+            AuthenticationRequestId = authenticationRequestId;
+            AuthenticationTicket = authenticationTicket;
+        }
 
         /// <summary>
         /// Gets or sets the authentication ticket.
@@ -30,6 +33,6 @@ namespace SPID.AspNetCore.Authentication.Events
         /// <value>
         /// The saml authn request identifier.
         /// </value>
-        public string SamlAuthnRequestId { get; internal set; }
+        public string AuthenticationRequestId { get; internal set; }
     }
 }

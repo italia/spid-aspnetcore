@@ -17,9 +17,14 @@ namespace SPID.AspNetCore.Authentication.Helpers
     public static class SamlHelper
     {
         public const string VALUE_NOT_AVAILABLE = "N/A";
-        private static readonly XmlSerializer responseSerializer = new XmlSerializer(typeof(AuthnRequestType));
+        private static readonly Dictionary<Type, XmlSerializer> serializers = new  Dictionary<Type, XmlSerializer>
+        {
+            { typeof(AuthnRequestType), new XmlSerializer(typeof(AuthnRequestType)) },
+            { typeof(ResponseType), new XmlSerializer(typeof(ResponseType)) },
+            { typeof(LogoutRequestType), new XmlSerializer(typeof(LogoutRequestType)) },
+            { typeof(StatusResponseType), new XmlSerializer(typeof(StatusResponseType)) },
+        };
         private static readonly XmlSerializer entityDescriptorSerializer = new XmlSerializer(typeof(EntityDescriptor));
-        private static readonly XmlSerializer logoutRequestSerializer = new XmlSerializer(typeof(LogoutRequestType));
         private static readonly List<string> listAuthRefValid = new List<string>
             {
                 SamlConst.SpidL1,
@@ -56,7 +61,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <param name="certificate"></param>
         /// <param name="identityProvider"></param>
         /// <returns>Returns a Base64 Encoded String of the SAML request</returns>
-        public static (string Base64SignedMessage, AuthnRequestType Message) BuildAuthnPostRequest(string uuid,
+        public static AuthnRequestType BuildAuthnPostRequest(string uuid,
             string entityId,
             ushort? assertionConsumerServiceIndex,
             ushort? attributeConsumingServiceIndex,
@@ -85,7 +90,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
 
-            AuthnRequestType authnRequest = new AuthnRequestType
+            return new AuthnRequestType
             {
                 ID = "_" + uuid,
                 Version = SamlConst.Version,
@@ -130,17 +135,21 @@ namespace SPID.AspNetCore.Authentication.Helpers
                     }
                 }
             };
+        }
 
-            string samlString = SerializeMessage(authnRequest);
+        public static string SignRequest<T>(T message, X509Certificate2 certificate, string uuid) where T : class
+        {
+            var serializedMessage = SerializeMessage(message);
 
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(samlString);
+            var doc = new XmlDocument();
+            doc.LoadXml(serializedMessage);
 
-            XmlElement signature = XmlSigningHelper.SignXMLDoc(doc, certificate, "_" + uuid);
+            var signature = XmlSigningHelper.SignXMLDoc(doc, certificate, uuid);
             doc.DocumentElement.InsertBefore(signature, doc.DocumentElement.ChildNodes[1]);
 
-            return (Convert.ToBase64String(Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + doc.OuterXml), Base64FormattingOptions.None),
-                      authnRequest);
+            return Convert.ToBase64String(
+                Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + doc.OuterXml),
+                Base64FormattingOptions.None);
         }
 
         /// <summary>
@@ -159,6 +168,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             {
                 using TextReader reader = new StringReader(idpResponse);
                 response = (Response)serializer.Deserialize(reader);
+
                 BusinessValidation.ValidationCondition(() => response == null, ErrorLocalization.ResponseNotValid);
                 BusinessValidation.ValidationNotNullNotWhitespace(response.InResponseTo, nameof(response.InResponseTo));
 
@@ -401,7 +411,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <param name="subjectNameId"></param>
         /// <param name="authnStatementSessionIndex"></param>
         /// <returns></returns>
-        public static (string, LogoutRequestType, string) BuildLogoutPostRequest(string uuid, string consumerServiceURL, X509Certificate2 certificate,
+        public static LogoutRequestType BuildLogoutPostRequest(string uuid, string consumerServiceURL, X509Certificate2 certificate,
                                                     IdentityProvider identityProvider, string subjectNameId, string authnStatementSessionIndex)
         {
 
@@ -432,7 +442,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
             DateTime now = DateTime.UtcNow;
 
-            LogoutRequestType logoutRequest = new LogoutRequestType
+            return new LogoutRequestType
             {
                 ID = "_" + uuid,
                 Version = "2.0",
@@ -456,32 +466,6 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 SessionIndex = new string[] { authnStatementSessionIndex }
             };
 
-            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
-            ns.Add("saml2p", "urn:oasis:names:tc:SAML:2.0:protocol");
-            ns.Add("saml2", "urn:oasis:names:tc:SAML:2.0:assertion");
-
-            using StringWriter stringWriter = new StringWriter();
-            XmlWriterSettings settings = new XmlWriterSettings
-            {
-                OmitXmlDeclaration = true,
-                Indent = true,
-                Encoding = Encoding.UTF8
-            };
-
-            using XmlWriter responseWriter = XmlTextWriter.Create(stringWriter, settings);
-            logoutRequestSerializer.Serialize(responseWriter, logoutRequest, ns);
-            responseWriter.Close();
-
-            string samlString = stringWriter.ToString();
-            stringWriter.Close();
-
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(samlString);
-
-            XmlElement signature = XmlSigningHelper.SignXMLDoc(doc, certificate, "_" + uuid);
-            doc.DocumentElement.InsertBefore(signature, doc.DocumentElement.ChildNodes[1]);
-
-            return (Convert.ToBase64String(Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + doc.OuterXml)), logoutRequest, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + samlString);
         }
 
         /// <summary>
@@ -570,18 +554,9 @@ namespace SPID.AspNetCore.Authentication.Helpers
             return (idpLogoutResponse.InResponseTo == request.ID);
         }
 
-
-        public static T DeserializeMessage<T>(string message) where T : class
-        {
-            var serializer = new XmlSerializer(typeof(T));
-            using var stringReader = new StringReader(message);
-            using XmlReader requestReader = XmlReader.Create(stringReader);
-            return serializer.Deserialize(requestReader) as T;
-        }
-
         public static string SerializeMessage<T>(T message) where T : class
         {
-            var serializer = new XmlSerializer(typeof(T));
+            var serializer = serializers[typeof(T)];
             var ns = new XmlSerializerNamespaces();
             ns.Add(SamlConst.samlp, SamlConst.Saml2pProtocol);
             ns.Add(SamlConst.saml, SamlConst.Saml2Assertion);
@@ -597,6 +572,13 @@ namespace SPID.AspNetCore.Authentication.Helpers
             using var responseWriter = XmlTextWriter.Create(stringWriter, settings);
             serializer.Serialize(responseWriter, message, ns);
             return stringWriter.ToString();
+        }
+
+        public static T DeserializeMessage<T>(string message) where T : class
+        {
+            var serializer = serializers[typeof(T)];
+            using var stringReader = new StringReader(message);
+            return serializer.Deserialize(stringReader) as T;
         }
     }
 }
