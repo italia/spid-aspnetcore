@@ -196,8 +196,8 @@ namespace SPID.AspNetCore.Authentication
 
             var message = SamlHelper.BuildLogoutPostRequest(
                 authenticationRequestId,
-                securityTokenCreatingContext.Options.EntityId,
-                securityTokenCreatingContext.Options.Certificate,
+                securityTokenCreatingContext.TokenOptions.EntityId,
+                securityTokenCreatingContext.TokenOptions.Certificate,
                 idp,
                 subjectNameId,
                 sessionIndex);
@@ -212,7 +212,7 @@ namespace SPID.AspNetCore.Authentication
             properties.SetLogoutRequest(message);
             properties.Save(Response, Options.StateDataFormat);
 
-            await _requestGenerator.HandleLogoutRequest(message, Options.Certificate, idp.SingleSignOutServiceUrl, idp.Method);
+            await _requestGenerator.HandleLogoutRequest(message, securityTokenCreatingContext.TokenOptions.Certificate, idp.SingleSignOutServiceUrl, idp.Method);
         }
 
         protected virtual async Task<bool> HandleRemoteSignOutAsync()
@@ -503,7 +503,7 @@ namespace SPID.AspNetCore.Authentication
                 }
                 else
                 {
-                    var redirectUri = GetRedirectUrl(signOutUrl, messageGuid, "", /*signed, */certificate);
+                    var redirectUri = GetRedirectUrl(signOutUrl, messageGuid, SamlHelper.SerializeMessage(message), certificate);
                     if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
                     {
                         _logger.MalformedRedirectUri(redirectUri);
@@ -537,9 +537,11 @@ namespace SPID.AspNetCore.Authentication
             private string DeflateString(string value)
             {
                 using MemoryStream output = new MemoryStream();
-                using DeflateStream gzip = new DeflateStream(output, CompressionMode.Compress);
-                using StreamWriter writer = new StreamWriter(gzip, Encoding.UTF8);
-                writer.Write(value);
+                using (DeflateStream gzip = new DeflateStream(output, CompressionMode.Compress))
+                {
+                    using StreamWriter writer = new StreamWriter(gzip, Encoding.UTF8);
+                    writer.Write(value);
+                }
 
                 return Convert.ToBase64String(output.ToArray());
             }

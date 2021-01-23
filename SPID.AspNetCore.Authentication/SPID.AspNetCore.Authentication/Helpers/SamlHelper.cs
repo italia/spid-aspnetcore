@@ -418,7 +418,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             BusinessValidation.Argument(uuid, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(uuid)));
             BusinessValidation.Argument(subjectNameId, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(subjectNameId)));
             BusinessValidation.Argument(consumerServiceURL, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(consumerServiceURL)));
-            BusinessValidation.Argument(certificate, string.Format(ErrorLocalization.ParameterCantNull, nameof(consumerServiceURL)));
+            BusinessValidation.Argument(certificate, string.Format(ErrorLocalization.ParameterCantNull, nameof(certificate)));
             BusinessValidation.Argument(identityProvider, string.Format(ErrorLocalization.ParameterCantNull, nameof(identityProvider)));
 
             if (string.IsNullOrWhiteSpace(identityProvider.DateTimeFormat))

@@ -4,19 +4,18 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Description>AspNetCore Remote Authenticator for SPID</Description>
-    <Authors>Daniele Giallonardo</Authors>
-    <Copyright>Copyright (c) 2021, Daniele Giallonardo</Copyright>
+    <Authors>Daniele Giallonardo, Stefano Mostarda</Authors>
     <AssemblyName>SPID.AspNetCore.Authentication</AssemblyName>
     <RootNamespace>SPID.AspNetCore.Authentication</RootNamespace>
     <PackageId>SPID.AspNetCore.Authentication</PackageId>
     <PackageTags>spid;aspnetcore;authentication</PackageTags>
     <PackageProjectUrl>https://github.com/danielegiallonardo/spid-aspnetcore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageVersion>0.0.1</PackageVersion>
-    <Version>0.0.1</Version>
-    <AssemblyVersion>0.0.1</AssemblyVersion>
-    <FileVersion>0.0.1</FileVersion>
-    <InformationalVersion>0.0.1</InformationalVersion>
+    <PackageVersion>1.0.2</PackageVersion>
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
+    <InformationalVersion>1.0.2</InformationalVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
