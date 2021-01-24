@@ -107,6 +107,14 @@ namespace SPID.AspNetCore.Authentication
         /// </value>
         public X509Certificate2 Certificate { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether idp metadata should be cached.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [cache idp metadata]; otherwise, <c>false</c>.
+        /// </value>
+        public bool CacheIdpMetadata { get; set; }
+
         public void AddIdentityProviders(IEnumerable<IdentityProvider> identityProviders)
         {
             _identityProviders.AddRange(identityProviders);

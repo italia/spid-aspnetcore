@@ -42,6 +42,7 @@ namespace SPID.AspNetCore.Authentication
             options.SignOutScheme = section.GetValue<string>("SignOutScheme");
             options.UseTokenLifetime = section.GetValue<bool?>("UseTokenLifetime") ?? false;
             options.SkipUnrecognizedRequests = section.GetValue<bool?>("SkipUnrecognizedRequests") ?? true;
+            options.CacheIdpMetadata = section.GetValue<bool?>("CacheIdpMetadata") ?? false;
             var certificateSection = section.GetSection("Certificate");
             if (certificateSection != null)
             {
