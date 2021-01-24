@@ -51,6 +51,7 @@ namespace SPID.AspNetCore.Authentication
         {
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<SpidOptions>, SpidPostConfigureOptions>());
             builder.Services.TryAdd(ServiceDescriptor.Singleton<IActionContextAccessor, ActionContextAccessor>());
+            builder.Services.AddHttpClient("spid");
             builder.Services.TryAddScoped(factory =>
             {
                 var actionContext = factory.GetService<IActionContextAccessor>().ActionContext;

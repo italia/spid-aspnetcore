@@ -165,6 +165,9 @@
   <data name="InResponseToNotValid" xml:space="preserve">
     <value>Valore InResponseTo non valido</value>
   </data>
+  <data name="InvalidDestination" xml:space="preserve">
+    <value>Attributo Destination della risposta diverso da quello della richiesta</value>
+  </data>
   <data name="InvalidSignature" xml:space="preserve">
     <value>Signature non valida</value>
   </data>
@@ -215,6 +218,9 @@
   </data>
   <data name="ParameterNotValid" xml:space="preserve">
     <value>{0} non valido</value>
+  </data>
+  <data name="ResponseAssertionNotFound" xml:space="preserve">
+    <value>Assertion non trovata nella risposta</value>
   </data>
   <data name="ResponseNotValid" xml:space="preserve">
     <value>AuthnResponse non valida</value>

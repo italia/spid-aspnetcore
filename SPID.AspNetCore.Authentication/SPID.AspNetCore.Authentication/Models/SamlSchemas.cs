@@ -40,6 +40,9 @@
     {
 
         private string[] textField;
+        public string inResponseToField;
+        public System.DateTime notOnOrAfterField;
+        public string recipientField;
 
         /// <remarks/>
         [System.Xml.Serialization.XmlTextAttribute()]
@@ -54,6 +57,46 @@
                 this.textField = value;
             }
         }
+
+        [System.Xml.Serialization.XmlAttribute(AttributeName = "InResponseTo")]
+        public string InResponseTo
+        {
+            get
+            {
+                return this.inResponseToField;
+            }
+            set
+            {
+                this.inResponseToField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttribute(AttributeName = "NotOnOrAfter")]
+        public System.DateTime NotOnOrAfter
+        {
+            get
+            {
+                return this.notOnOrAfterField;
+            }
+            set
+            {
+                this.notOnOrAfterField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttribute(AttributeName = "Recipient")]
+        public string Recipient
+        {
+            get
+            {
+                return this.recipientField;
+            }
+            set
+            {
+                this.recipientField = value;
+            }
+        }
+
     }
 
     /// <remarks/>
@@ -4586,6 +4629,16 @@
                 this.itemsField = value;
             }
         }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.6.1055.0")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "urn:oasis:names:tc:SAML:2.0:protocol")]
+    [System.Xml.Serialization.XmlRootAttribute("LogoutResponse", Namespace = "urn:oasis:names:tc:SAML:2.0:protocol")]
+    public partial class LogoutResponseType : StatusResponseType
+    {
     }
 
     /// <remarks/>

@@ -13,7 +13,7 @@ namespace SPID.AspNetCore.Authentication.Events
         /// <param name="context"></param>
         /// <param name="scheme"></param>
         /// <param name="options"></param>
-        public AuthenticationFailedContext(HttpContext context, AuthenticationScheme scheme, SpidOptions options, Response message, Exception exception)
+        public AuthenticationFailedContext(HttpContext context, AuthenticationScheme scheme, SpidOptions options, ResponseType message, Exception exception)
             : base(context, scheme, options, new AuthenticationProperties())
         {
             ProtocolMessage = message;
@@ -23,7 +23,7 @@ namespace SPID.AspNetCore.Authentication.Events
         /// <summary>
         /// The <see cref="Response"/> from the request, if any.
         /// </summary>
-        public Response ProtocolMessage { get; set; }
+        public ResponseType ProtocolMessage { get; set; }
 
         /// <summary>
         /// The <see cref="Exception"/> that triggered this event.

@@ -13,13 +13,13 @@ namespace SPID.AspNetCore.Authentication.Events
         /// <param name="scheme"></param>
         /// <param name="options"></param>
         /// <param name="message"></param>
-        public RemoteSignOutContext(HttpContext context, AuthenticationScheme scheme, SpidOptions options, IdpLogoutResponse message)
+        public RemoteSignOutContext(HttpContext context, AuthenticationScheme scheme, SpidOptions options, LogoutResponseType message)
             : base(context, scheme, options, new AuthenticationProperties())
             => ProtocolMessage = message;
 
         /// <summary>
         /// The signout message.
         /// </summary>
-        public IdpLogoutResponse ProtocolMessage { get; set; }
+        public LogoutResponseType ProtocolMessage { get; set; }
     }
 }

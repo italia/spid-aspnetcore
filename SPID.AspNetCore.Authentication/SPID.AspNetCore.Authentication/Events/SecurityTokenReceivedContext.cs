@@ -17,6 +17,6 @@ namespace SPID.AspNetCore.Authentication.Events
         /// <summary>
         /// The <see cref="Response"/> received on this request.
         /// </summary>
-        public Response ProtocolMessage { get; set; }
+        public ResponseType ProtocolMessage { get; set; }
     }
 }

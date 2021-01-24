@@ -205,6 +205,15 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attributo Destination della risposta diverso da quello della richiesta.
+        /// </summary>
+        public static string InvalidDestination {
+            get {
+                return ResourceManager.GetString("InvalidDestination", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Signature non valida.
         /// </summary>
         public static string InvalidSignature {
@@ -354,6 +363,15 @@ namespace SPID.AspNetCore.Authentication.Resources {
         public static string ParameterNotValid {
             get {
                 return ResourceManager.GetString("ParameterNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assertion non trovata nella risposta.
+        /// </summary>
+        public static string ResponseAssertionNotFound {
+            get {
+                return ResourceManager.GetString("ResponseAssertionNotFound", resourceCulture);
             }
         }
         

@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -27,12 +28,16 @@ namespace SPID.AspNetCore.Authentication
     public class SpidHandler : RemoteAuthenticationHandler<SpidOptions>, IAuthenticationSignOutHandler
     {
         private const string CorrelationProperty = ".xsrf";
+        private static readonly XmlSerializer entityDescriptorSerializer = new(typeof(EntityDescriptor));
+
         EventsHandler _eventsHandler;
         RequestGenerator _requestGenerator;
+        IHttpClientFactory _httpClientFactory;
 
-        public SpidHandler(IOptionsMonitor<SpidOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
+        public SpidHandler(IOptionsMonitor<SpidOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IHttpClientFactory httpClientFactory)
             : base(options, logger, encoder, clock)
         {
+            _httpClientFactory = httpClientFactory;
         }
 
         protected new SpidEvents Events
@@ -127,14 +132,14 @@ namespace SPID.AspNetCore.Authentication
 
             var (id, message) = await ExtractInfoFromAuthenticationResponse();
 
-            var validationMessageResult = ValidateAuthenticationResponse(message, properties);
-            if (validationMessageResult != null)
-                return validationMessageResult;
-
             try
             {
                 var idpName = properties.GetIdentityProviderName();
                 var request = properties.GetAuthenticationRequest();
+
+                var validationMessageResult = await ValidateAuthenticationResponse(message, request, properties, idpName);
+                if (validationMessageResult != null)
+                    return validationMessageResult;
 
                 var responseMessageReceivedResult = await _eventsHandler.HandleAuthenticationResponseMessageReceived(Context, Scheme, Options, properties, message);
                 if (responseMessageReceivedResult.Result != null)
@@ -150,12 +155,12 @@ namespace SPID.AspNetCore.Authentication
                     return correlationValidationResult;
                 }
 
-                var (principal, validFrom, validTo) = CreatePrincipal(message, request, idpName);
+                var (principal, validFrom, validTo) = CreatePrincipal(message);
 
                 AdjustAuthenticationPropertiesDates(properties, validFrom, validTo);
 
-                properties.SetSubjectNameId(message.Assertion.Subject?.NameID?.Text);
-                properties.SetSessionIndex(message.Assertion.AuthnStatement.SessionIndex);
+                properties.SetSubjectNameId(message.GetAssertion().Subject?.GetNameID()?.Value);
+                properties.SetSessionIndex(message.GetAssertion().GetAuthnStatement().SessionIndex);
                 properties.Save(Response, Options.StateDataFormat);
 
                 var ticket = new AuthenticationTicket(principal, properties, Scheme.Name);
@@ -250,9 +255,9 @@ namespace SPID.AspNetCore.Authentication
             return true;
         }
 
-        private HandleRequestResult ValidateAuthenticationResponse(Response message, AuthenticationProperties properties)
+        private async Task<HandleRequestResult> ValidateAuthenticationResponse(ResponseType response, AuthnRequestType request, AuthenticationProperties properties, string idPName)
         {
-            if (message == null)
+            if (response == null)
             {
                 if (Options.SkipUnrecognizedRequests)
                 {
@@ -267,6 +272,17 @@ namespace SPID.AspNetCore.Authentication
                 return HandleRequestResult.Fail("Unsolicited logins are not allowed.");
             }
 
+            var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idPName);
+
+            using (var client = _httpClientFactory.CreateClient("spid"))
+            {
+                var xml = await client.GetStringAsync(idp.OrganizationUrlMetadata);
+                using (var reader = new StringReader(xml))
+                {
+                    var metadataIdp = (EntityDescriptor)entityDescriptorSerializer.Deserialize(reader);
+                    response.ValidateAuthnResponse(request, metadataIdp, idp.PerformFullResponseValidation);
+                }
+            }
             return null;
         }
 
@@ -298,46 +314,39 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
-        private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) CreatePrincipal(Response idpAuthnResponse, AuthnRequestType request, string idPName)
+        private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) CreatePrincipal(ResponseType idpAuthnResponse)
         {
-            var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idPName);
-
-            EntityDescriptor metadataIdp = !string.IsNullOrWhiteSpace(idp.OrganizationUrlMetadata)
-                ? idp.OrganizationUrlMetadata.DownloadMetadataIDP()
-                : new EntityDescriptor();
-            idpAuthnResponse.ValidateAuthnResponse(request, metadataIdp, idp.PerformFullResponseValidation);
-
             var claims = new Claim[]
             {
-                new Claim( ClaimTypes.NameIdentifier, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( ClaimTypes.Email, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.name, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.name.Equals(x.Name) || SamlConst.name.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.email, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.familyName, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.familyName.Equals(x.Name) || SamlConst.familyName.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.fiscalNumber, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.fiscalNumber.Equals(x.Name) || SamlConst.fiscalNumber.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.surname, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.surname.Equals(x.Name) || SamlConst.surname.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.mail, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.mail.Equals(x.Name) || SamlConst.mail.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.address, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.address.Equals(x.Name) || SamlConst.address.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.companyName, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.companyName.Equals(x.Name) || SamlConst.companyName.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.countyOfBirth, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.countyOfBirth.Equals(x.Name) || SamlConst.countyOfBirth.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.dateOfBirth, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.dateOfBirth.Equals(x.Name) || SamlConst.dateOfBirth.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.digitalAddress, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.digitalAddress.Equals(x.Name) || SamlConst.digitalAddress.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.expirationDate, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.expirationDate.Equals(x.Name) || SamlConst.expirationDate.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.gender, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.gender.Equals(x.Name) || SamlConst.gender.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.idCard, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.idCard.Equals(x.Name) || SamlConst.idCard.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.ivaCode, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.ivaCode.Equals(x.Name) || SamlConst.ivaCode.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.mobilePhone, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.mobilePhone.Equals(x.Name) || SamlConst.mobilePhone.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.placeOfBirth, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.placeOfBirth.Equals(x.Name) || SamlConst.placeOfBirth.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.registeredOffice, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.registeredOffice.Equals(x.Name) || SamlConst.registeredOffice.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
-                new Claim( SamlConst.spidCode, idpAuthnResponse.Assertion.AttributeStatement.Attribute.FirstOrDefault(x => SamlConst.spidCode.Equals(x.Name) || SamlConst.spidCode.Equals(x.FriendlyName))?.AttributeValue?.Trim() ?? string.Empty),
+                new Claim( ClaimTypes.NameIdentifier, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( ClaimTypes.Email, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.name, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.name.Equals(x.Name) || SamlConst.name.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.email, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.familyName, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.familyName.Equals(x.Name) || SamlConst.familyName.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.fiscalNumber, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.fiscalNumber.Equals(x.Name) || SamlConst.fiscalNumber.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.surname, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.surname.Equals(x.Name) || SamlConst.surname.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.mail, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.mail.Equals(x.Name) || SamlConst.mail.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.address, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.address.Equals(x.Name) || SamlConst.address.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.companyName, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.companyName.Equals(x.Name) || SamlConst.companyName.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.countyOfBirth, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.countyOfBirth.Equals(x.Name) || SamlConst.countyOfBirth.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.dateOfBirth, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.dateOfBirth.Equals(x.Name) || SamlConst.dateOfBirth.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.digitalAddress, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.digitalAddress.Equals(x.Name) || SamlConst.digitalAddress.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.expirationDate, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.expirationDate.Equals(x.Name) || SamlConst.expirationDate.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.gender, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.gender.Equals(x.Name) || SamlConst.gender.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.idCard, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.idCard.Equals(x.Name) || SamlConst.idCard.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.ivaCode, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.ivaCode.Equals(x.Name) || SamlConst.ivaCode.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.mobilePhone, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.mobilePhone.Equals(x.Name) || SamlConst.mobilePhone.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.placeOfBirth, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.placeOfBirth.Equals(x.Name) || SamlConst.placeOfBirth.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.registeredOffice, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.registeredOffice.Equals(x.Name) || SamlConst.registeredOffice.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.spidCode, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.spidCode.Equals(x.Name) || SamlConst.spidCode.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
             };
             var identity = new ClaimsIdentity(claims, Scheme.Name, SamlConst.email, null);
 
             var returnedPrincipal = new ClaimsPrincipal(identity);
-            return (returnedPrincipal, DateTimeOffset.Parse(idpAuthnResponse.IssueInstant), DateTimeOffset.Parse(idpAuthnResponse.Assertion.Subject.SubjectConfirmation.SubjectConfirmationData.NotOnOrAfter));
+            return (returnedPrincipal, new DateTimeOffset(idpAuthnResponse.IssueInstant), new DateTimeOffset(idpAuthnResponse.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter));
         }
 
-        private async Task<(string Id, Response Message)> ExtractInfoFromAuthenticationResponse()
+        private async Task<(string Id, ResponseType Message)> ExtractInfoFromAuthenticationResponse()
         {
             if (HttpMethods.IsPost(Request.Method)
               && !string.IsNullOrEmpty(Request.ContentType)
@@ -355,7 +364,7 @@ namespace SPID.AspNetCore.Authentication
             return (null, null);
         }
 
-        private async Task<(string Id, IdpLogoutResponse Message)> ExtractInfoFromSignOutResponse()
+        private async Task<(string Id, LogoutResponseType Message)> ExtractInfoFromSignOutResponse()
         {
             if (HttpMethods.IsPost(Request.Method)
               && !string.IsNullOrEmpty(Request.ContentType)
@@ -372,9 +381,9 @@ namespace SPID.AspNetCore.Authentication
             return (null, null);
         }
 
-        private bool ValidateSignOutResponse(IdpLogoutResponse message, LogoutRequestType logoutRequest)
+        private bool ValidateSignOutResponse(LogoutResponseType response, LogoutRequestType request)
         {
-            var valid = message.IsSuccessful && SamlHelper.ValidateLogoutResponse(message, logoutRequest);
+            var valid = response.Status.StatusCode.Value == SamlConst.Success && SamlHelper.ValidateLogoutResponse(response, request);
             if (valid)
             {
                 return true;
@@ -424,7 +433,7 @@ namespace SPID.AspNetCore.Authentication
                 return (redirectContext.Handled, (LogoutRequestType)redirectContext.SignedProtocolMessage);
             }
 
-            public async Task<MessageReceivedContext> HandleAuthenticationResponseMessageReceived(HttpContext context, AuthenticationScheme scheme, SpidOptions options, AuthenticationProperties properties, Response message)
+            public async Task<MessageReceivedContext> HandleAuthenticationResponseMessageReceived(HttpContext context, AuthenticationScheme scheme, SpidOptions options, AuthenticationProperties properties, ResponseType message)
             {
                 var messageReceivedContext = new MessageReceivedContext(context, scheme, options, properties, message);
                 await _events.MessageReceived(messageReceivedContext);
@@ -438,14 +447,14 @@ namespace SPID.AspNetCore.Authentication
                 return authenticationSuccessContext;
             }
 
-            public async Task<AuthenticationFailedContext> HandleAuthenticationFailed(HttpContext context, AuthenticationScheme scheme, SpidOptions options, Response message, Exception exception)
+            public async Task<AuthenticationFailedContext> HandleAuthenticationFailed(HttpContext context, AuthenticationScheme scheme, SpidOptions options, ResponseType message, Exception exception)
             {
                 var authenticationFailedContext = new AuthenticationFailedContext(context, scheme, options, message, exception);
                 await _events.AuthenticationFailed(authenticationFailedContext);
                 return authenticationFailedContext;
             }
 
-            public async Task<RemoteSignOutContext> HandleRemoteSignOut(HttpContext context, AuthenticationScheme scheme, SpidOptions options, IdpLogoutResponse message)
+            public async Task<RemoteSignOutContext> HandleRemoteSignOut(HttpContext context, AuthenticationScheme scheme, SpidOptions options, LogoutResponseType message)
             {
                 var remoteSignOutContext = new RemoteSignOutContext(context, scheme, options, message);
                 await _events.RemoteSignOut(remoteSignOutContext);

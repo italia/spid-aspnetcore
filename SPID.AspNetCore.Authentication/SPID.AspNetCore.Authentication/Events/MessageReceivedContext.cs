@@ -18,7 +18,7 @@ namespace SPID.AspNetCore.Authentication.Events
             AuthenticationScheme scheme,
             SpidOptions options,
             AuthenticationProperties properties,
-            Response protocolMessage)
+            ResponseType protocolMessage)
             : base(context, scheme, options, properties)
         {
             ProtocolMessage = protocolMessage;
@@ -27,6 +27,6 @@ namespace SPID.AspNetCore.Authentication.Events
         /// <summary>
         /// The <see cref="Response"/> received on this request.
         /// </summary>
-        public Response ProtocolMessage { get; set; }
+        public ResponseType ProtocolMessage { get; set; }
     }
 }

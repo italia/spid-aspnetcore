@@ -16,6 +16,7 @@
         public static string ProtocolBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST";
         public static string NameIDPolicyFormat = "urn:oasis:names:tc:SAML:2.0:nameid-format:transient";
         public static string Saml2pProtocol = "urn:oasis:names:tc:SAML:2.0:protocol";
+        public static string LogoutUserProtocol = "urn:oasis:names:tc:SAML:2.0:logout:user";
         public static string samlp = nameof(samlp);
         public static string saml = nameof(saml);
         public static string Saml2Assertion = "urn:oasis:names:tc:SAML:2.0:assertion";
