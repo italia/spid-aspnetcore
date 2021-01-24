@@ -315,9 +315,9 @@ namespace SPID.AspNetCore.Authentication.Helpers
             }
 
             BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion(), nameof(ErrorFields.Assertion));
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().ID == null, string.Format(ErrorLocalization.Missing, nameof(Assertion.ID)));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().ID == null, string.Format(ErrorLocalization.Missing, nameof(ErrorFields.ID)));
             BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().ID, nameof(ErrorFields.ID));
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Version != SamlConst.Version, string.Format(ErrorLocalization.DifferentFrom, nameof(Assertion.Version), SamlConst.Version));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Version != SamlConst.Version, string.Format(ErrorLocalization.DifferentFrom, nameof(ErrorFields.Version), SamlConst.Version));
 
             BusinessValidation.ValidationCondition(() => response.GetAssertion().IssueInstant == null, string.Format(ErrorLocalization.NotSpecified, nameof(ErrorFields.IssueInstant)));
             DateTimeOffset assertionIssueIstant = response.GetAssertion().IssueInstant;
@@ -541,25 +541,26 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
         private class ErrorFields
         {
-            public static object Assertion;
-            public static object AttributeStatement;
-            public static object ID;
-            public static object IssueInstant;
-            public static object Subject;
-            public static object NameID;
-            public static object Format;
-            public static object SubjectConfirmation;
-            public static object Method;
-            public static object SubjectConfirmationData;
-            public static object InResponseTo;
-            public static object Issuer;
-            public static object NotOnOrAfter;
-            public static object NotBefore;
-            public static object AudienceRestriction;
-            public static object Audience;
-            public static object AuthnStatement;
-            public static object AuthnContext;
-            public static object AuthnContextClassRef;
+            internal static object Assertion;
+            internal static object AttributeStatement;
+            internal static object ID;
+            internal static object IssueInstant;
+            internal static object Subject;
+            internal static object NameID;
+            internal static object Format;
+            internal static object SubjectConfirmation;
+            internal static object Method;
+            internal static object SubjectConfirmationData;
+            internal static object InResponseTo;
+            internal static object Issuer;
+            internal static object NotOnOrAfter;
+            internal static object NotBefore;
+            internal static object AudienceRestriction;
+            internal static object Audience;
+            internal static object AuthnStatement;
+            internal static object AuthnContext;
+            internal static object AuthnContextClassRef;
+            internal static object Version;
         }
     }
 }

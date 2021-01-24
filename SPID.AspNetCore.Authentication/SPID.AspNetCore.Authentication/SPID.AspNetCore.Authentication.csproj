@@ -20,6 +20,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\AuthnResponse.cs" />
+    <Compile Remove="Models\IdpLogoutResponse.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Razor" Version="2.2.0" />
