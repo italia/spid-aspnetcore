@@ -10,20 +10,6 @@ La libreria viene distribuita sotto forma di pacchetto NuGet, installabile trami
 
 `Install-Package SPID.AspNetCore.Authentication`
 
-Una volta installato, il pacchetto crea nel progetto i link simbolici ad alcuni file di contenuti, necessari per la renderizzazione del pulsante "Entra con SPID"
-
-```
-/ wwwroot
-  / js
-    / spid.js
-  / css
-    / spid.css
-  / images
-    / spid-ico-circle-bb.png
-```
-
-ed aggiunge al progetto il reference a `SPID.AspNetCore.Authentication.dll`.
-
 A questo punto è sufficiente, all'interno dello `Startup.cs`, aggiungere le seguenti righe:
 
 ```csharp
@@ -45,7 +31,7 @@ public void ConfigureServices(IServiceCollection services)
 
 In questo modo vengono aggiunti i middleware necessari per la gestione delle richieste/risposte di login/logout da/verso SPID.
 
-Nella libreria è inclusa anche l'implementazione di un TagHelper per la renderizzazione (conforme alle specifiche) del pulsante "Entra con SPID".
+Nella libreria è inclusa anche l'implementazione di diversi TagHelper per la renderizzazione (conforme alle specifiche) del pulsante "Entra con SPID" e per il rendering delle sezioni di styling e scripting.
 Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla View Razor dove lo si desidera posizionare:
 
 ```razor
@@ -56,20 +42,19 @@ Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla V
 	ViewData["Title"] = "Home Page";
 }
 @section styles {
-	<link rel="stylesheet" href="~/spid/spid.css" />
+	<style spid></style>
 }
-
 <div class="text-center">
 	<h1 class="display-4">Welcome</h1>
 	<spid-providers challenge-url="/home/login" size="Medium" class="text-left"></spid-providers>
 </div>
 
 @section scripts {
-	<script src="~/spid/spid.js"></script>
+	<script spid></script>
 }
 ```
 
-Il TagHelper `spid-providers` si occuperà di generare automaticamente il codice HTML necessario per la renderizzazione della lista di IdentityProviders che è stata inizializzata tra le SpidOptions in fase di startup.
+Il TagHelper `spid-providers` si occuperà di generare automaticamente il codice HTML necessario per la renderizzazione della lista di IdentityProviders che è stata inizializzata tra le SpidOptions in fase di startup. `<style spid></style>` e `<script spid></script>` invece rappresentano i TagHelper per la renderizzazione rispettivamente delle classi CSS e del codice JS necessari all'esecuzione del pulsante.
 Un esempio completo di webapp AspNetCore MVC che fa uso di questa libreria è presente all'interno di questo repository sotto la cartella `SPID.AspNetCore.Authentication/SPID.AspNetCore.WebApp`. Per utilizzarla è sufficiente configurare in `appsettings.json` i parametri `AssertionConsumerServiceIndex`, `AttributeConsumingServiceIndex`, `EntityId` e `Certificate` con quelli relativi al proprio metadata di test, e lanciare la webapp.
 
 # Configurazione
