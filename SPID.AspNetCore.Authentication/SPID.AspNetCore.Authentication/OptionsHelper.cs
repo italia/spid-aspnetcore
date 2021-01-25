@@ -55,7 +55,7 @@ namespace SPID.AspNetCore.Authentication
                     var findType = storeConfiguration.GetValue<X509FindType>("FindType");
                     var findValue = storeConfiguration.GetValue<string>("FindValue");
                     var validOnly = storeConfiguration.GetValue<bool>("validOnly");
-                    options.Certificate = X509Helper.GetCertificateFromStore(
+                    options.Certificate = X509Helpers.GetCertificateFromStore(
                                         StoreLocation.CurrentUser, StoreName.My,
                                         X509FindType.FindBySubjectName,
                                         findValue,
@@ -66,14 +66,14 @@ namespace SPID.AspNetCore.Authentication
                     var storeConfiguration = certificateSection.GetSection("File");
                     var path = storeConfiguration.GetValue<string>("Path");
                     var password = storeConfiguration.GetValue<string>("Password");
-                    options.Certificate = X509Helper.GetCertificateFromFile(path, password);
+                    options.Certificate = X509Helpers.GetCertificateFromFile(path, password);
                 }
                 else if(certificateSource == "Raw")
                 {
                     var storeConfiguration = certificateSection.GetSection("Raw");
                     var certificate = storeConfiguration.GetValue<string>("Certificate");
                     var key = storeConfiguration.GetValue<string>("Password");
-                    options.Certificate = X509Helper.GetCertificateFromStrings(certificate, key);
+                    options.Certificate = X509Helpers.GetCertificateFromStrings(certificate, key);
                 }
             }
             return options;

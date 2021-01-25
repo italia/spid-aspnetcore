@@ -6,7 +6,7 @@ using System.Text;
 
 namespace SPID.AspNetCore.Authentication.Helpers
 {
-    public static class X509Helper
+    public static class X509Helpers
     {
         /// <summary>
         /// Get certificate from file path and password
@@ -99,7 +99,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
             }
         }
 
-
+        /// <summary>
+        /// Creates the signature.
+        /// </summary>
+        /// <param name="payload">The payload.</param>
+        /// <param name="certificate">The certificate.</param>
+        /// <returns></returns>
         public static string CreateSignature(this string payload, X509Certificate2 certificate)
         {
             using var rsa = certificate.GetRSAPrivateKey();

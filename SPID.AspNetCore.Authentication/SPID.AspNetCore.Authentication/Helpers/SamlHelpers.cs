@@ -16,7 +16,7 @@ using System.Xml.Serialization;
 
 namespace SPID.AspNetCore.Authentication.Helpers
 {
-    public static class SamlHelper
+    public static class SamlHelpers
     {
         public const string VALUE_NOT_AVAILABLE = "N/A";
         private static readonly Dictionary<Type, XmlSerializer> serializers = new Dictionary<Type, XmlSerializer>
@@ -26,7 +26,6 @@ namespace SPID.AspNetCore.Authentication.Helpers
             { typeof(LogoutRequestType), new XmlSerializer(typeof(LogoutRequestType)) },
             { typeof(LogoutResponseType), new XmlSerializer(typeof(LogoutResponseType)) },
         };
-        private static readonly XmlSerializer entityDescriptorSerializer = new XmlSerializer(typeof(EntityDescriptor));
         private static readonly List<string> listAuthRefValid = new List<string>
         {
             SamlConst.SpidL1,
@@ -44,7 +43,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <param name="certificate"></param>
         /// <param name="identityProvider"></param>
         /// <returns>Returns a Base64 Encoded String of the SAML request</returns>
-        public static AuthnRequestType BuildAuthnPostRequest(string requestId,
+        public static AuthnRequestType GetAuthnRequest(string requestId,
             string entityId,
             ushort? assertionConsumerServiceIndex,
             ushort? attributeConsumingServiceIndex,
@@ -60,12 +59,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
             if (string.IsNullOrWhiteSpace(identityProvider.DateTimeFormat))
             {
-                identityProvider.DateTimeFormat = SamlIdentityProviderSettings.DateTimeFormat;
+                identityProvider.DateTimeFormat = SamlDefaultSettings.DateTimeFormat;
             }
 
             if (identityProvider.NowDelta == null)
             {
-                identityProvider.NowDelta = SamlIdentityProviderSettings.NowDelta;
+                identityProvider.NowDelta = SamlDefaultSettings.NowDelta;
             }
 
             string dateTimeFormat = identityProvider.DateTimeFormat;
@@ -87,9 +86,9 @@ namespace SPID.AspNetCore.Authentication.Helpers
                     Format = SamlConst.IssuerFormat,
                     NameQualifier = entityId
                 },
-                AssertionConsumerServiceIndex = assertionConsumerServiceIndex ?? SamlIdentityProviderSettings.AssertionConsumerServiceIndex,
+                AssertionConsumerServiceIndex = assertionConsumerServiceIndex ?? SamlDefaultSettings.AssertionConsumerServiceIndex,
                 AssertionConsumerServiceIndexSpecified = true,
-                AttributeConsumingServiceIndex = attributeConsumingServiceIndex ?? SamlIdentityProviderSettings.AttributeConsumingServiceIndex,
+                AttributeConsumingServiceIndex = attributeConsumingServiceIndex ?? SamlDefaultSettings.AttributeConsumingServiceIndex,
                 AttributeConsumingServiceIndexSpecified = true,
                 NameIDPolicy = new NameIDPolicyType
                 {
@@ -120,6 +119,14 @@ namespace SPID.AspNetCore.Authentication.Helpers
             };
         }
 
+        /// <summary>
+        /// Signs the request.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="message">The message.</param>
+        /// <param name="certificate">The certificate.</param>
+        /// <param name="uuid">The UUID.</param>
+        /// <returns></returns>
         public static string SignRequest<T>(T message, X509Certificate2 certificate, string uuid) where T : class
         {
             var serializedMessage = SerializeMessage(message);
@@ -127,7 +134,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             var doc = new XmlDocument();
             doc.LoadXml(serializedMessage);
 
-            var signature = XmlSigningHelper.SignXMLDoc(doc, certificate, uuid);
+            var signature = XmlHelpers.SignXMLDoc(doc, certificate, uuid);
             doc.DocumentElement.InsertBefore(signature, doc.DocumentElement.ChildNodes[1]);
 
             return Convert.ToBase64String(
@@ -161,6 +168,14 @@ namespace SPID.AspNetCore.Authentication.Helpers
             }
         }
 
+        /// <summary>
+        /// Validates the authn response.
+        /// </summary>
+        /// <param name="response">The response.</param>
+        /// <param name="request">The request.</param>
+        /// <param name="metadataIdp">The metadata idp.</param>
+        /// <param name="performFullResponseValidation">if set to <c>true</c> [perform full response validation].</param>
+        /// <returns></returns>
         public static void ValidateAuthnResponse(this ResponseType response, AuthnRequestType request, EntityDescriptor metadataIdp, bool performFullResponseValidation)
         {
             // Verify signature
@@ -374,7 +389,6 @@ namespace SPID.AspNetCore.Authentication.Helpers
             }
         }
 
-
         /// <summary>
         /// Build a signed SAML logout request.
         /// </summary>
@@ -386,7 +400,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <param name="subjectNameId"></param>
         /// <param name="authnStatementSessionIndex"></param>
         /// <returns></returns>
-        public static LogoutRequestType BuildLogoutPostRequest(string requestId, string consumerServiceURL, X509Certificate2 certificate,
+        public static LogoutRequestType GetLogoutRequest(string requestId, string consumerServiceURL, X509Certificate2 certificate,
            IdentityProvider identityProvider, string subjectNameId, string authnStatementSessionIndex)
         {
 
@@ -398,12 +412,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
             if (string.IsNullOrWhiteSpace(identityProvider.DateTimeFormat))
             {
-                identityProvider.DateTimeFormat = SamlIdentityProviderSettings.DateTimeFormat;
+                identityProvider.DateTimeFormat = SamlDefaultSettings.DateTimeFormat;
             }
 
             if (identityProvider.NowDelta == null)
             {
-                identityProvider.NowDelta = SamlIdentityProviderSettings.NowDelta;
+                identityProvider.NowDelta = SamlDefaultSettings.NowDelta;
             }
 
             if (string.IsNullOrWhiteSpace(identityProvider.SingleSignOutServiceUrl))
@@ -471,7 +485,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 // Verify signature
                 XmlDocument xml = new XmlDocument { PreserveWhitespace = true };
                 xml.LoadXml(idpResponse);
-                if (!XmlSigningHelper.VerifySignature(xml))
+                if (!XmlHelpers.VerifySignature(xml))
                 {
                     throw new Exception("Unable to verify the signature of the IdP response.");
                 }
@@ -495,6 +509,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
             return (response.InResponseTo == request.ID);
         }
 
+        /// <summary>
+        /// Serializes the message.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="message">The message.</param>
+        /// <returns></returns>
         public static string SerializeMessage<T>(T message) where T : class
         {
             var serializer = serializers[typeof(T)];
@@ -515,6 +535,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
             return stringWriter.ToString();
         }
 
+        /// <summary>
+        /// Deserializes the message.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="message">The message.</param>
+        /// <returns></returns>
         public static T DeserializeMessage<T>(string message) where T : class
         {
             var serializer = serializers[typeof(T)];
