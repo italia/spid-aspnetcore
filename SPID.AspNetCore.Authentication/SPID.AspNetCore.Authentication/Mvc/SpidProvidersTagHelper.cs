@@ -3,12 +3,17 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Options;
 using SPID.AspNetCore.Authentication.Models;
+using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace SPID.AspNetCore.Authentication
 {
     public class SpidProvidersTagHelper : TagHelper
     {
+        private static string _serializedCircleImage;
+        private static object _lockobj = new object();
+
         private static Dictionary<SpidButtonSize, (string ShortClassName, string LongClassName)> _classNames = new()
         {
             { SpidButtonSize.Small, ("s", "small") },
@@ -28,7 +33,7 @@ namespace SPID.AspNetCore.Authentication
 
         public SpidButtonSize Size { get; set; }
 
-        public string CircleImagePath { get; set; } = "~/spid/spid-ico-circle-bb.png";
+        public string CircleImagePath { get; set; }
 
         public string ChallengeUrl { get; set; }
 
@@ -45,7 +50,7 @@ namespace SPID.AspNetCore.Authentication
             spanIcon.AddCssClass("italia-it-button-icon");
 
             var imgIcon = new TagBuilder("img");
-            imgIcon.Attributes.Add("src", _urlHelper.Content(CircleImagePath));
+            imgIcon.Attributes.Add("src", String.IsNullOrWhiteSpace(CircleImagePath) ? GetSerializedCircleImage() : _urlHelper.Content(CircleImagePath));
             imgIcon.Attributes.Add("alt", string.Empty);
             spanIcon.AddCssClass("italia-it-button-icon");
             spanIcon.InnerHtml.AppendHtml(imgIcon);
@@ -75,7 +80,7 @@ namespace SPID.AspNetCore.Authentication
             listContainer.Attributes.Add("aria-labelledby", "spid-idp");
             listContainer.AddCssClass("spid-idp-button-menu");
 
-            foreach(var idp in _options.FilteredIdentityProviders)
+            foreach (var idp in _options.FilteredIdentityProviders)
             {
                 var itemContainer = new TagBuilder("li");
                 itemContainer.AddCssClass("spid-idp-button-link");
@@ -100,6 +105,31 @@ namespace SPID.AspNetCore.Authentication
             container.InnerHtml.AppendHtml(listContainer);
             return container;
         }
+
+        private string GetSerializedCircleImage()
+        {
+            if (_serializedCircleImage == null)
+            {
+                lock (_lockobj)
+                {
+                    if (_serializedCircleImage == null)
+                    {
+
+                        using (var resourceStream = GetType().Assembly.GetManifestResourceStream("SPID.AspNetCore.Authentication.Mvc.Resources.spid-ico-circle-bb.png"))
+                        {
+                            using (var writer = new MemoryStream())
+                            {
+                                resourceStream.CopyTo(writer);
+                                writer.Seek(0, SeekOrigin.Begin);
+                                _serializedCircleImage = $"data:image/png;base64,{Convert.ToBase64String(writer.ToArray())}";
+                            }
+                        }
+                    }
+                }
+            }
+            return _serializedCircleImage;
+        }
+
     }
 
     public enum SpidButtonSize
