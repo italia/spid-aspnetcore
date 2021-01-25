@@ -1,8 +1,7 @@
 ﻿using SPID.AspNetCore.Authentication.Resources;
 using System;
-using System.Threading.Tasks;
 
-namespace SPID.AspNetCore.Authentication
+namespace SPID.AspNetCore.Authentication.Helpers
 {
     public static class BusinessValidation
     {

@@ -1,9 +1,8 @@
-﻿using SPID.AspNetCore.Authentication.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SPID.AspNetCore.Authentication
+namespace SPID.AspNetCore.Authentication.Saml
 {
     public static class SamlTypesExtensions
     {

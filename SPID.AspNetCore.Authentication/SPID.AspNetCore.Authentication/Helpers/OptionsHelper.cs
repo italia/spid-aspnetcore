@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using SPID.AspNetCore.Authentication.Helpers;
+using SPID.AspNetCore.Authentication.Models;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
-namespace SPID.AspNetCore.Authentication
+namespace SPID.AspNetCore.Authentication.Helpers
 {
     static class OptionsHelper
     {

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Options;
+using SPID.AspNetCore.Authentication.Models;
 using System.Collections.Generic;
 
 namespace SPID.AspNetCore.Authentication

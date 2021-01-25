@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using SPID.AspNetCore.Authentication;
 using SPID.AspNetCore.Authentication.Events;
 using SPID.AspNetCore.Authentication.Helpers;
+using SPID.AspNetCore.Authentication.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

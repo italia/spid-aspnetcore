@@ -1,4 +1,4 @@
-﻿namespace SPID.AspNetCore.Authentication.Models
+﻿namespace SPID.AspNetCore.Authentication.Saml
 {
 
     /// <remarks/>

@@ -1,4 +1,4 @@
-﻿namespace SPID.AspNetCore.Authentication
+﻿namespace SPID.AspNetCore.Authentication.Saml
 {
     public class SamlConst
     {

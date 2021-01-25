@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SPID.AspNetCore.Authentication;
+using SPID.AspNetCore.Authentication.Models;
 using SPID.AspNetCore.WebApp.Models;
 using System;
 using System.Collections.Generic;

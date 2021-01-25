@@ -1,22 +1,18 @@
-﻿using SPID.AspNetCore.Authentication.Models;
-using SPID.AspNetCore.Authentication.Models.IdP;
+﻿using SPID.AspNetCore.Authentication.Helpers;
+using SPID.AspNetCore.Authentication.Models;
 using SPID.AspNetCore.Authentication.Resources;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
 using System.Xml.Serialization;
 
-namespace SPID.AspNetCore.Authentication.Helpers
+namespace SPID.AspNetCore.Authentication.Saml
 {
-    public static class SamlHelpers
+    public static class SamlHandler
     {
         private static readonly Dictionary<Type, XmlSerializer> serializers = new Dictionary<Type, XmlSerializer>
         {
@@ -132,7 +128,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             var doc = new XmlDocument();
             doc.LoadXml(serializedMessage);
 
-            var signature = XmlHelpers.SignXMLDoc(doc, certificate, uuid);
+            var signature = XmlHelpers.SignXMLDoc(doc, certificate, uuid, SamlConst.SignatureMethod, SamlConst.DigestMethod);
             doc.DocumentElement.InsertBefore(signature, doc.DocumentElement.ChildNodes[1]);
 
             return Convert.ToBase64String(

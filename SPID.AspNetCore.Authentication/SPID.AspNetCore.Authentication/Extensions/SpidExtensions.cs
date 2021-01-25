@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using SPID.AspNetCore.Authentication.Helpers;
+using SPID.AspNetCore.Authentication.Models;
 using System;
 
 namespace SPID.AspNetCore.Authentication

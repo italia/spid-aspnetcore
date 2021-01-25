@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SPID.AspNetCore.Authentication.Models
+namespace SPID.AspNetCore.Authentication.Saml
 {
   public class SamlDefaultSettings
   {

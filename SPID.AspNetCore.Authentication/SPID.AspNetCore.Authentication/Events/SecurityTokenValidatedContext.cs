@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using SPID.AspNetCore.Authentication.Models;
+using SPID.AspNetCore.Authentication.Saml;
 using System.Security.Claims;
 
 namespace SPID.AspNetCore.Authentication.Events

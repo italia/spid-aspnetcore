@@ -6,7 +6,7 @@ using Microsoft.Extensions.Primitives;
 using SPID.AspNetCore.Authentication.Events;
 using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Models;
-using SPID.AspNetCore.Authentication.Models.IdP;
+using SPID.AspNetCore.Authentication.Saml;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -96,7 +96,7 @@ namespace SPID.AspNetCore.Authentication
             var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context, Scheme, Options, properties, authenticationRequestId);
 
             // Create the signed SAML request
-            var message = SamlHelpers.GetAuthnRequest(
+            var message = SamlHandler.GetAuthnRequest(
                 authenticationRequestId,
                 securityTokenCreatingContext.TokenOptions.EntityId,
                 securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceIndex,
@@ -198,7 +198,7 @@ namespace SPID.AspNetCore.Authentication
 
             var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context, Scheme, Options, properties, authenticationRequestId);
 
-            var message = SamlHelpers.GetLogoutRequest(
+            var message = SamlHandler.GetLogoutRequest(
                 authenticationRequestId,
                 securityTokenCreatingContext.TokenOptions.EntityId,
                 securityTokenCreatingContext.TokenOptions.Certificate,
@@ -379,7 +379,7 @@ namespace SPID.AspNetCore.Authentication
 
                 return (
                     form["RelayState"].ToString(),
-                    SamlHelpers.GetAuthnResponse(form["SAMLResponse"][0])
+                    SamlHandler.GetAuthnResponse(form["SAMLResponse"][0])
                 );
             }
             return (null, null);
@@ -396,7 +396,7 @@ namespace SPID.AspNetCore.Authentication
 
                 return (
                     form["RelayState"].ToString(),
-                    SamlHelpers.GetLogoutResponse(form["SAMLResponse"][0])
+                    SamlHandler.GetLogoutResponse(form["SAMLResponse"][0])
                 );
             }
             return (null, null);
@@ -404,7 +404,7 @@ namespace SPID.AspNetCore.Authentication
 
         private bool ValidateSignOutResponse(LogoutResponseType response, LogoutRequestType request)
         {
-            var valid = response.Status.StatusCode.Value == SamlConst.Success && SamlHelpers.ValidateLogoutResponse(response, request);
+            var valid = response.Status.StatusCode.Value == SamlConst.Success && SamlHandler.ValidateLogoutResponse(response, request);
             if (valid)
             {
                 return true;
@@ -505,12 +505,12 @@ namespace SPID.AspNetCore.Authentication
 
                 if (method == RequestMethod.Post)
                 {
-                    var signedSerializedMessage = SamlHelpers.SignRequest(message, certificate, messageId);
+                    var signedSerializedMessage = SamlHandler.SignRequest(message, certificate, messageId);
                     await HandlePostRequest(signedSerializedMessage, signOnUrl, messageGuid);
                 }
                 else
                 {
-                    var unsignedSerializedMessage = SamlHelpers.SerializeMessage(message);
+                    var unsignedSerializedMessage = SamlHandler.SerializeMessage(message);
                     HandleRedirectRequest(unsignedSerializedMessage, certificate, signOnUrl, messageGuid);
                 }
             }
@@ -591,14 +591,14 @@ namespace SPID.AspNetCore.Authentication
         public static string GetIdentityProviderName(this AuthenticationProperties properties) => properties.Items["IdentityProviderName"];
 
         public static void SetAuthenticationRequest(this AuthenticationProperties properties, AuthnRequestType request) =>
-            properties.Items["AuthenticationRequest"] = SamlHelpers.SerializeMessage(request);
+            properties.Items["AuthenticationRequest"] = SamlHandler.SerializeMessage(request);
         public static AuthnRequestType GetAuthenticationRequest(this AuthenticationProperties properties) =>
-            SamlHelpers.DeserializeMessage<AuthnRequestType>(properties.Items["AuthenticationRequest"]);
+            SamlHandler.DeserializeMessage<AuthnRequestType>(properties.Items["AuthenticationRequest"]);
 
         public static void SetLogoutRequest(this AuthenticationProperties properties, LogoutRequestType request) =>
-            properties.Items["LogoutRequest"] = SamlHelpers.SerializeMessage(request);
+            properties.Items["LogoutRequest"] = SamlHandler.SerializeMessage(request);
         public static LogoutRequestType GetLogoutRequest(this AuthenticationProperties properties) =>
-            SamlHelpers.DeserializeMessage<LogoutRequestType>(properties.Items["LogoutRequest"]);
+            SamlHandler.DeserializeMessage<LogoutRequestType>(properties.Items["LogoutRequest"]);
 
         public static void SetSubjectNameId(this AuthenticationProperties properties, string subjectNameId) => properties.Items["subjectNameId"] = subjectNameId;
         public static string GetSubjectNameId(this AuthenticationProperties properties) => properties.Items["subjectNameId"];

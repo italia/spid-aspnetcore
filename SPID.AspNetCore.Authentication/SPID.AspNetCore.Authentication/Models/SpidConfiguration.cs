@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
-namespace SPID.AspNetCore.Authentication
+namespace SPID.AspNetCore.Authentication.Models
 {
     public class SpidConfiguration
     {

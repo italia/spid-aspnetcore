@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace SPID.AspNetCore.Authentication.Models.IdP
+namespace SPID.AspNetCore.Authentication.Saml
 {
     [XmlRoot(ElementName = "CanonicalizationMethod", Namespace = "http://www.w3.org/2000/09/xmldsig#")]
     public class CanonicalizationMethod

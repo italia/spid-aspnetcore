@@ -1,4 +1,4 @@
-﻿namespace SPID.AspNetCore.Authentication
+﻿namespace SPID.AspNetCore.Authentication.Models
 {
     public class IdentityProvider
     {

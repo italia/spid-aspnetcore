@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using System;
 using System.Net.Http;
 
-namespace SPID.AspNetCore.Authentication
+namespace SPID.AspNetCore.Authentication.Models
 {
     public class SpidPostConfigureOptions : IPostConfigureOptions<SpidOptions>
     {

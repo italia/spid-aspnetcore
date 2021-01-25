@@ -1,7 +1,6 @@
 ﻿using SPID.AspNetCore.Authentication.Resources;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
@@ -12,11 +11,21 @@ namespace SPID.AspNetCore.Authentication.Helpers
 {
     internal static class XmlHelpers
     {
-
         /// <summary>
-        /// Signs an XML Document for a Saml Response
+        /// Signs the XML document.
         /// </summary>
-        internal static XmlElement SignXMLDoc(XmlDocument doc, X509Certificate2 certificate, string referenceUri)
+        /// <param name="doc">The document.</param>
+        /// <param name="certificate">The certificate.</param>
+        /// <param name="referenceUri">The reference URI.</param>
+        /// <param name="signatureMethod">The signature method.</param>
+        /// <param name="digestMethod">The digest method.</param>
+        /// <returns></returns>
+        /// <exception cref="FieldAccessException"></exception>
+        internal static XmlElement SignXMLDoc(XmlDocument doc,
+            X509Certificate2 certificate, 
+            string referenceUri,
+            string signatureMethod,
+            string digestMethod)
         {
             BusinessValidation.ValidationNotNull(doc, ErrorLocalization.XmlDocNull);
             BusinessValidation.ValidationNotNull(certificate, ErrorLocalization.CertificateNull);
@@ -38,12 +47,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 SigningKey = privateKey 
             };
 
-            signedXml.SignedInfo.SignatureMethod = SamlConst.SignatureMethod;
+            signedXml.SignedInfo.SignatureMethod = signatureMethod;
             signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
 
             Reference reference = new Reference
             {
-                DigestMethod = SamlConst.DigestMethod,
+                DigestMethod = digestMethod,
                 Uri = "#" + referenceUri
             };
             reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
@@ -58,6 +67,11 @@ namespace SPID.AspNetCore.Authentication.Helpers
             return signedXml.GetXml();
         }
 
+        /// <summary>
+        /// Verifies the signature.
+        /// </summary>
+        /// <param name="signedDocument">The signed document.</param>
+        /// <returns></returns>
         internal static bool VerifySignature(XmlDocument signedDocument)
         {
             BusinessValidation.Argument(signedDocument, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(signedDocument)));
@@ -78,6 +92,11 @@ namespace SPID.AspNetCore.Authentication.Helpers
         }
 
         private static readonly ConcurrentDictionary<Type, XmlSerializer> serializers = new ConcurrentDictionary<Type, XmlSerializer>();
+        /// <summary>
+        /// Serializes to XML document.
+        /// </summary>
+        /// <param name="o">The o.</param>
+        /// <returns></returns>
         public static XmlDocument SerializeToXmlDoc(this object o)
         {
             XmlDocument doc = new XmlDocument() { PreserveWhitespace = true };

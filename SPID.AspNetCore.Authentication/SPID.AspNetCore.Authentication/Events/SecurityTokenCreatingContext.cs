@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using SPID.AspNetCore.Authentication.Models;
 
 namespace SPID.AspNetCore.Authentication.Events
 {
