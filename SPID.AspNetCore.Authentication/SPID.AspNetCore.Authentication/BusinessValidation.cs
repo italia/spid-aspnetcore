@@ -19,14 +19,6 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
-        public static async void ValidationAsync(Func<Task<bool>> condition, string error)
-        {
-            if (await condition())
-            {
-                throw new Exception(error);
-            }
-        }
-
         public static void ValidationTry(Action action, string error)
         {
             try

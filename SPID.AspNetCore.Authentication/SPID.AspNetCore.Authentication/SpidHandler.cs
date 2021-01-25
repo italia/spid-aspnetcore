@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -21,14 +20,12 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using System.Web;
-using System.Xml;
 using System.Xml.Serialization;
 
 namespace SPID.AspNetCore.Authentication
 {
     public class SpidHandler : RemoteAuthenticationHandler<SpidOptions>, IAuthenticationSignOutHandler
     {
-        private const string CorrelationProperty = ".xsrf";
         private static readonly XmlSerializer entityDescriptorSerializer = new(typeof(EntityDescriptor));
 
         EventsHandler _eventsHandler;

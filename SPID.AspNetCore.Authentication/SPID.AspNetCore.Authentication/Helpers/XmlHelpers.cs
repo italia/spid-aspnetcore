@@ -45,7 +45,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
             SignedXml signedXml = new SignedXml(doc)
             {
-                SigningKey = privateKey // key
+                SigningKey = privateKey 
             };
 
             signedXml.SignedInfo.SignatureMethod = SamlConst.SignatureMethod;

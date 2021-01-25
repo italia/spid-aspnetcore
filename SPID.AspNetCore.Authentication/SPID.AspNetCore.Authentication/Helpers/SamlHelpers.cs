@@ -18,7 +18,6 @@ namespace SPID.AspNetCore.Authentication.Helpers
 {
     public static class SamlHelpers
     {
-        public const string VALUE_NOT_AVAILABLE = "N/A";
         private static readonly Dictionary<Type, XmlSerializer> serializers = new Dictionary<Type, XmlSerializer>
         {
             { typeof(AuthnRequestType), new XmlSerializer(typeof(AuthnRequestType)) },
