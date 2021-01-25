@@ -18,20 +18,9 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// </summary>
         internal static XmlElement SignXMLDoc(XmlDocument doc, X509Certificate2 certificate, string referenceUri)
         {
-            if (doc == null)
-            {
-                throw new ArgumentNullException("The doc parameter can't be null");
-            }
-
-            if (certificate == null)
-            {
-                throw new ArgumentNullException("The cert2 parameter can't be null");
-            }
-
-            if (string.IsNullOrWhiteSpace(referenceUri))
-            {
-                throw new ArgumentNullException("The referenceUri parameter can't be null or empty");
-            }
+            BusinessValidation.ValidationNotNull(doc, ErrorLocalization.XmlDocNull);
+            BusinessValidation.ValidationNotNull(certificate, ErrorLocalization.CertificateNull);
+            BusinessValidation.ValidationNotNullNotWhitespace(referenceUri, ErrorLocalization.ReferenceUriNullOrWhitespace);
 
             AsymmetricAlgorithm privateKey;
 
@@ -41,7 +30,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             }
             catch (Exception ex)
             {
-                throw new FieldAccessException("Unable to find private key in the X509Certificate", ex);
+                throw new FieldAccessException(ErrorLocalization.PrivateKeyNotFound, ex);
             }
 
             SignedXml signedXml = new SignedXml(doc)
@@ -54,20 +43,19 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
             Reference reference = new Reference
             {
-                DigestMethod = SamlConst.DigestMethod
+                DigestMethod = SamlConst.DigestMethod,
+                Uri = "#" + referenceUri
             };
             reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
             reference.AddTransform(new XmlDsigExcC14NTransform());
-            reference.Uri = "#" + referenceUri;
             signedXml.AddReference(reference);
 
             KeyInfo keyInfo = new KeyInfo();
             keyInfo.AddClause(new KeyInfoX509Data(certificate));
             signedXml.KeyInfo = keyInfo;
             signedXml.ComputeSignature();
-            XmlElement signature = signedXml.GetXml();
 
-            return signature;
+            return signedXml.GetXml();
         }
 
         internal static bool VerifySignature(XmlDocument signedDocument)
@@ -80,10 +68,11 @@ namespace SPID.AspNetCore.Authentication.Helpers
                                    signedDocument.GetElementsByTagName("ds:Signature") :
                                    signedDocument.GetElementsByTagName("Signature");
 
-            for (int i = 0; i < nodeList.Count; i++)
+            foreach (var node in nodeList)
             {
-                signedXml.LoadXml((XmlElement)nodeList[i]);
-                if (!signedXml.CheckSignature()) return false;
+                signedXml.LoadXml((XmlElement)node);
+                if (!signedXml.CheckSignature()) 
+                    return false;
             }
             return true;
         }

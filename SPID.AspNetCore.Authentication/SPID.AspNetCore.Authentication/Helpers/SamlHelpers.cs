@@ -252,7 +252,6 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 SamlConst.spidCode,
             };
 
-            //Reminder la condizione startWith("urn") e l'attributo FriendlyName è stato introdotto per gestire le response proveniente da ionoi bologna (shibbolet)
             var attribute = response.GetAssertion().GetAttributeStatement().GetAttributes();
             List<string> attributeNames = new List<string>();
             attributeNames.AddRange(attribute.Where(x => !string.IsNullOrWhiteSpace(x.Name) && !x.Name.StartsWith("urn")).Select(x => x.Name).ToList());

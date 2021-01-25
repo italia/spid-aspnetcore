@@ -62,7 +62,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         public static X509Certificate2 GetCertificateFromStore(StoreLocation storeLocation, StoreName storeName, X509FindType findType, object findValue, bool validOnly)
         {
             BusinessValidation.ValidationNotNullNotWhitespace(findValue.ToString(), ErrorLocalization.CertificateFindValueNullOrEmpty);
-            X509Store store = new X509Store(storeName, storeLocation);
+            using X509Store store = new X509Store(storeName, storeLocation);
             store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
             X509Certificate2Collection coll = store.Certificates.Find(findType, findValue.ToString(), validOnly);
 
@@ -71,7 +71,6 @@ namespace SPID.AspNetCore.Authentication.Helpers
             {
                 certificate = coll[0];
             }
-            store.Close();
 
             BusinessValidation.ValidationNotNull(certificate, ErrorLocalization.CertificateNotFound);
 

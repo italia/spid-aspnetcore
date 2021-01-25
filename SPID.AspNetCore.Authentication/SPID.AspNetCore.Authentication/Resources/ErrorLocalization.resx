@@ -159,6 +159,9 @@
   <data name="CertificateNotFound" xml:space="preserve">
     <value>Certificato non trovato</value>
   </data>
+  <data name="CertificateNull" xml:space="preserve">
+    <value>Il certificato non può essere null</value>
+  </data>
   <data name="CertificatePasswordNullOrEmpty" xml:space="preserve">
     <value>La password del certificato non può essere nè vuota nè null</value>
   </data>
@@ -234,6 +237,12 @@
   <data name="ParameterNotValid" xml:space="preserve">
     <value>{0} non valido</value>
   </data>
+  <data name="PrivateKeyNotFound" xml:space="preserve">
+    <value>La chiave privata del certificato non è presente</value>
+  </data>
+  <data name="ReferenceUriNullOrWhitespace" xml:space="preserve">
+    <value>La referenceUri non può essere nè vuota nè null</value>
+  </data>
   <data name="ResponseAssertionNotFound" xml:space="preserve">
     <value>Assertion non trovata nella risposta</value>
   </data>
@@ -257,5 +266,8 @@
   </data>
   <data name="VersionNotValid" xml:space="preserve">
     <value>Version non valida</value>
+  </data>
+  <data name="XmlDocNull" xml:space="preserve">
+    <value>Il documento XML non può essere null</value>
   </data>
 </root>

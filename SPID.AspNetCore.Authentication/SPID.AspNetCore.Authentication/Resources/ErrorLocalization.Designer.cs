@@ -187,6 +187,15 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Il certificato non può essere null.
+        /// </summary>
+        public static string CertificateNull {
+            get {
+                return ResourceManager.GetString("CertificateNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to La password del certificato non può essere nè vuota nè null.
         /// </summary>
         public static string CertificatePasswordNullOrEmpty {
@@ -412,6 +421,24 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to La chiave privata del certificato non è presente.
+        /// </summary>
+        public static string PrivateKeyNotFound {
+            get {
+                return ResourceManager.GetString("PrivateKeyNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to La referenceUri non può essere nè vuota nè null.
+        /// </summary>
+        public static string ReferenceUriNullOrWhitespace {
+            get {
+                return ResourceManager.GetString("ReferenceUriNullOrWhitespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Assertion non trovata nella risposta.
         /// </summary>
         public static string ResponseAssertionNotFound {
@@ -480,6 +507,15 @@ namespace SPID.AspNetCore.Authentication.Resources {
         public static string VersionNotValid {
             get {
                 return ResourceManager.GetString("VersionNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Il documento XML non può essere null.
+        /// </summary>
+        public static string XmlDocNull {
+            get {
+                return ResourceManager.GetString("XmlDocNull", resourceCulture);
             }
         }
     }
