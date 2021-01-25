@@ -264,7 +264,6 @@ namespace SPID.AspNetCore.Authentication
             return true;
         }
 
-        private static ConcurrentDictionary<string, string> metadataCache = new ConcurrentDictionary<string, string>();
         private async Task<HandleRequestResult> ValidateAuthenticationResponse(ResponseType response, AuthnRequestType request, AuthenticationProperties properties, string idPName)
         {
             if (response == null)
@@ -284,26 +283,33 @@ namespace SPID.AspNetCore.Authentication
 
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idPName);
 
+            var metadataIdp = await DownloadMetadataIDP(idp.OrganizationUrlMetadata);
+
+            response.ValidateAuthnResponse(request, metadataIdp, idp.PerformFullResponseValidation);
+            return null;
+        }
+
+        private static ConcurrentDictionary<string, string> metadataCache = new ConcurrentDictionary<string, string>();
+        private async Task<EntityDescriptor> DownloadMetadataIDP(string urlMetadataIdp)
+        {
             string xml = null;
             if (Options.CacheIdpMetadata
-                && metadataCache.ContainsKey(idp.OrganizationUrlMetadata))
+                && metadataCache.ContainsKey(urlMetadataIdp))
             {
-                xml = metadataCache[idp.OrganizationUrlMetadata];
+                xml = metadataCache[urlMetadataIdp];
             }
             if (string.IsNullOrWhiteSpace(xml))
             {
                 using var client = _httpClientFactory.CreateClient("spid");
-                xml = await client.GetStringAsync(idp.OrganizationUrlMetadata);
+                xml = await client.GetStringAsync(urlMetadataIdp);
             }
             if (Options.CacheIdpMetadata
                 && !string.IsNullOrWhiteSpace(xml))
             {
-                metadataCache.AddOrUpdate(idp.OrganizationUrlMetadata, xml, (x, y) => xml);
+                metadataCache.AddOrUpdate(urlMetadataIdp, xml, (x, y) => xml);
             }
             using var reader = new StringReader(xml);
-            var metadataIdp = (EntityDescriptor)entityDescriptorSerializer.Deserialize(reader);
-            response.ValidateAuthnResponse(request, metadataIdp, idp.PerformFullResponseValidation);
-            return null;
+            return (EntityDescriptor)entityDescriptorSerializer.Deserialize(reader);
         }
 
         private HandleRequestResult ValidateCorrelation(AuthenticationProperties properties)

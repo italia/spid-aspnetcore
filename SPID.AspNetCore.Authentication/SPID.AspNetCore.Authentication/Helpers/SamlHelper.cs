@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
@@ -31,25 +33,6 @@ namespace SPID.AspNetCore.Authentication.Helpers
             SamlConst.SpidL2,
             SamlConst.SpidL3
         };
-
-        public static EntityDescriptor DownloadMetadataIDP(this string urlMetadataIdp)
-        {
-            string xmlStr;
-            BusinessValidation.ValidationNotNullNotWhitespace(urlMetadataIdp, ErrorLocalization.UrlMetadataIDPNull);
-            using WebClient wc = new WebClient();
-            xmlStr = wc.DownloadString(urlMetadataIdp);
-
-            try
-            {
-                using TextReader reader = new StringReader(xmlStr);
-                return (EntityDescriptor)entityDescriptorSerializer.Deserialize(reader);
-            }
-            catch (Exception)
-            {
-                throw new Exception(ErrorLocalization.ResponseNotValid);
-            }
-
-        }
 
         /// <summary>
         /// Build a signed SAML authentication request.
@@ -172,7 +155,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
                 return response;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw new Exception(ErrorLocalization.ResponseNotValid);
             }
@@ -242,7 +225,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             BusinessValidation.ValidationCondition(() => response.Version != SamlConst.Version, ErrorLocalization.VersionNotValid);
             BusinessValidation.ValidationNotNullNotWhitespace(response.ID, nameof(response.ID));
 
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion()?.GetAttributeStatement(), nameof(ErrorFields.Assertion));
+            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion()?.GetAttributeStatement(), ErrorFields.Assertion);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAttributeStatement().GetAttributes().Count() == 0, ErrorLocalization.AttributeNotFound);
 
             var listAttribute = new List<string>
@@ -314,12 +297,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 BusinessValidation.ValidationCondition(() => !response.Issuer.Format.Equals(request.Issuer.Format), ErrorLocalization.IssuerFormatDifferent);
             }
 
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion(), nameof(ErrorFields.Assertion));
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().ID == null, string.Format(ErrorLocalization.Missing, nameof(ErrorFields.ID)));
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().ID, nameof(ErrorFields.ID));
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Version != SamlConst.Version, string.Format(ErrorLocalization.DifferentFrom, nameof(ErrorFields.Version), SamlConst.Version));
+            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion(), ErrorFields.Assertion);
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().ID == null, string.Format(ErrorLocalization.Missing, ErrorFields.ID));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().ID, ErrorFields.ID);
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Version != SamlConst.Version, string.Format(ErrorLocalization.DifferentFrom, ErrorFields.Version, SamlConst.Version));
 
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().IssueInstant == null, string.Format(ErrorLocalization.NotSpecified, nameof(ErrorFields.IssueInstant)));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().IssueInstant == null, string.Format(ErrorLocalization.NotSpecified, ErrorFields.IssueInstant));
             DateTimeOffset assertionIssueIstant = response.GetAssertion().IssueInstant;
             if (performFullResponseValidation)
             {
@@ -328,63 +311,63 @@ namespace SPID.AspNetCore.Authentication.Helpers
             }
             BusinessValidation.ValidationCondition(() => (assertionIssueIstant - issueIstantRequest).Duration() > TimeSpan.FromMinutes(10), assertionIssueIstant > issueIstantRequest ? ErrorLocalization.IssueIstantAssertionGreaterThanRequest : ErrorLocalization.IssueIstantAssertionLessThanRequest);
 
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject, nameof(ErrorFields.Subject));
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject?.GetNameID()?.Value, nameof(ErrorFields.NameID));
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject?.GetNameID()?.Format, nameof(ErrorFields.Format));
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetNameID().Format.Equals(request.NameIDPolicy.Format), string.Format(ErrorLocalization.ParameterNotValid, nameof(ErrorFields.Format)));
+            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject, ErrorFields.Subject);
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject?.GetNameID()?.Value, ErrorFields.NameID);
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject?.GetNameID()?.Format, ErrorFields.Format);
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetNameID().Format.Equals(request.NameIDPolicy.Format), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Format));
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetNameID().NameQualifier == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.NameID.NameQualifier"));
             BusinessValidation.ValidationCondition(() => String.IsNullOrWhiteSpace(response.GetAssertion().Subject.GetNameID().NameQualifier), string.Format(ErrorLocalization.Missing, "Assertion.NameID.NameQualifier"));
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject.GetSubjectConfirmation(), nameof(ErrorFields.SubjectConfirmation));
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject.GetSubjectConfirmation().Method, nameof(ErrorFields.Method));
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().Method.Equals(SamlConst.Method), string.Format(ErrorLocalization.ParameterNotValid, nameof(ErrorFields.Method)));
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData, nameof(ErrorFields.SubjectConfirmationData));
+            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject.GetSubjectConfirmation(), ErrorFields.SubjectConfirmation);
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject.GetSubjectConfirmation().Method, ErrorFields.Method);
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().Method.Equals(SamlConst.Method), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Method));
+            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData, ErrorFields.SubjectConfirmationData);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.SubjectConfirmationData.Recipient"));
             BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient), string.Format(ErrorLocalization.Missing, "Assertion.SubjectConfirmationData.Recipient"));
             if (!string.IsNullOrWhiteSpace(request.AssertionConsumerServiceURL))
             {
                 BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient.Equals(request.AssertionConsumerServiceURL), string.Format(ErrorLocalization.DifferentFrom, "Assertion.SubjectConfirmationData.Recipient", "Request"));
             }
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.InResponseTo, nameof(ErrorFields.InResponseTo));
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.InResponseTo.Equals(request.ID), string.Format(ErrorLocalization.ParameterNotValid, nameof(ErrorFields.InResponseTo)));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.InResponseTo, ErrorFields.InResponseTo);
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.InResponseTo.Equals(request.ID), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.InResponseTo));
 
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.SubjectConfirmationData.NotOnOrAfter"));
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter == DateTime.MinValue, string.Format(ErrorLocalization.Missing, "Assertion.SubjectConfirmationData.NotOnOrAfter"));
             DateTimeOffset notOnOrAfter = new DateTimeOffset(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter);
             BusinessValidation.ValidationCondition(() => notOnOrAfter < DateTimeOffset.UtcNow, ErrorLocalization.NotOnOrAfterLessThenRequest);
 
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Issuer?.Value, nameof(ErrorFields.Issuer));
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Value.Equals(metadataIdp.EntityID), string.Format(ErrorLocalization.ParameterNotValid, nameof(ErrorFields.Issuer)));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Issuer?.Value, ErrorFields.Issuer);
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Value.Equals(metadataIdp.EntityID), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Issuer));
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Issuer.Format == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.Issuer.Format"));
             BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().Issuer.Format), string.Format(ErrorLocalization.Missing, "Assertion.Issuer.Format"));
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Format.Equals(request.Issuer.Format), string.Format(ErrorLocalization.ParameterNotValid, nameof(ErrorFields.Format)));
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Format.Equals(request.Issuer.Format), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Format));
 
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.Conditions"));
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions.GetAudienceRestriction() == null && string.IsNullOrWhiteSpace(response.GetAssertion().Conditions.NotBefore) && string.IsNullOrWhiteSpace(response.GetAssertion().Conditions.NotOnOrAfter), string.Format(ErrorLocalization.Missing, "Assertion.Conditions"));
 
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotOnOrAfter, nameof(ErrorFields.NotOnOrAfter));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotOnOrAfter, ErrorFields.NotOnOrAfter);
             DateTimeOffset notOnOrAfterCondition = new DateTimeOffset();
-            BusinessValidation.ValidationCondition(() => !DateTimeOffset.TryParse(response.GetAssertion().Conditions.NotOnOrAfter, out notOnOrAfterCondition), string.Format(ErrorLocalization.ParameterNotValid, nameof(ErrorFields.NotOnOrAfter)));
+            BusinessValidation.ValidationCondition(() => !DateTimeOffset.TryParse(response.GetAssertion().Conditions.NotOnOrAfter, out notOnOrAfterCondition), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.NotOnOrAfter));
             BusinessValidation.ValidationCondition(() => notOnOrAfterCondition < DateTimeOffset.UtcNow, ErrorLocalization.NotOnOrAfterLessThenRequest);
 
 
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotBefore, nameof(ErrorFields.NotBefore));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotBefore, ErrorFields.NotBefore);
             DateTimeOffset notBefore = new DateTimeOffset();
             BusinessValidation.ValidationCondition(() => !DateTimeOffset.TryParse(response.GetAssertion().Conditions.NotBefore, out notBefore), string.Format(ErrorLocalization.FormatNotValid, "Assertion.Conditions.NotBefore"));
 
             BusinessValidation.ValidationCondition(() => notBefore > DateTimeOffset.UtcNow, ErrorLocalization.NotBeforeGreaterThenRequest);
 
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions.GetAudienceRestriction() == null, string.Format(ErrorLocalization.Missing, "Assertion.Conditions.AudienceRestriction"));
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.GetAudienceRestriction().Audience.First(), nameof(ErrorFields.Audience));
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Conditions.GetAudienceRestriction().Audience.First().Equals(request.Issuer.Value), string.Format(ErrorLocalization.ParameterNotValid, nameof(ErrorFields.Audience)));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.GetAudienceRestriction().Audience.First(), ErrorFields.Audience);
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Conditions.GetAudienceRestriction().Audience.First().Equals(request.Issuer.Value), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Audience));
 
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement() == null, string.Format(ErrorLocalization.NotSpecified, nameof(ErrorFields.AuthnStatement)));
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement().AuthnInstant == DateTime.MinValue && string.IsNullOrWhiteSpace(response.GetAssertion().GetAuthnStatement().SessionIndex) && response.GetAssertion().GetAuthnStatement().AuthnContext == null, string.Format(ErrorLocalization.Missing, nameof(ErrorFields.AuthnStatement)));
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().GetAuthnStatement().AuthnContext, nameof(ErrorFields.AuthnContext));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement() == null, string.Format(ErrorLocalization.NotSpecified, ErrorFields.AuthnStatement));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement().AuthnInstant == DateTime.MinValue && string.IsNullOrWhiteSpace(response.GetAssertion().GetAuthnStatement().SessionIndex) && response.GetAssertion().GetAuthnStatement().AuthnContext == null, string.Format(ErrorLocalization.Missing, ErrorFields.AuthnStatement));
+            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().GetAuthnStatement().AuthnContext, ErrorFields.AuthnContext);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef() == null, string.Format(ErrorLocalization.NotSpecified, "AuthnStatement.AuthnContext.AuthnContextClassRef"));
             BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef()), string.Format(ErrorLocalization.Missing, "AuthnStatement.AuthnContext.AuthnContextClassRef"));
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef().Equals(SamlConst.SpidL2), string.Format(ErrorLocalization.ParameterNotValid, nameof(ErrorFields.AuthnContextClassRef)));
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef().Equals(SamlConst.SpidL2), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.AuthnContextClassRef));
 
-            BusinessValidation.ValidationCondition(() => !listAuthRefValid.Contains(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef()), string.Format(ErrorLocalization.ParameterNotValid, nameof(ErrorFields.AuthnContextClassRef)));
+            BusinessValidation.ValidationCondition(() => !listAuthRefValid.Contains(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef()), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.AuthnContextClassRef));
             if (performFullResponseValidation)
             {
                 BusinessValidation.ValidationCondition(() => !response.GetAssertion().GetAttributeStatement().GetAttributes().All(x => !string.IsNullOrWhiteSpace(x.NameFormat)), string.Format(ErrorLocalization.ParameterNotValid, "Attribute.NameFormat"));
@@ -541,26 +524,26 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
         private class ErrorFields
         {
-            internal static object Assertion;
-            internal static object AttributeStatement;
-            internal static object ID;
-            internal static object IssueInstant;
-            internal static object Subject;
-            internal static object NameID;
-            internal static object Format;
-            internal static object SubjectConfirmation;
-            internal static object Method;
-            internal static object SubjectConfirmationData;
-            internal static object InResponseTo;
-            internal static object Issuer;
-            internal static object NotOnOrAfter;
-            internal static object NotBefore;
-            internal static object AudienceRestriction;
-            internal static object Audience;
-            internal static object AuthnStatement;
-            internal static object AuthnContext;
-            internal static object AuthnContextClassRef;
-            internal static object Version;
+            internal static readonly string Assertion = nameof(Assertion);
+            internal static readonly string AttributeStatement = nameof(AttributeStatement);
+            internal static readonly string ID = nameof(ID);
+            internal static readonly string IssueInstant = nameof(IssueInstant);
+            internal static readonly string Subject = nameof(Subject);
+            internal static readonly string NameID = nameof(NameID);
+            internal static readonly string Format = nameof(Format);
+            internal static readonly string SubjectConfirmation = nameof(SubjectConfirmation);
+            internal static readonly string Method = nameof(Method);
+            internal static readonly string SubjectConfirmationData = nameof(SubjectConfirmationData);
+            internal static readonly string InResponseTo = nameof(InResponseTo);
+            internal static readonly string Issuer = nameof(Issuer);
+            internal static readonly string NotOnOrAfter = nameof(NotOnOrAfter);
+            internal static readonly string NotBefore = nameof(NotBefore);
+            internal static readonly string AudienceRestriction = nameof(AudienceRestriction);
+            internal static readonly string Audience = nameof(Audience);
+            internal static readonly string AuthnStatement = nameof(AuthnStatement);
+            internal static readonly string AuthnContext = nameof(AuthnContext);
+            internal static readonly string AuthnContextClassRef = nameof(AuthnContextClassRef);
+            internal static readonly string Version = nameof(Version);
         }
     }
 }

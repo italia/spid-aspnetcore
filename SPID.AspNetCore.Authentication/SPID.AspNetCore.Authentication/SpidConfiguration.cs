@@ -119,22 +119,5 @@ namespace SPID.AspNetCore.Authentication
         {
             _identityProviders.AddRange(identityProviders);
         }
-
-        //public void LoadFromConfiguration(IConfigurationSection configuration)
-        //{
-        //    var conf = OptionsHelper.CreateFromConfiguration(configuration);
-        //    _identityProviders.AddRange(conf.IdentityProviders);
-        //    IsStagingValidatorEnabled = conf.IsStagingValidatorEnabled;
-        //    IsLocalValidatorEnabled = conf.IsLocalValidatorEnabled;
-        //    AllowUnsolicitedLogins = conf.AllowUnsolicitedLogins;
-        //    AssertionConsumerServiceIndex = conf.AssertionConsumerServiceIndex;
-        //    AttributeConsumingServiceIndex = conf.AttributeConsumingServiceIndex;
-        //    CallbackPath = conf.CallbackPath.HasValue ? conf.CallbackPath : CallbackPath;
-        //    EntityId = conf.EntityId;
-        //    RemoteSignOutPath = conf.RemoteSignOutPath.HasValue ? conf.RemoteSignOutPath : RemoteSignOutPath;
-        //    SignOutScheme = conf.SignOutScheme;
-        //    UseTokenLifetime = conf.UseTokenLifetime;
-        //    SkipUnrecognizedRequests = conf.SkipUnrecognizedRequests;
-        //}
     }
 }
