@@ -1,4 +1,8 @@
-﻿namespace SPID.AspNetCore.Authentication.Saml
+﻿using SPID.AspNetCore.Authentication.Resources;
+using System.Globalization;
+using System.Xml.Serialization;
+
+namespace SPID.AspNetCore.Authentication.Saml
 {
 
     /// <remarks/>
@@ -71,7 +75,7 @@
             }
         }
 
-        [System.Xml.Serialization.XmlAttribute(AttributeName = "NotOnOrAfter")]
+        [System.Xml.Serialization.XmlIgnore()]
         public System.DateTime NotOnOrAfter
         {
             get
@@ -82,6 +86,13 @@
             {
                 this.notOnOrAfterField = value;
             }
+        }
+
+        [XmlAttribute(nameof(NotOnOrAfter))]
+        public string NotOnOrAfterString
+        {
+            get { return this.NotOnOrAfter.ToString(SamlDefaultSettings.DateTimeFormat); }
+            set { this.NotOnOrAfter = SamlDefaultSettings.ParseExact(value, nameof(NotOnOrAfter)); }
         }
 
         [System.Xml.Serialization.XmlAttribute(AttributeName = "Recipient")]
@@ -1569,7 +1580,7 @@
         }
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.Xml.Serialization.XmlIgnore()]
         public System.DateTime IssueInstant
         {
             get
@@ -1580,6 +1591,13 @@
             {
                 this.issueInstantField = value;
             }
+        }
+
+        [XmlAttribute(nameof(IssueInstant))]
+        public string IssueInstantString
+        {
+            get { return this.IssueInstant.ToString(SamlDefaultSettings.DateTimeFormat); }
+            set { this.IssueInstant = SamlDefaultSettings.ParseExact(value, nameof(IssueInstant)); }
         }
     }
 
@@ -3334,7 +3352,7 @@
         }
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.Xml.Serialization.XmlIgnore()]
         public System.DateTime AuthnInstant
         {
             get
@@ -3345,6 +3363,13 @@
             {
                 this.authnInstantField = value;
             }
+        }
+
+        [XmlAttribute(nameof(AuthnInstant))]
+        public string AuthnInstantString
+        {
+            get { return this.AuthnInstant.ToString(SamlDefaultSettings.DateTimeFormat); }
+            set { this.AuthnInstant = SamlDefaultSettings.ParseExact(value, nameof(AuthnInstant)); }
         }
 
         /// <remarks/>
@@ -3362,7 +3387,7 @@
         }
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.Xml.Serialization.XmlIgnore()]
         public System.DateTime SessionNotOnOrAfter
         {
             get
@@ -3373,6 +3398,13 @@
             {
                 this.sessionNotOnOrAfterField = value;
             }
+        }
+
+        [XmlAttribute(nameof(SessionNotOnOrAfter))]
+        public string SessionNotOnOrAfterString
+        {
+            get { return this.SessionNotOnOrAfter.ToString(SamlDefaultSettings.DateTimeFormat); }
+            set { this.SessionNotOnOrAfter = SamlDefaultSettings.ParseExact(value, nameof(SessionNotOnOrAfter)); }
         }
 
         /// <remarks/>
@@ -4771,7 +4803,7 @@
         }
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [XmlIgnore]
         public System.DateTime IssueInstant
         {
             get
@@ -4782,6 +4814,13 @@
             {
                 this.issueInstantField = value;
             }
+        }
+
+        [XmlAttribute(nameof(IssueInstant))]
+        public string IssueInstantString
+        {
+            get { return this.IssueInstant.ToString(SamlDefaultSettings.DateTimeFormat); }
+            set { this.IssueInstant = SamlDefaultSettings.ParseExact(value, nameof(IssueInstant)); }
         }
 
         /// <remarks/>
@@ -4988,7 +5027,7 @@
         }
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.Xml.Serialization.XmlIgnore()]
         public System.DateTime NotOnOrAfter
         {
             get
@@ -4999,6 +5038,13 @@
             {
                 this.notOnOrAfterField = value;
             }
+        }
+
+        [XmlAttribute(nameof(NotOnOrAfter))]
+        public string NotOnOrAfterString
+        {
+            get { return this.NotOnOrAfter.ToString(SamlDefaultSettings.DateTimeFormat); }
+            set { this.NotOnOrAfter = SamlDefaultSettings.ParseExact(value, nameof(NotOnOrAfter)); }
         }
 
         /// <remarks/>

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
@@ -152,13 +153,12 @@ namespace SPID.AspNetCore.Authentication.Saml
                 response = DeserializeMessage<ResponseType>(idpResponse);
 
                 BusinessValidation.ValidationCondition(() => response == null, ErrorLocalization.ResponseNotValid);
-                BusinessValidation.ValidationNotNullNotWhitespace(response.InResponseTo, nameof(response.InResponseTo));
 
                 return response;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw new Exception(ErrorLocalization.ResponseNotValid);
+                throw new Exception(ErrorLocalization.ResponseNotValid, ex);
             }
         }
 
@@ -174,6 +174,9 @@ namespace SPID.AspNetCore.Authentication.Saml
         {
             // Verify signature
             var xmlDoc = response.SerializeToXmlDoc();
+
+            BusinessValidation.ValidationCondition(() => response.Status == null, ErrorLocalization.StatusNotValid);
+            BusinessValidation.ValidationCondition(() => response.Status.StatusCode == null, ErrorLocalization.StatusCodeNotValid);
 
             if (!response.Status.StatusCode.Value.Equals(SamlConst.Success, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -201,14 +204,12 @@ namespace SPID.AspNetCore.Authentication.Saml
             }
 
             BusinessValidation.ValidationCondition(() => response.Signature == null, ErrorLocalization.ResponseSignatureNotFound);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion() == null, ErrorLocalization.ResponseAssertionNotFound);
+            BusinessValidation.ValidationCondition(() => response?.GetAssertion() == null, ErrorLocalization.ResponseAssertionNotFound);
             BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature == null, ErrorLocalization.AssertionSignatureNotFound);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo.GetX509Data().GetX509Certificate() != response.Signature.KeyInfo.GetX509Data().GetX509Certificate(), ErrorLocalization.AssertionSignatureDifferent);
-            if (performFullResponseValidation)
-            {
-                BusinessValidation.ValidationCondition(() => response.Signature.KeyInfo.GetX509Data().GetX509Certificate() != metadataIdp.Signature.KeyInfo.X509Data.X509Certificate, ErrorLocalization.ResponseSignatureNotValid);
-                BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature.KeyInfo.GetX509Data().GetX509Certificate() != metadataIdp.Signature.KeyInfo.X509Data.X509Certificate, ErrorLocalization.AssertionSignatureNotValid);
-            }
+            var metadataXmlDoc = metadataIdp.SerializeToXmlDoc();
+            BusinessValidation.ValidationCondition(() => VerifySignature(xmlDoc, metadataXmlDoc), ErrorLocalization.InvalidSignature);
+
             var respSigningCert = X509Helpers.AddCertificateHeaders(response.Signature.KeyInfo.GetX509Data().GetX509Certificate());
             using var responseCertificate = new X509Certificate2(Encoding.UTF8.GetBytes(respSigningCert));
             var assertSigningCert = X509Helpers.AddCertificateHeaders(response.GetAssertion()?.Signature.KeyInfo.GetX509Data().GetX509Certificate());
@@ -222,8 +223,9 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => response.Version != SamlConst.Version, ErrorLocalization.VersionNotValid);
             BusinessValidation.ValidationNotNullNotWhitespace(response.ID, nameof(response.ID));
 
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion()?.GetAttributeStatement(), ErrorFields.Assertion);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAttributeStatement().GetAttributes().Count() == 0, ErrorLocalization.AttributeNotFound);
+            BusinessValidation.ValidationNotNull(response.GetAssertion()?.GetAttributeStatement(), ErrorFields.Assertion);
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAttributeStatement()?.GetAttributes()?.Count() == 0, ErrorLocalization.AttributeNotFound);
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAttributeStatement()?.GetAttributes()?.Any(a => a.AttributeValue == null) ?? false, ErrorLocalization.AttributeNotFound);
 
             var listAttribute = new List<string>
             {
@@ -268,13 +270,15 @@ namespace SPID.AspNetCore.Authentication.Saml
                 }
             }
 
+            BusinessValidation.ValidationCondition(() => response.IssueInstant == default, ErrorLocalization.IssueInstantMissing);
             DateTimeOffset issueIstant = new DateTimeOffset(response.IssueInstant);
             var issueIstantRequest = DateTimeOffset.Parse(request.IssueInstant);
 
             BusinessValidation.ValidationCondition(() => (issueIstant - issueIstantRequest).Duration() > TimeSpan.FromMinutes(10), ErrorLocalization.IssueIstantDifferentFromRequest);
 
+            BusinessValidation.ValidationNotNullNotWhitespace(response.InResponseTo, nameof(response.InResponseTo));
+
             BusinessValidation.ValidationNotNullNotWhitespace(response.Destination, nameof(response.Destination));
-            BusinessValidation.ValidationCondition(() => !response.Destination.Equals(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient, StringComparison.OrdinalIgnoreCase), ErrorLocalization.InvalidDestination);
 
             if (!string.IsNullOrWhiteSpace(request.AssertionConsumerServiceURL))
             {
@@ -293,21 +297,21 @@ namespace SPID.AspNetCore.Authentication.Saml
                 BusinessValidation.ValidationCondition(() => !response.Issuer.Format.Equals(request.Issuer.Format), ErrorLocalization.IssuerFormatDifferent);
             }
 
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion(), ErrorFields.Assertion);
+            BusinessValidation.ValidationNotNullNotEmpty(response?.GetAssertion(), ErrorFields.Assertion);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().ID == null, string.Format(ErrorLocalization.Missing, ErrorFields.ID));
             BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().ID, ErrorFields.ID);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Version != SamlConst.Version, string.Format(ErrorLocalization.DifferentFrom, ErrorFields.Version, SamlConst.Version));
 
             BusinessValidation.ValidationCondition(() => response.GetAssertion().IssueInstant == null, string.Format(ErrorLocalization.NotSpecified, ErrorFields.IssueInstant));
             DateTimeOffset assertionIssueIstant = response.GetAssertion().IssueInstant;
-            if (performFullResponseValidation)
-            {
-                BusinessValidation.ValidationCondition(() => assertionIssueIstant > issueIstantRequest, ErrorLocalization.IssueIstantAssertionGreaterThanRequest);
-                BusinessValidation.ValidationCondition(() => assertionIssueIstant < issueIstantRequest, ErrorLocalization.IssueIstantAssertionLessThanRequest);
-            }
+
+            BusinessValidation.ValidationCondition(() => assertionIssueIstant > issueIstantRequest.AddMinutes(10), ErrorLocalization.IssueIstantAssertionGreaterThanRequest);
+            BusinessValidation.ValidationCondition(() => assertionIssueIstant < issueIstantRequest, ErrorLocalization.IssueIstantAssertionLessThanRequest);
+
             BusinessValidation.ValidationCondition(() => (assertionIssueIstant - issueIstantRequest).Duration() > TimeSpan.FromMinutes(10), assertionIssueIstant > issueIstantRequest ? ErrorLocalization.IssueIstantAssertionGreaterThanRequest : ErrorLocalization.IssueIstantAssertionLessThanRequest);
 
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject, ErrorFields.Subject);
+            BusinessValidation.ValidationNotNull(response.GetAssertion().Subject, ErrorFields.Subject);
+            BusinessValidation.ValidationNotNull(response.GetAssertion().Subject?.Items, ErrorFields.Subject);
             BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject?.GetNameID()?.Value, ErrorFields.NameID);
             BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject?.GetNameID()?.Format, ErrorFields.Format);
             BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetNameID().Format.Equals(request.NameIDPolicy.Format), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Format));
@@ -319,6 +323,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData, ErrorFields.SubjectConfirmationData);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.SubjectConfirmationData.Recipient"));
             BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient), string.Format(ErrorLocalization.Missing, "Assertion.SubjectConfirmationData.Recipient"));
+            BusinessValidation.ValidationCondition(() => !response.Destination.Equals(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient, StringComparison.OrdinalIgnoreCase), ErrorLocalization.InvalidDestination);
             if (!string.IsNullOrWhiteSpace(request.AssertionConsumerServiceURL))
             {
                 BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient.Equals(request.AssertionConsumerServiceURL), string.Format(ErrorLocalization.DifferentFrom, "Assertion.SubjectConfirmationData.Recipient", "Request"));
@@ -341,24 +346,24 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions.GetAudienceRestriction() == null && string.IsNullOrWhiteSpace(response.GetAssertion().Conditions.NotBefore) && string.IsNullOrWhiteSpace(response.GetAssertion().Conditions.NotOnOrAfter), string.Format(ErrorLocalization.Missing, "Assertion.Conditions"));
 
             BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotOnOrAfter, ErrorFields.NotOnOrAfter);
-            DateTimeOffset notOnOrAfterCondition = new DateTimeOffset();
-            BusinessValidation.ValidationCondition(() => !DateTimeOffset.TryParse(response.GetAssertion().Conditions.NotOnOrAfter, out notOnOrAfterCondition), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.NotOnOrAfter));
+            DateTimeOffset notOnOrAfterCondition = SamlDefaultSettings.ParseExact(response.GetAssertion().Conditions.NotOnOrAfter, "Assertion.Conditions.NotOnOrAfter");
             BusinessValidation.ValidationCondition(() => notOnOrAfterCondition < DateTimeOffset.UtcNow, ErrorLocalization.NotOnOrAfterLessThenRequest);
 
 
             BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotBefore, ErrorFields.NotBefore);
-            DateTimeOffset notBefore = new DateTimeOffset();
-            BusinessValidation.ValidationCondition(() => !DateTimeOffset.TryParse(response.GetAssertion().Conditions.NotBefore, out notBefore), string.Format(ErrorLocalization.FormatNotValid, "Assertion.Conditions.NotBefore"));
+            DateTimeOffset notBefore = SamlDefaultSettings.ParseExact(response.GetAssertion().Conditions.NotBefore, "Assertion.Conditions.NotBefore");
 
             BusinessValidation.ValidationCondition(() => notBefore > DateTimeOffset.UtcNow, ErrorLocalization.NotBeforeGreaterThenRequest);
 
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions.GetAudienceRestriction() == null, string.Format(ErrorLocalization.Missing, "Assertion.Conditions.AudienceRestriction"));
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.GetAudienceRestriction().Audience.First(), ErrorFields.Audience);
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Conditions.GetAudienceRestriction().Audience.First().Equals(request.Issuer.Value), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Audience));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.GetAudienceRestriction().Audience?.First(), ErrorFields.Audience);
+            BusinessValidation.ValidationCondition(() => !(response.GetAssertion().Conditions.GetAudienceRestriction().Audience.First()?.Equals(request.Issuer.Value) ?? false), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Audience));
 
             BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement() == null, string.Format(ErrorLocalization.NotSpecified, ErrorFields.AuthnStatement));
             BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement().AuthnInstant == DateTime.MinValue && string.IsNullOrWhiteSpace(response.GetAssertion().GetAuthnStatement().SessionIndex) && response.GetAssertion().GetAuthnStatement().AuthnContext == null, string.Format(ErrorLocalization.Missing, ErrorFields.AuthnStatement));
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().GetAuthnStatement().AuthnContext, ErrorFields.AuthnContext);
+            BusinessValidation.ValidationNotNull(response.GetAssertion().GetAuthnStatement().AuthnContext, ErrorFields.AuthnContext);
+            BusinessValidation.ValidationNotNull(response.GetAssertion().GetAuthnStatement().AuthnContext.Items, ErrorFields.AuthnContext);
+            BusinessValidation.ValidationNotNull(response.GetAssertion().GetAuthnStatement().AuthnContext.ItemsElementName, ErrorFields.AuthnContext);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef() == null, string.Format(ErrorLocalization.NotSpecified, "AuthnStatement.AuthnContext.AuthnContextClassRef"));
             BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef()), string.Format(ErrorLocalization.Missing, "AuthnStatement.AuthnContext.AuthnContextClassRef"));
             BusinessValidation.ValidationCondition(() => !response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef().Equals(SamlConst.SpidL2), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.AuthnContextClassRef));
@@ -445,7 +450,7 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <returns></returns>
         public static LogoutResponseType GetLogoutResponse(string base64Response)
         {
-            string idpResponse;
+            string logoutResponse;
 
             if (String.IsNullOrEmpty(base64Response))
             {
@@ -454,7 +459,7 @@ namespace SPID.AspNetCore.Authentication.Saml
 
             try
             {
-                idpResponse = Encoding.UTF8.GetString(Convert.FromBase64String(base64Response));
+                logoutResponse = Encoding.UTF8.GetString(Convert.FromBase64String(base64Response));
             }
             catch (Exception ex)
             {
@@ -463,19 +468,11 @@ namespace SPID.AspNetCore.Authentication.Saml
 
             try
             {
-                // Verify signature
-                XmlDocument xml = new XmlDocument { PreserveWhitespace = true };
-                xml.LoadXml(idpResponse);
-                if (!XmlHelpers.VerifySignature(xml))
-                {
-                    throw new Exception("Unable to verify the signature of the IdP response.");
-                }
-
-                return DeserializeMessage<LogoutResponseType>(idpResponse);
+                return DeserializeMessage<LogoutResponseType>(logoutResponse);
             }
             catch (Exception ex)
             {
-                throw new ArgumentException("Unable to read AttributeStatement attributes from SAML2 document.", ex);
+                throw new Exception(ErrorLocalization.ResponseNotValid, ex);
             }
         }
 
@@ -485,8 +482,12 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <param name="response"></param>
         /// <param name="request"></param>
         /// <returns>True if valid, false otherwise</returns>
-        public static bool ValidateLogoutResponse(StatusResponseType response, LogoutRequestType request)
+        public static bool ValidateLogoutResponse(LogoutResponseType response, LogoutRequestType request)
         {
+            var xmlDoc = response.SerializeToXmlDoc();
+
+            BusinessValidation.ValidationCondition(() => VerifySignature(xmlDoc), ErrorLocalization.InvalidSignature);
+
             return (response.InResponseTo == request.ID);
         }
 
@@ -527,6 +528,55 @@ namespace SPID.AspNetCore.Authentication.Saml
             var serializer = serializers[typeof(T)];
             using var stringReader = new StringReader(message);
             return serializer.Deserialize(stringReader) as T;
+        }
+
+        /// <summary>
+        /// Verifies the signature.
+        /// </summary>
+        /// <param name="signedDocument">The signed document.</param>
+        /// <returns></returns>
+        internal static bool VerifySignature(XmlDocument signedDocument, XmlDocument xmlMetadata = null)
+        {
+            BusinessValidation.Argument(signedDocument, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(signedDocument)));
+
+            try
+            {
+                SignedXml signedXml = new SignedXml(signedDocument);
+
+                if (xmlMetadata is not null)
+                {
+                    XmlNodeList MetadataNodeList = xmlMetadata.SelectNodes("//*[local-name()='Signature']");
+                    SignedXml signedMetadataXml = new SignedXml(xmlMetadata);
+                    signedMetadataXml.LoadXml((XmlElement)MetadataNodeList[0]);
+                    var x509dataMetadata = signedMetadataXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
+                    var publicMetadataCert = x509dataMetadata.Certificates[0] as X509Certificate2;
+                    XmlNodeList nodeList = (signedDocument.GetElementsByTagName("ds:Signature")?.Count > 1) ?
+                                                   signedDocument.GetElementsByTagName("ds:Signature") :
+                                                   (signedDocument.GetElementsByTagName("ns2:Signature")?.Count > 1) ?
+                                                   signedDocument.GetElementsByTagName("ns2:Signature") :
+                                                   signedDocument.GetElementsByTagName("Signature");
+                    signedXml.LoadXml((XmlElement)nodeList[0]);
+                    return signedXml.CheckSignature(publicMetadataCert, true);
+                }
+                else
+                {
+                    XmlNodeList nodeList = (signedDocument.GetElementsByTagName("ds:Signature")?.Count > 0) ?
+                                           signedDocument.GetElementsByTagName("ds:Signature") :
+                                           signedDocument.GetElementsByTagName("Signature");
+
+                    foreach (var node in nodeList)
+                    {
+                        signedXml.LoadXml((XmlElement)node);
+                        if (!signedXml.CheckSignature())
+                            return false;
+                    }
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private class ErrorFields

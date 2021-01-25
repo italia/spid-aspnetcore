@@ -1,27 +1,41 @@
-﻿using System;
+﻿using SPID.AspNetCore.Authentication.Resources;
+using System;
+using System.Globalization;
 
 namespace SPID.AspNetCore.Authentication.Saml
 {
-  public class SamlDefaultSettings
-  {
-    /// <summary>
-    /// The date time format
-    /// </summary>
-    public const string DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
+    public class SamlDefaultSettings
+    {
+        /// <summary>
+        /// The date time format
+        /// </summary>
+        public const string DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
+        public const string DateTimeShortFormat = "yyyy-MM-ddTHH:mm:ssZ";
 
-    /// <summary>
-    /// The now delta
-    /// </summary>
-    public const double NowDelta = 0;
+        public static DateTime ParseExact(string s, string fieldName)
+        {
+            DateTime result = default;
+            if (!(DateTime.TryParseExact(s, DateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result)
+                || DateTime.TryParseExact(s, DateTimeShortFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result)))
+            {
+                throw new System.Exception(string.Format(ErrorLocalization.ParameterNotValid, fieldName));
+            };
+            return result;
+        }
 
-    /// <summary>
-    /// The AssertionConsumerServiceIndex
-    /// </summary>
-    public const ushort AssertionConsumerServiceIndex = 0;
+        /// <summary>
+        /// The now delta
+        /// </summary>
+        public const double NowDelta = 0;
 
-    /// <summary>
-    /// The AssertionConsumerServiceIndex
-    /// </summary>
-    public const ushort AttributeConsumingServiceIndex = 1;
-  }
+        /// <summary>
+        /// The AssertionConsumerServiceIndex
+        /// </summary>
+        public const ushort AssertionConsumerServiceIndex = 0;
+
+        /// <summary>
+        /// The AssertionConsumerServiceIndex
+        /// </summary>
+        public const ushort AttributeConsumingServiceIndex = 1;
+    }
 }

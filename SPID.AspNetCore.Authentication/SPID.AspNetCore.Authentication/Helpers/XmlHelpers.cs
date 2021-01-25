@@ -67,30 +67,6 @@ namespace SPID.AspNetCore.Authentication.Helpers
             return signedXml.GetXml();
         }
 
-        /// <summary>
-        /// Verifies the signature.
-        /// </summary>
-        /// <param name="signedDocument">The signed document.</param>
-        /// <returns></returns>
-        internal static bool VerifySignature(XmlDocument signedDocument)
-        {
-            BusinessValidation.Argument(signedDocument, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(signedDocument)));
-
-            SignedXml signedXml = new SignedXml(signedDocument);
-
-            XmlNodeList nodeList = (signedDocument.GetElementsByTagName("ds:Signature")?.Count > 0) ?
-                                   signedDocument.GetElementsByTagName("ds:Signature") :
-                                   signedDocument.GetElementsByTagName("Signature");
-
-            foreach (var node in nodeList)
-            {
-                signedXml.LoadXml((XmlElement)node);
-                if (!signedXml.CheckSignature()) 
-                    return false;
-            }
-            return true;
-        }
-
         private static readonly ConcurrentDictionary<Type, XmlSerializer> serializers = new ConcurrentDictionary<Type, XmlSerializer>();
         /// <summary>
         /// Serializes to XML document.

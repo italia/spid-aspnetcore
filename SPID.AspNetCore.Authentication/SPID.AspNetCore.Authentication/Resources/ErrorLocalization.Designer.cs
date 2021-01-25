@@ -277,6 +277,15 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IssueInstant mancante.
+        /// </summary>
+        public static string IssueInstantMissing {
+            get {
+                return ResourceManager.GetString("IssueInstantMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attributo Assertion IssueIstant successivo a IssueInstant della richiesta.
         /// </summary>
         public static string IssueIstantAssertionGreaterThanRequest {
@@ -484,11 +493,29 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cookie &apos;SPID-Properties&apos; mancante, e&apos; necessario effettuare una nuova login.
+        /// </summary>
+        public static string SpidPropertiesNotFound {
+            get {
+                return ResourceManager.GetString("SpidPropertiesNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to StatusCode non valido.
         /// </summary>
         public static string StatusCodeNotValid {
             get {
                 return ResourceManager.GetString("StatusCodeNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status non valido.
+        /// </summary>
+        public static string StatusNotValid {
+            get {
+                return ResourceManager.GetString("StatusNotValid", resourceCulture);
             }
         }
         

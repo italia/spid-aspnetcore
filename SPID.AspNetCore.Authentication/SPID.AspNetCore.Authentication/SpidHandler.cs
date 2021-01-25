@@ -6,6 +6,7 @@ using Microsoft.Extensions.Primitives;
 using SPID.AspNetCore.Authentication.Events;
 using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Models;
+using SPID.AspNetCore.Authentication.Resources;
 using SPID.AspNetCore.Authentication.Saml;
 using System;
 using System.Collections.Concurrent;
@@ -616,7 +617,10 @@ namespace SPID.AspNetCore.Authentication
 
         public static void Load(this AuthenticationProperties properties, HttpRequest request, ISecureDataFormat<AuthenticationProperties> encryptor)
         {
-            AuthenticationProperties cookieProperties = encryptor.Unprotect(request.Cookies["SPID-Properties"]);
+            var cookie = request.Cookies["SPID-Properties"];
+            BusinessValidation.ValidationNotNull(cookie, ErrorLocalization.SpidPropertiesNotFound);
+            AuthenticationProperties cookieProperties = encryptor.Unprotect(cookie);
+            BusinessValidation.ValidationNotNull(cookieProperties, ErrorLocalization.SpidPropertiesNotFound);
             properties.AllowRefresh = cookieProperties.AllowRefresh;
             properties.ExpiresUtc = cookieProperties.ExpiresUtc;
             properties.IsPersistent = cookieProperties.IsPersistent;
