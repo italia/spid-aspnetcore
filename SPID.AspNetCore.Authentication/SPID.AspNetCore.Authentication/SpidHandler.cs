@@ -101,7 +101,6 @@ namespace SPID.AspNetCore.Authentication
                 securityTokenCreatingContext.TokenOptions.EntityId,
                 securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceIndex,
                 securityTokenCreatingContext.TokenOptions.AttributeConsumingServiceIndex,
-                2,
                 securityTokenCreatingContext.TokenOptions.Certificate,
                 idp);
 

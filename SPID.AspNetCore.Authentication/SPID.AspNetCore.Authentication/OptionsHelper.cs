@@ -30,6 +30,7 @@ namespace SPID.AspNetCore.Authentication
                     SingleSignOutServiceUrl = x.GetValue<string>("SingleSignOutServiceUrl"),
                     SubjectNameIdRemoveText = x.GetValue<string>("SubjectNameIdRemoveText"),
                     PerformFullResponseValidation = x.GetValue<bool>("PerformFullResponseValidation"),
+                    SecurityLevel = x.GetValue<int?>("SecurityLevel") ?? 2,
                 }));
             options.IsStagingValidatorEnabled = section.GetValue<bool?>("IsStagingValidatorEnabled") ?? false;
             options.IsLocalValidatorEnabled = section.GetValue<bool?>("IsLocalValidatorEnabled") ?? false;
@@ -43,6 +44,7 @@ namespace SPID.AspNetCore.Authentication
             options.UseTokenLifetime = section.GetValue<bool?>("UseTokenLifetime") ?? false;
             options.SkipUnrecognizedRequests = section.GetValue<bool?>("SkipUnrecognizedRequests") ?? true;
             options.CacheIdpMetadata = section.GetValue<bool?>("CacheIdpMetadata") ?? false;
+            options.SecurityLevel = section.GetValue<int?>("SecurityLevel") ?? 2;
             var certificateSection = section.GetSection("Certificate");
             if (certificateSection != null)
             {

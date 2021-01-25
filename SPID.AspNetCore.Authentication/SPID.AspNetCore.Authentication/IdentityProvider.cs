@@ -16,5 +16,6 @@
         public string SubjectNameIdRemoveText { get; set; } = "SPID-";
         public ProviderType ProviderType { get; set; } = ProviderType.IdentityProvider;
         public bool PerformFullResponseValidation { get; set; }
+        public int SecurityLevel { get; set; }
     }
 }

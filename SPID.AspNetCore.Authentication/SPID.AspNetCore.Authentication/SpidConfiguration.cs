@@ -114,6 +114,13 @@ namespace SPID.AspNetCore.Authentication
         ///   <c>true</c> if [cache idp metadata]; otherwise, <c>false</c>.
         /// </value>
         public bool CacheIdpMetadata { get; set; }
+        /// <summary>
+        /// Gets or sets the security level.
+        /// </summary>
+        /// <value>
+        /// The security level.
+        /// </value>
+        public int SecurityLevel { get; set; }
 
         public void AddIdentityProviders(IEnumerable<IdentityProvider> identityProviders)
         {

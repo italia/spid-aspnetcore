@@ -46,7 +46,6 @@ namespace SPID.AspNetCore.Authentication.Helpers
             string entityId,
             ushort? assertionConsumerServiceIndex,
             ushort? attributeConsumingServiceIndex,
-            int securityLevel,
             X509Certificate2 certificate,
             IdentityProvider identityProvider)
         {
@@ -77,8 +76,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 Version = SamlConst.Version,
                 IssueInstant = now.AddMinutes(nowDelta).ToString(dateTimeFormat),
                 Destination = identityProvider.SingleSignOnServiceUrl,
-                ForceAuthn = securityLevel > 1,
-                ForceAuthnSpecified = securityLevel > 1,
+                ForceAuthn = identityProvider.SecurityLevel > 1,
+                ForceAuthnSpecified = identityProvider.SecurityLevel > 1,
                 Issuer = new NameIDType
                 {
                     Value = entityId.Trim(),
@@ -108,7 +107,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
                     ComparisonSpecified = true,
                     Items = new string[1]
                     {
-                        SamlConst.SpidL2
+                        listAuthRefValid[identityProvider.SecurityLevel - 1]
                     },
                     ItemsElementName = new ItemsChoiceType7[1]
                     {
