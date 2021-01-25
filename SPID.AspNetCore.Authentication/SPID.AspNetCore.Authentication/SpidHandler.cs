@@ -26,8 +26,6 @@ namespace SPID.AspNetCore.Authentication
 {
     public class SpidHandler : RemoteAuthenticationHandler<SpidOptions>, IAuthenticationSignOutHandler
     {
-        private static readonly XmlSerializer entityDescriptorSerializer = new(typeof(EntityDescriptor));
-
         EventsHandler _eventsHandler;
         RequestGenerator _requestGenerator;
         IHttpClientFactory _httpClientFactory;
@@ -286,6 +284,7 @@ namespace SPID.AspNetCore.Authentication
             return null;
         }
 
+        private static readonly XmlSerializer entityDescriptorSerializer = new(typeof(EntityDescriptor));
         private static ConcurrentDictionary<string, string> metadataCache = new ConcurrentDictionary<string, string>();
         private async Task<EntityDescriptor> DownloadMetadataIDP(string urlMetadataIdp)
         {

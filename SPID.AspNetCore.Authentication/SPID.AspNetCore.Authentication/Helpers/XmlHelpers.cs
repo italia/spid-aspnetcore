@@ -1,5 +1,6 @@
 ﻿using SPID.AspNetCore.Authentication.Resources;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -87,8 +88,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             return true;
         }
 
-        private static readonly Dictionary<Type, XmlSerializer> serializers = new Dictionary<Type, XmlSerializer>();
-
+        private static readonly ConcurrentDictionary<Type, XmlSerializer> serializers = new ConcurrentDictionary<Type, XmlSerializer>();
         public static XmlDocument SerializeToXmlDoc(this object o)
         {
             XmlDocument doc = new XmlDocument() { PreserveWhitespace = true };
@@ -96,7 +96,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
             using XmlWriter writer = doc.CreateNavigator().AppendChild();
             if (!serializers.ContainsKey(o.GetType()))
             {
-                serializers.Add(o.GetType(), new XmlSerializer(o.GetType()));
+                var serializer = new XmlSerializer(o.GetType());
+                serializers.AddOrUpdate(o.GetType(), serializer, (key, value) => serializer);
             }
             serializers[o.GetType()].Serialize(writer, o);
 
