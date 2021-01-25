@@ -20,6 +20,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Mvc\spid-ico-circle-bb.png" />
+    <None Remove="Mvc\spid.css" />
+    <None Remove="Mvc\spid.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Mvc\Resources\spid-ico-circle-bb.png">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Mvc\Resources\spid.css" />
+    <EmbeddedResource Include="Mvc\Resources\spid.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Razor" Version="2.2.0" />
