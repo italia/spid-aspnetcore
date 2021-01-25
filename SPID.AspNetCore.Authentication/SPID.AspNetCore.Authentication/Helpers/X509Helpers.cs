@@ -9,6 +9,16 @@ namespace SPID.AspNetCore.Authentication.Helpers
     public static class X509Helpers
     {
         /// <summary>
+        /// Adds the certificate headers.
+        /// </summary>
+        /// <param name="x509RawBase64Certificate">The X509 raw base64 certificate.</param>
+        /// <returns></returns>
+        public static string AddCertificateHeaders(string x509RawBase64Certificate) 
+            => @$"-----BEGIN CERTIFICATE-----
+                  {x509RawBase64Certificate}
+                  -----END CERTIFICATE-----";
+
+        /// <summary>
         /// Get certificate from file path and password
         /// </summary>
         /// <param name="certFilePath"></param>

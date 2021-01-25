@@ -214,23 +214,11 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 BusinessValidation.ValidationCondition(() => response.Signature.KeyInfo.GetX509Data().GetX509Certificate() != metadataIdp.Signature.KeyInfo.X509Data.X509Certificate, ErrorLocalization.ResponseSignatureNotValid);
                 BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature.KeyInfo.GetX509Data().GetX509Certificate() != metadataIdp.Signature.KeyInfo.X509Data.X509Certificate, ErrorLocalization.AssertionSignatureNotValid);
             }
-            var respSigningCert = @$"
-                  -----BEGIN CERTIFICATE-----
-                  {response.Signature.KeyInfo.GetX509Data().GetX509Certificate()}
-                  -----END CERTIFICATE-----
-                  ";
+            var respSigningCert = X509Helpers.AddCertificateHeaders(response.Signature.KeyInfo.GetX509Data().GetX509Certificate());
             using var responseCertificate = new X509Certificate2(Encoding.UTF8.GetBytes(respSigningCert));
-            var assertSigningCert = @$"
-                  -----BEGIN CERTIFICATE-----
-                  {response.GetAssertion()?.Signature.KeyInfo.GetX509Data().GetX509Certificate()}
-                  -----END CERTIFICATE-----
-                  ";
+            var assertSigningCert = X509Helpers.AddCertificateHeaders(response.GetAssertion()?.Signature.KeyInfo.GetX509Data().GetX509Certificate());
             using var assertionCertificate = new X509Certificate2(Encoding.UTF8.GetBytes(assertSigningCert));
-            var idpSigningCert = @$"
-                  -----BEGIN CERTIFICATE-----
-                  {metadataIdp.IDPSSODescriptor.KeyDescriptor.KeyInfo.X509Data.X509Certificate}
-                  -----END CERTIFICATE-----
-                  ";
+            var idpSigningCert = X509Helpers.AddCertificateHeaders(metadataIdp.IDPSSODescriptor.KeyDescriptor.KeyInfo.X509Data.X509Certificate);
             using var idpCertificate = new X509Certificate2(Encoding.UTF8.GetBytes(idpSigningCert));
 
             BusinessValidation.ValidationCondition(() => responseCertificate.Thumbprint != idpCertificate.Thumbprint, ErrorLocalization.ResponseSignatureNotValid);
