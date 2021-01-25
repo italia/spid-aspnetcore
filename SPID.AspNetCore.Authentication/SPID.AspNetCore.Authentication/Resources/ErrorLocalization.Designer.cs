@@ -169,6 +169,51 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Il FindValue del certificato non può essere nè vuota nè null.
+        /// </summary>
+        public static string CertificateFindValueNullOrEmpty {
+            get {
+                return ResourceManager.GetString("CertificateFindValueNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Certificato non trovato.
+        /// </summary>
+        public static string CertificateNotFound {
+            get {
+                return ResourceManager.GetString("CertificateNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to La password del certificato non può essere nè vuota nè null.
+        /// </summary>
+        public static string CertificatePasswordNullOrEmpty {
+            get {
+                return ResourceManager.GetString("CertificatePasswordNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Il path del certificato non può essere nè vuoto nè null.
+        /// </summary>
+        public static string CertificatePathNullOrEmpty {
+            get {
+                return ResourceManager.GetString("CertificatePathNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to La stringa base64 del certificato non può essere nè vuota nè null.
+        /// </summary>
+        public static string CertificateRawStringNullOrEmpty {
+            get {
+                return ResourceManager.GetString("CertificateRawStringNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Impossibile convertire la stringa base64 in ascii.
         /// </summary>
         public static string ConversionBase64Errror {
@@ -340,7 +385,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Il parametro {0} non può essere nullo.
+        ///   Looks up a localized string similar to Il parametro {0} non può essere null.
         /// </summary>
         public static string ParameterCantNull {
             get {
@@ -349,7 +394,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Il parametro {0} non può essere ne nullo ne vuoto.
+        ///   Looks up a localized string similar to Il parametro {0} non può essere ne null ne vuoto.
         /// </summary>
         public static string ParameterCantNullOrEmpty {
             get {

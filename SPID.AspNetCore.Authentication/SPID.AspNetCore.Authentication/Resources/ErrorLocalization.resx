@@ -153,6 +153,21 @@
   <data name="AttributeRequiredNotFound" xml:space="preserve">
     <value>Non sono presenti tutti gli attributi richiesti</value>
   </data>
+  <data name="CertificateFindValueNullOrEmpty" xml:space="preserve">
+    <value>Il FindValue del certificato non può essere nè vuota nè null</value>
+  </data>
+  <data name="CertificateNotFound" xml:space="preserve">
+    <value>Certificato non trovato</value>
+  </data>
+  <data name="CertificatePasswordNullOrEmpty" xml:space="preserve">
+    <value>La password del certificato non può essere nè vuota nè null</value>
+  </data>
+  <data name="CertificatePathNullOrEmpty" xml:space="preserve">
+    <value>Il path del certificato non può essere nè vuoto nè null</value>
+  </data>
+  <data name="CertificateRawStringNullOrEmpty" xml:space="preserve">
+    <value>La stringa base64 del certificato non può essere nè vuota nè null</value>
+  </data>
   <data name="ConversionBase64Errror" xml:space="preserve">
     <value>Impossibile convertire la stringa base64 in ascii</value>
   </data>
@@ -211,10 +226,10 @@
     <value>Non valido</value>
   </data>
   <data name="ParameterCantNull" xml:space="preserve">
-    <value>Il parametro {0} non può essere nullo</value>
+    <value>Il parametro {0} non può essere null</value>
   </data>
   <data name="ParameterCantNullOrEmpty" xml:space="preserve">
-    <value>Il parametro {0} non può essere ne nullo ne vuoto</value>
+    <value>Il parametro {0} non può essere ne null ne vuoto</value>
   </data>
   <data name="ParameterNotValid" xml:space="preserve">
     <value>{0} non valido</value>

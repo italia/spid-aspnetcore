@@ -32,6 +32,14 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
+        public static void ValidationNotNull(object input, string nameVariable)
+        {
+            if (input == null)
+            {
+                throw new Exception(string.Format(ErrorLocalization.NotSpecified, nameVariable));
+            }
+        }
+
         public static void ValidationNotNullNotWhitespace(string input, string nameVariable)
         {
             if (string.IsNullOrWhiteSpace(input))

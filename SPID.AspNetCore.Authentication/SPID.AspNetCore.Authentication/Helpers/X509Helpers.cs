@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SPID.AspNetCore.Authentication.Resources;
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -13,7 +14,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// </summary>
         /// <param name="x509RawBase64Certificate">The X509 raw base64 certificate.</param>
         /// <returns></returns>
-        public static string AddCertificateHeaders(string x509RawBase64Certificate) 
+        public static string AddCertificateHeaders(string x509RawBase64Certificate)
             => @$"-----BEGIN CERTIFICATE-----
                   {x509RawBase64Certificate}
                   -----END CERTIFICATE-----";
@@ -26,27 +27,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <returns></returns>
         public static X509Certificate2 GetCertificateFromFile(string certFilePath, string certPassword)
         {
-            if (string.IsNullOrWhiteSpace(certFilePath))
-            {
-                throw new ArgumentNullException("The certFilePath parameter can't be null or empty.");
-            }
+            BusinessValidation.ValidationNotNullNotWhitespace(certFilePath, ErrorLocalization.CertificatePathNullOrEmpty);
+            BusinessValidation.ValidationNotNullNotWhitespace(certPassword, ErrorLocalization.CertificatePasswordNullOrEmpty);
 
-            if (string.IsNullOrWhiteSpace(certPassword))
-            {
-                throw new ArgumentNullException("The certPassword parameter can't be null or empty.");
-            }
-
-            if (File.Exists(certFilePath))
-            {
-                return new X509Certificate2(certFilePath, certPassword,
-                        X509KeyStorageFlags.MachineKeySet |
-                        X509KeyStorageFlags.PersistKeySet |
-                        X509KeyStorageFlags.Exportable);
-            }
-            else
-            {
-                throw new FileNotFoundException("Unable to locate certificate");
-            }
+            return new X509Certificate2(certFilePath, 
+                certPassword, 
+                X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
         }
 
         /// <summary>
@@ -55,19 +41,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <param name="certFilePath"></param>
         /// <param name="certPassword"></param>
         /// <returns></returns>
-        public static X509Certificate2 GetCertificateFromStrings(string certificateString64, string password)
+        public static X509Certificate2 GetCertificateFromStrings(string certificateString64, string certPassword)
         {
-            try
-            {
-                var certificateBytes = Convert.FromBase64String(certificateString64);
-                var x509Certificate2 = new X509Certificate2(certificateBytes, password);
-
-                return x509Certificate2;
-            }
-            catch
-            {
-                return null;
-            }
+            BusinessValidation.ValidationNotNullNotWhitespace(certificateString64, ErrorLocalization.CertificateRawStringNullOrEmpty);
+            BusinessValidation.ValidationNotNullNotWhitespace(certPassword, ErrorLocalization.CertificatePasswordNullOrEmpty);
+            var certificateBytes = Convert.FromBase64String(certificateString64);
+            return new X509Certificate2(certificateBytes, certPassword);
         }
 
 
@@ -82,31 +61,21 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <returns></returns>
         public static X509Certificate2 GetCertificateFromStore(StoreLocation storeLocation, StoreName storeName, X509FindType findType, object findValue, bool validOnly)
         {
-            X509Certificate2 certificate = null;
-
-            if (findValue == null)
-            {
-                throw new ArgumentNullException("The findValue parameter can't be null.");
-            }
-
+            BusinessValidation.ValidationNotNullNotWhitespace(findValue.ToString(), ErrorLocalization.CertificateFindValueNullOrEmpty);
             X509Store store = new X509Store(storeName, storeLocation);
             store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
             X509Certificate2Collection coll = store.Certificates.Find(findType, findValue.ToString(), validOnly);
 
+            X509Certificate2 certificate = null;
             if (coll.Count > 0)
             {
                 certificate = coll[0];
             }
             store.Close();
 
-            if (certificate != null)
-            {
-                return certificate;
-            }
-            else
-            {
-                throw new FileNotFoundException("Unable to locate certificate");
-            }
+            BusinessValidation.ValidationNotNull(certificate, ErrorLocalization.CertificateNotFound);
+
+            return certificate;
         }
 
         /// <summary>
