@@ -208,7 +208,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature == null, ErrorLocalization.AssertionSignatureNotFound);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo.GetX509Data().GetX509Certificate() != response.Signature.KeyInfo.GetX509Data().GetX509Certificate(), ErrorLocalization.AssertionSignatureDifferent);
             var metadataXmlDoc = metadataIdp.SerializeToXmlDoc();
-            BusinessValidation.ValidationCondition(() => VerifySignature(xmlDoc, metadataXmlDoc), ErrorLocalization.InvalidSignature);
+            BusinessValidation.ValidationCondition(() => XmlHelpers.VerifySignature(xmlDoc, metadataXmlDoc), ErrorLocalization.InvalidSignature);
 
             var respSigningCert = X509Helpers.AddCertificateHeaders(response.Signature.KeyInfo.GetX509Data().GetX509Certificate());
             using var responseCertificate = new X509Certificate2(Encoding.UTF8.GetBytes(respSigningCert));
@@ -486,7 +486,7 @@ namespace SPID.AspNetCore.Authentication.Saml
         {
             var xmlDoc = response.SerializeToXmlDoc();
 
-            BusinessValidation.ValidationCondition(() => VerifySignature(xmlDoc), ErrorLocalization.InvalidSignature);
+            BusinessValidation.ValidationCondition(() => XmlHelpers.VerifySignature(xmlDoc), ErrorLocalization.InvalidSignature);
 
             return (response.InResponseTo == request.ID);
         }
@@ -528,55 +528,6 @@ namespace SPID.AspNetCore.Authentication.Saml
             var serializer = serializers[typeof(T)];
             using var stringReader = new StringReader(message);
             return serializer.Deserialize(stringReader) as T;
-        }
-
-        /// <summary>
-        /// Verifies the signature.
-        /// </summary>
-        /// <param name="signedDocument">The signed document.</param>
-        /// <returns></returns>
-        internal static bool VerifySignature(XmlDocument signedDocument, XmlDocument xmlMetadata = null)
-        {
-            BusinessValidation.Argument(signedDocument, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(signedDocument)));
-
-            try
-            {
-                SignedXml signedXml = new SignedXml(signedDocument);
-
-                if (xmlMetadata is not null)
-                {
-                    XmlNodeList MetadataNodeList = xmlMetadata.SelectNodes("//*[local-name()='Signature']");
-                    SignedXml signedMetadataXml = new SignedXml(xmlMetadata);
-                    signedMetadataXml.LoadXml((XmlElement)MetadataNodeList[0]);
-                    var x509dataMetadata = signedMetadataXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
-                    var publicMetadataCert = x509dataMetadata.Certificates[0] as X509Certificate2;
-                    XmlNodeList nodeList = (signedDocument.GetElementsByTagName("ds:Signature")?.Count > 1) ?
-                                                   signedDocument.GetElementsByTagName("ds:Signature") :
-                                                   (signedDocument.GetElementsByTagName("ns2:Signature")?.Count > 1) ?
-                                                   signedDocument.GetElementsByTagName("ns2:Signature") :
-                                                   signedDocument.GetElementsByTagName("Signature");
-                    signedXml.LoadXml((XmlElement)nodeList[0]);
-                    return signedXml.CheckSignature(publicMetadataCert, true);
-                }
-                else
-                {
-                    XmlNodeList nodeList = (signedDocument.GetElementsByTagName("ds:Signature")?.Count > 0) ?
-                                           signedDocument.GetElementsByTagName("ds:Signature") :
-                                           signedDocument.GetElementsByTagName("Signature");
-
-                    foreach (var node in nodeList)
-                    {
-                        signedXml.LoadXml((XmlElement)node);
-                        if (!signedXml.CheckSignature())
-                            return false;
-                    }
-                    return true;
-                }
-            }
-            catch (Exception)
-            {
-                return false;
-            }
         }
 
         private class ErrorFields

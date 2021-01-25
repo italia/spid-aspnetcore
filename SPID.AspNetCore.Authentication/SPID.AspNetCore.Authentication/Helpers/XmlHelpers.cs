@@ -1,6 +1,7 @@
 ﻿using SPID.AspNetCore.Authentication.Resources;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
@@ -65,6 +66,56 @@ namespace SPID.AspNetCore.Authentication.Helpers
             signedXml.ComputeSignature();
 
             return signedXml.GetXml();
+        }
+
+        /// <summary>
+        /// Verifies the signature.
+        /// </summary>
+        /// <param name="signedDocument">The signed document.</param>
+        /// <param name="xmlMetadata">The XML metadata.</param>
+        /// <returns></returns>
+        internal static bool VerifySignature(XmlDocument signedDocument, XmlDocument xmlMetadata = null)
+        {
+            BusinessValidation.Argument(signedDocument, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(signedDocument)));
+
+            try
+            {
+                SignedXml signedXml = new SignedXml(signedDocument);
+
+                if (xmlMetadata is not null)
+                {
+                    XmlNodeList MetadataNodeList = xmlMetadata.SelectNodes("//*[local-name()='Signature']");
+                    SignedXml signedMetadataXml = new SignedXml(xmlMetadata);
+                    signedMetadataXml.LoadXml((XmlElement)MetadataNodeList[0]);
+                    var x509dataMetadata = signedMetadataXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
+                    var publicMetadataCert = x509dataMetadata.Certificates[0] as X509Certificate2;
+                    XmlNodeList nodeList = (signedDocument.GetElementsByTagName("ds:Signature")?.Count > 1) ?
+                                                   signedDocument.GetElementsByTagName("ds:Signature") :
+                                                   (signedDocument.GetElementsByTagName("ns2:Signature")?.Count > 1) ?
+                                                   signedDocument.GetElementsByTagName("ns2:Signature") :
+                                                   signedDocument.GetElementsByTagName("Signature");
+                    signedXml.LoadXml((XmlElement)nodeList[0]);
+                    return signedXml.CheckSignature(publicMetadataCert, true);
+                }
+                else
+                {
+                    XmlNodeList nodeList = (signedDocument.GetElementsByTagName("ds:Signature")?.Count > 0) ?
+                                           signedDocument.GetElementsByTagName("ds:Signature") :
+                                           signedDocument.GetElementsByTagName("Signature");
+
+                    foreach (var node in nodeList)
+                    {
+                        signedXml.LoadXml((XmlElement)node);
+                        if (!signedXml.CheckSignature())
+                            return false;
+                    }
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private static readonly ConcurrentDictionary<Type, XmlSerializer> serializers = new ConcurrentDictionary<Type, XmlSerializer>();
