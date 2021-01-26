@@ -11,11 +11,11 @@
     <PackageTags>spid;aspnetcore;authentication</PackageTags>
     <PackageProjectUrl>https://github.com/danielegiallonardo/spid-aspnetcore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageVersion>1.1.0</PackageVersion>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0</AssemblyVersion>
-    <FileVersion>1.1.0</FileVersion>
-    <InformationalVersion>1.1.0</InformationalVersion>
+    <PackageVersion>1.1.1</PackageVersion>
+    <Version>1.1.1</Version>
+    <AssemblyVersion>1.1.1</AssemblyVersion>
+    <FileVersion>1.1.1</FileVersion>
+    <InformationalVersion>1.1.1</InformationalVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
