@@ -46,7 +46,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
             BusinessValidation.ValidationNotNullNotWhitespace(certificateString64, ErrorLocalization.CertificateRawStringNullOrEmpty);
             BusinessValidation.ValidationNotNullNotWhitespace(certPassword, ErrorLocalization.CertificatePasswordNullOrEmpty);
             var certificateBytes = Convert.FromBase64String(certificateString64);
-            return new X509Certificate2(certificateBytes, certPassword);
+            return new X509Certificate2(certificateBytes, certPassword,
+                X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
         }
 
 

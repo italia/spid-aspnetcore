@@ -168,9 +168,9 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <param name="response">The response.</param>
         /// <param name="request">The request.</param>
         /// <param name="metadataIdp">The metadata idp.</param>
-        /// <param name="performFullResponseValidation">if set to <c>true</c> [perform full response validation].</param>
-        /// <returns></returns>
-        public static void ValidateAuthnResponse(this ResponseType response, AuthnRequestType request, EntityDescriptor metadataIdp, bool performFullResponseValidation)
+        /// <exception cref="Exception">
+        /// </exception>
+        public static void ValidateAuthnResponse(this ResponseType response, AuthnRequestType request, EntityDescriptor metadataIdp)
         {
             // Verify signature
             var xmlDoc = response.SerializeToXmlDoc();
@@ -291,11 +291,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.Issuer?.Value), ErrorLocalization.IssuerMissing);
             BusinessValidation.ValidationCondition(() => !response.Issuer.Value.Equals(metadataIdp.EntityID, StringComparison.InvariantCultureIgnoreCase), ErrorLocalization.IssuerDifferentFromEntityId);
 
-            if (performFullResponseValidation)
-            {
-                BusinessValidation.ValidationNotNullNotWhitespace(response.Issuer.Format, nameof(response.Issuer.Format));
-                BusinessValidation.ValidationCondition(() => !response.Issuer.Format.Equals(request.Issuer.Format), ErrorLocalization.IssuerFormatDifferent);
-            }
+            BusinessValidation.ValidationCondition(() => !string.IsNullOrWhiteSpace(response.Issuer.Format) && !response.Issuer.Format.Equals(SamlConst.IssuerFormat), ErrorLocalization.IssuerFormatDifferent);
 
             BusinessValidation.ValidationNotNullNotEmpty(response?.GetAssertion(), ErrorFields.Assertion);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().ID == null, string.Format(ErrorLocalization.Missing, ErrorFields.ID));
@@ -366,13 +362,9 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationNotNull(response.GetAssertion().GetAuthnStatement().AuthnContext.ItemsElementName, ErrorFields.AuthnContext);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef() == null, string.Format(ErrorLocalization.NotSpecified, "AuthnStatement.AuthnContext.AuthnContextClassRef"));
             BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef()), string.Format(ErrorLocalization.Missing, "AuthnStatement.AuthnContext.AuthnContextClassRef"));
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef().Equals(SamlConst.SpidL2), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.AuthnContextClassRef));
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef().Equals(request.RequestedAuthnContext.Items[0]), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.AuthnContextClassRef));
 
             BusinessValidation.ValidationCondition(() => !listAuthRefValid.Contains(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef()), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.AuthnContextClassRef));
-            if (performFullResponseValidation)
-            {
-                BusinessValidation.ValidationCondition(() => !response.GetAssertion().GetAttributeStatement().GetAttributes().All(x => !string.IsNullOrWhiteSpace(x.NameFormat)), string.Format(ErrorLocalization.ParameterNotValid, "Attribute.NameFormat"));
-            }
         }
 
         /// <summary>

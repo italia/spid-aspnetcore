@@ -30,7 +30,6 @@ namespace SPID.AspNetCore.Authentication.Helpers
                     SingleSignOnServiceUrl = x.GetValue<string>("SingleSignOnServiceUrl"),
                     SingleSignOutServiceUrl = x.GetValue<string>("SingleSignOutServiceUrl"),
                     SubjectNameIdRemoveText = x.GetValue<string>("SubjectNameIdRemoveText"),
-                    PerformFullResponseValidation = x.GetValue<bool>("PerformFullResponseValidation"),
                     SecurityLevel = x.GetValue<int?>("SecurityLevel") ?? 2,
                 }));
             options.IsStagingValidatorEnabled = section.GetValue<bool?>("IsStagingValidatorEnabled") ?? false;

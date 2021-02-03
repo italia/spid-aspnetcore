@@ -280,7 +280,7 @@ namespace SPID.AspNetCore.Authentication
 
             var metadataIdp = await DownloadMetadataIDP(idp.OrganizationUrlMetadata);
 
-            response.ValidateAuthnResponse(request, metadataIdp, idp.PerformFullResponseValidation);
+            response.ValidateAuthnResponse(request, metadataIdp);
             return null;
         }
 
@@ -345,7 +345,7 @@ namespace SPID.AspNetCore.Authentication
                 new Claim( SamlConst.name, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.name.Equals(x.Name) || SamlConst.name.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
                 new Claim( SamlConst.email, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
                 new Claim( SamlConst.familyName, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.familyName.Equals(x.Name) || SamlConst.familyName.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SamlConst.fiscalNumber, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.fiscalNumber.Equals(x.Name) || SamlConst.fiscalNumber.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SamlConst.fiscalNumber, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.fiscalNumber.Equals(x.Name) || SamlConst.fiscalNumber.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim()?.Replace("TINIT-", "") ?? string.Empty),
                 new Claim( SamlConst.surname, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.surname.Equals(x.Name) || SamlConst.surname.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
                 new Claim( SamlConst.mail, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.mail.Equals(x.Name) || SamlConst.mail.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
                 new Claim( SamlConst.address, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.address.Equals(x.Name) || SamlConst.address.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
