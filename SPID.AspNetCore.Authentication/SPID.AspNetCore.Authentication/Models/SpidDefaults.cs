@@ -19,5 +19,10 @@
         /// Constant used to identify userstate inside AuthenticationProperties that have been serialized in the 'wctx' parameter.
         /// </summary>
         public static readonly string UserstatePropertiesKey = "Spid.Userstate";
+
+        /// <summary>
+        /// The cookie name
+        /// </summary>
+        public static readonly string CookieName = "Spid.Properties";
     }
 }

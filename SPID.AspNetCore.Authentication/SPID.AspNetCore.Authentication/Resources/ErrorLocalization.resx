@@ -262,7 +262,7 @@
     <value>L'url del single signon deve essere valorizzato</value>
   </data>
   <data name="SpidPropertiesNotFound" xml:space="preserve">
-    <value>Cookie 'SPID-Properties' mancante, e' necessario effettuare una nuova login</value>
+    <value>Cookie relativo alla sessione di login mancante, e' necessario effettuare una nuova login</value>
   </data>
   <data name="StatusCodeNotValid" xml:space="preserve">
     <value>StatusCode non valido</value>

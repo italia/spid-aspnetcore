@@ -612,12 +612,12 @@ namespace SPID.AspNetCore.Authentication
 
         public static void Save(this AuthenticationProperties properties, HttpResponse response, ISecureDataFormat<AuthenticationProperties> encryptor)
         {
-            response.Cookies.Append("SPID-Properties", encryptor.Protect(properties));
+            response.Cookies.Append(SpidDefaults.CookieName, encryptor.Protect(properties), new CookieOptions() { SameSite = SameSiteMode.None });
         }
 
         public static void Load(this AuthenticationProperties properties, HttpRequest request, ISecureDataFormat<AuthenticationProperties> encryptor)
         {
-            var cookie = request.Cookies["SPID-Properties"];
+            var cookie = request.Cookies[SpidDefaults.CookieName];
             BusinessValidation.ValidationNotNull(cookie, ErrorLocalization.SpidPropertiesNotFound);
             AuthenticationProperties cookieProperties = encryptor.Unprotect(cookie);
             BusinessValidation.ValidationNotNull(cookieProperties, ErrorLocalization.SpidPropertiesNotFound);
