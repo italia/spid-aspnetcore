@@ -31,7 +31,7 @@ public void ConfigureServices(IServiceCollection services)
 
 In questo modo vengono aggiunti i middleware necessari per la gestione delle richieste/risposte di login/logout da/verso SPID.
 
-Nella libreria è inclusa anche l'implementazione di diversi TagHelper per la renderizzazione (conforme alle specifiche) del pulsante "Entra con SPID" e per il rendering delle sezioni di styling e scripting.
+Nella libreria è inclusa anche l'implementazione di un TagHelper per la renderizzazione (conforme alle specifiche) del pulsante "Entra con SPID".
 Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla View Razor dove lo si desidera posizionare:
 
 ```razor
