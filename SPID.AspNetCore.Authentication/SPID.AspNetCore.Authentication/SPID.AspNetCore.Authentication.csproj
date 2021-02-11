@@ -9,7 +9,7 @@
     <RootNamespace>SPID.AspNetCore.Authentication</RootNamespace>
     <PackageId>SPID.AspNetCore.Authentication</PackageId>
     <PackageTags>spid;aspnetcore;authentication</PackageTags>
-    <PackageProjectUrl>https://github.com/danielegiallonardo/spid-aspnetcore</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/italia/spid-aspnetcore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageVersion>1.1.3</PackageVersion>
     <Version>1.1.3</Version>
