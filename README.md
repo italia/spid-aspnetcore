@@ -297,3 +297,9 @@ Se la WebApp utilizza Bootstrap, è necessario aggiungere la seguente classe al 
   box-sizing: content-box;
 }
 ```
+
+# Compliance
+La libreria è stata oggetto di collaudo da parte di AGID, sia per soluzioni come ServiceProvider che come Aggregatore, ha superato tutti i test di [spid-saml-check](https://github.com/italia/spid-saml-check) ed è compliant con le direttive specificate negli avvisi SPID.
+
+# Authors
+* [Daniele Giallonardo](https://github.com/danielegiallonardo) (maintainer) - [Stefano Mostarda](https://github.com/sm15455)
