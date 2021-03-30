@@ -33,7 +33,10 @@ namespace SPID.AspNetCore.Authentication.Saml
         public static X509DataType GetX509Data(this KeyInfoType input) 
             => input.Items?.FirstOrDefault(s => s is X509DataType) as X509DataType;
 
-        public static string GetX509Certificate(this X509DataType input) 
+        public static byte[] GetRawX509Certificate(this X509DataType input)
+            => input.Items?.FirstOrDefault() as byte[];
+
+        public static string GetBase64X509Certificate(this X509DataType input) 
             => Convert.ToBase64String(input.Items?.FirstOrDefault() as byte[]);
 
         public static NameIDType GetNameID(this SubjectType input) 

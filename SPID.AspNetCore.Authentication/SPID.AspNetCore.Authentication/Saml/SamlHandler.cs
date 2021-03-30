@@ -206,16 +206,13 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => response.Signature == null, ErrorLocalization.ResponseSignatureNotFound);
             BusinessValidation.ValidationCondition(() => response?.GetAssertion() == null, ErrorLocalization.ResponseAssertionNotFound);
             BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature == null, ErrorLocalization.AssertionSignatureNotFound);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo.GetX509Data().GetX509Certificate() != response.Signature.KeyInfo.GetX509Data().GetX509Certificate(), ErrorLocalization.AssertionSignatureDifferent);
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo.GetX509Data().GetBase64X509Certificate() != response.Signature.KeyInfo.GetX509Data().GetBase64X509Certificate(), ErrorLocalization.AssertionSignatureDifferent);
             var metadataXmlDoc = metadataIdp.SerializeToXmlDoc();
             BusinessValidation.ValidationCondition(() => XmlHelpers.VerifySignature(xmlDoc, metadataXmlDoc), ErrorLocalization.InvalidSignature);
 
-            var respSigningCert = X509Helpers.AddCertificateHeaders(response.Signature.KeyInfo.GetX509Data().GetX509Certificate());
-            using var responseCertificate = new X509Certificate2(Encoding.UTF8.GetBytes(respSigningCert));
-            var assertSigningCert = X509Helpers.AddCertificateHeaders(response.GetAssertion()?.Signature.KeyInfo.GetX509Data().GetX509Certificate());
-            using var assertionCertificate = new X509Certificate2(Encoding.UTF8.GetBytes(assertSigningCert));
-            var idpSigningCert = X509Helpers.AddCertificateHeaders(metadataIdp.IDPSSODescriptor.KeyDescriptor.KeyInfo.X509Data.X509Certificate);
-            using var idpCertificate = new X509Certificate2(Encoding.UTF8.GetBytes(idpSigningCert));
+            using var responseCertificate = new X509Certificate2(response.Signature.KeyInfo.GetX509Data().GetRawX509Certificate());
+            using var assertionCertificate = new X509Certificate2(response.GetAssertion()?.Signature.KeyInfo.GetX509Data().GetRawX509Certificate());
+            using var idpCertificate = new X509Certificate2(Convert.FromBase64String(metadataIdp.IDPSSODescriptor.KeyDescriptor.KeyInfo.X509Data.X509Certificate));
 
             BusinessValidation.ValidationCondition(() => responseCertificate.Thumbprint != idpCertificate.Thumbprint, ErrorLocalization.ResponseSignatureNotValid);
             BusinessValidation.ValidationCondition(() => assertionCertificate.Thumbprint != idpCertificate.Thumbprint, ErrorLocalization.AssertionSignatureNotValid);
