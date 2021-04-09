@@ -73,8 +73,8 @@ namespace SPID.AspNetCore.Authentication.Saml
                 Version = SamlConst.Version,
                 IssueInstant = now.AddMinutes(nowDelta).ToString(dateTimeFormat),
                 Destination = identityProvider.SingleSignOnServiceUrl,
-                ForceAuthn = identityProvider.SecurityLevel > 1,
-                ForceAuthnSpecified = identityProvider.SecurityLevel > 1,
+                ForceAuthn = true,
+                ForceAuthnSpecified = true,
                 Issuer = new NameIDType
                 {
                     Value = entityId.Trim(),
@@ -100,7 +100,7 @@ namespace SPID.AspNetCore.Authentication.Saml
                 },
                 RequestedAuthnContext = new RequestedAuthnContextType
                 {
-                    Comparison = AuthnContextComparisonType.exact,
+                    Comparison = AuthnContextComparisonType.minimum,
                     ComparisonSpecified = true,
                     Items = new string[1]
                     {
