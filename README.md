@@ -261,6 +261,7 @@ public void ConfigureServices(IServiceCollection services)
         })
         .AddSpid(Configuration, o => {
             o.Events.OnTokenCreating = async (s) => await s.HttpContext.RequestServices.GetRequiredService<CustomSpidEvents>().TokenCreating(s);
+            o.Events.OnAuthenticationSuccess = async (s) => await s.HttpContext.RequestServices.GetRequiredService<CustomSpidEvents>().AuthenticationSuccess(s);
             o.LoadFromConfiguration(Configuration);
         })
         .AddCookie();
@@ -287,6 +288,22 @@ public class CustomSpidEvents : SpidEvents
 
         return base.TokenCreating(context);
     }
+    
+    public override Task AuthenticationSuccess(AuthenticationSuccessContext context)
+    {
+        var principal = context.Principal;
+	
+	// Recupero dati provenienti da Spid da ClaimsPrincipal
+        var spidCode = principal.FindFirst(SpidClaimTypes.SpidCode);
+        var name = principal.FindFirst(SpidClaimTypes.Name);
+        var surname = principal.FindFirst(SpidClaimTypes.Surname);
+        var email = principal.FindFirst(SpidClaimTypes.Email);
+        var fiscalCode = principal.FindFirst(SpidClaimTypes.FiscalNumber);
+        // ............etc........
+	
+        return base.AuthenticationSuccess(context);
+    }
+
 }
 ```
 
