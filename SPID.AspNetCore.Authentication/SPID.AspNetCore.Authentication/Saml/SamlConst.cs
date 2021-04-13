@@ -1,6 +1,6 @@
 ﻿namespace SPID.AspNetCore.Authentication.Saml
 {
-    public class SamlConst
+    internal class SamlConst
     {
         public const string IdPName = nameof(IdPName);
         public const string SamlAuthnRequestId = nameof(SamlAuthnRequestId);

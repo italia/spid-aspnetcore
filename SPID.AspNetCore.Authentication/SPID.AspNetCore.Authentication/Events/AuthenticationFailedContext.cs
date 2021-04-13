@@ -6,7 +6,7 @@ using System;
 
 namespace SPID.AspNetCore.Authentication.Events
 {
-    public class AuthenticationFailedContext : RemoteAuthenticationContext<SpidOptions>
+    public sealed class AuthenticationFailedContext : RemoteAuthenticationContext<SpidOptions>
     {
         /// <summary>
         /// Creates a new context object

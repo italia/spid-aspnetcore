@@ -4,7 +4,7 @@ using SPID.AspNetCore.Authentication.Models;
 
 namespace SPID.AspNetCore.Authentication.Events
 {
-    public class RedirectContext : PropertiesContext<SpidOptions>
+    public sealed class RedirectContext : PropertiesContext<SpidOptions>
     {
         /// <summary>
         /// Creates a new context object.

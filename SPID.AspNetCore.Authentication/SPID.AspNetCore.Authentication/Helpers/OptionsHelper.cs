@@ -6,7 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace SPID.AspNetCore.Authentication.Helpers
 {
-    static class OptionsHelper
+    internal static class OptionsHelper
     {
         internal static SpidConfiguration CreateFromConfiguration(IConfiguration configuration)
         {
@@ -44,6 +44,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             options.UseTokenLifetime = section.GetValue<bool?>("UseTokenLifetime") ?? false;
             options.SkipUnrecognizedRequests = section.GetValue<bool?>("SkipUnrecognizedRequests") ?? true;
             options.CacheIdpMetadata = section.GetValue<bool?>("CacheIdpMetadata") ?? false;
+            options.RandomIdentityProvidersOrder = section.GetValue<bool?>("RandomIdentityProvidersOrder") ?? false;
             options.SecurityLevel = section.GetValue<int?>("SecurityLevel") ?? 2;
             var certificateSection = section.GetSection("Certificate");
             if (certificateSection != null)
@@ -97,6 +98,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             options.SignOutScheme = createdOptions.SignOutScheme;
             options.SkipUnrecognizedRequests = createdOptions.SkipUnrecognizedRequests;
             options.UseTokenLifetime = createdOptions.UseTokenLifetime;
+            options.RandomIdentityProvidersOrder = createdOptions.RandomIdentityProvidersOrder;
         }
     }
 }

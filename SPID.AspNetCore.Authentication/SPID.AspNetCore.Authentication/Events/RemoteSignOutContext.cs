@@ -5,7 +5,7 @@ using SPID.AspNetCore.Authentication.Saml;
 
 namespace SPID.AspNetCore.Authentication.Events
 {
-    public class RemoteSignOutContext : RemoteAuthenticationContext<SpidOptions>
+    public sealed class RemoteSignOutContext : RemoteAuthenticationContext<SpidOptions>
     {
         /// <summary>
         /// 

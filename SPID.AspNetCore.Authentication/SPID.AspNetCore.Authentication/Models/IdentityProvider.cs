@@ -1,6 +1,6 @@
 ﻿namespace SPID.AspNetCore.Authentication.Models
 {
-    public class IdentityProvider
+    public sealed class IdentityProvider
     {
         public string Name { get; set; }
         public string OrganizationName { get; set; }

@@ -2,16 +2,14 @@
 	ViewData["Title"] = "Home Page";
 }
 @section styles {
-	@*<link rel="stylesheet" href="~/spid/spid.css" />*@
 	<style spid></style>
 }
 
 <div class="text-center">
 	<h1 class="display-4">Welcome</h1>
-	<spid-providers challenge-url="/home/login" size="Medium" circle-image-path="~/spid/spid-ico-circle-bb.png" class="text-left"></spid-providers>
+	<spid-providers challenge-url="/home/login" size="Medium" class="text-left"></spid-providers>
 </div>
 
 @section scripts {
 	<script spid></script>
-	@*<script src="~/spid/spid.js"></script>*@
 }

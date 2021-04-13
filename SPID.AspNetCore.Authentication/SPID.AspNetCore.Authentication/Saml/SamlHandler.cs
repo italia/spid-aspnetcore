@@ -13,7 +13,7 @@ using System.Xml.Serialization;
 
 namespace SPID.AspNetCore.Authentication.Saml
 {
-    public static class SamlHandler
+    internal static class SamlHandler
     {
         private static readonly Dictionary<Type, XmlSerializer> serializers = new Dictionary<Type, XmlSerializer>
         {

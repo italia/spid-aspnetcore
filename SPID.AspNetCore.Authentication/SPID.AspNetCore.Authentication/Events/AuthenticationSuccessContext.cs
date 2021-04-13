@@ -4,7 +4,7 @@ using SPID.AspNetCore.Authentication.Models;
 
 namespace SPID.AspNetCore.Authentication.Events
 {
-    public class AuthenticationSuccessContext : RemoteAuthenticationContext<SpidOptions>
+    public sealed class AuthenticationSuccessContext : RemoteAuthenticationContext<SpidOptions>
     {
         /// <summary>
         /// Creates a new context object

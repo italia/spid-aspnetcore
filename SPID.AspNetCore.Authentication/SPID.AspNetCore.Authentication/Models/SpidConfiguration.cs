@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
 namespace SPID.AspNetCore.Authentication.Models
 {
-    public class SpidConfiguration
+    public sealed class SpidConfiguration
     {
         private readonly List<IdentityProvider> _identityProviders = new();
 
@@ -79,6 +80,8 @@ namespace SPID.AspNetCore.Authentication.Models
         /// </value>
         public IEnumerable<IdentityProvider> IdentityProviders => _identityProviders;
 
+        public bool RandomIdentityProvidersOrder { get; set; }
+
         public IEnumerable<IdentityProvider> FilteredIdentityProviders
         {
             get
@@ -90,7 +93,9 @@ namespace SPID.AspNetCore.Authentication.Models
                 if (!IsStagingValidatorEnabled)
                     result = result.Where(c => c.ProviderType != ProviderType.StagingProvider);
 
-                return result;
+                return RandomIdentityProvidersOrder
+                    ? result.OrderBy(x => Guid.NewGuid())
+                    : result;
             }
         }
 

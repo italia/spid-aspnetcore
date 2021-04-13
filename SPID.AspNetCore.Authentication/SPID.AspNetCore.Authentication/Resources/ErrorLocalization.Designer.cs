@@ -22,7 +22,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class ErrorLocalization {
+    internal class ErrorLocalization {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SPID.AspNetCore.Authentication.Resources.ErrorLocalization", typeof(ErrorLocalization).Assembly);
@@ -51,7 +51,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Autenticazione fallita per ripetuta sottomissione di credenziali errate (superato numero  tentativi secondo le policy adottate).
         /// </summary>
-        public static string _19 {
+        internal static string _19 {
             get {
                 return ResourceManager.GetString("19", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Utente privo di credenziali compatibili con il livello richiesto dal fornitore del servizio.
         /// </summary>
-        public static string _20 {
+        internal static string _20 {
             get {
                 return ResourceManager.GetString("20", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Timeout durante l’autenticazione utente.
         /// </summary>
-        public static string _21 {
+        internal static string _21 {
             get {
                 return ResourceManager.GetString("21", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Utente nega il consenso all’invio di dati al SP in caso di sessione vigente.
         /// </summary>
-        public static string _22 {
+        internal static string _22 {
             get {
                 return ResourceManager.GetString("22", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Utente con identità sospesa/revocata o con credenziali bloccate.
         /// </summary>
-        public static string _23 {
+        internal static string _23 {
             get {
                 return ResourceManager.GetString("23", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Processo di autenticazione annullato dall’utente.
         /// </summary>
-        public static string _25 {
+        internal static string _25 {
             get {
                 return ResourceManager.GetString("25", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Attributo Assertion.ID non specificato.
         /// </summary>
-        public static string AssertionIdMissing {
+        internal static string AssertionIdMissing {
             get {
                 return ResourceManager.GetString("AssertionIdMissing", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Signature differenti.
         /// </summary>
-        public static string AssertionSignatureDifferent {
+        internal static string AssertionSignatureDifferent {
             get {
                 return ResourceManager.GetString("AssertionSignatureDifferent", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Signature Assertion non trovata.
         /// </summary>
-        public static string AssertionSignatureNotFound {
+        internal static string AssertionSignatureNotFound {
             get {
                 return ResourceManager.GetString("AssertionSignatureNotFound", resourceCulture);
             }
@@ -144,7 +144,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Signature Assertion non valida.
         /// </summary>
-        public static string AssertionSignatureNotValid {
+        internal static string AssertionSignatureNotValid {
             get {
                 return ResourceManager.GetString("AssertionSignatureNotValid", resourceCulture);
             }
@@ -153,7 +153,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Attributi non trovati.
         /// </summary>
-        public static string AttributeNotFound {
+        internal static string AttributeNotFound {
             get {
                 return ResourceManager.GetString("AttributeNotFound", resourceCulture);
             }
@@ -162,7 +162,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Non sono presenti tutti gli attributi richiesti.
         /// </summary>
-        public static string AttributeRequiredNotFound {
+        internal static string AttributeRequiredNotFound {
             get {
                 return ResourceManager.GetString("AttributeRequiredNotFound", resourceCulture);
             }
@@ -171,7 +171,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Il FindValue del certificato non può essere nè vuota nè null.
         /// </summary>
-        public static string CertificateFindValueNullOrEmpty {
+        internal static string CertificateFindValueNullOrEmpty {
             get {
                 return ResourceManager.GetString("CertificateFindValueNullOrEmpty", resourceCulture);
             }
@@ -180,7 +180,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Certificato non trovato.
         /// </summary>
-        public static string CertificateNotFound {
+        internal static string CertificateNotFound {
             get {
                 return ResourceManager.GetString("CertificateNotFound", resourceCulture);
             }
@@ -189,7 +189,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Il certificato non può essere null.
         /// </summary>
-        public static string CertificateNull {
+        internal static string CertificateNull {
             get {
                 return ResourceManager.GetString("CertificateNull", resourceCulture);
             }
@@ -198,7 +198,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to La password del certificato non può essere nè vuota nè null.
         /// </summary>
-        public static string CertificatePasswordNullOrEmpty {
+        internal static string CertificatePasswordNullOrEmpty {
             get {
                 return ResourceManager.GetString("CertificatePasswordNullOrEmpty", resourceCulture);
             }
@@ -207,7 +207,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Il path del certificato non può essere nè vuoto nè null.
         /// </summary>
-        public static string CertificatePathNullOrEmpty {
+        internal static string CertificatePathNullOrEmpty {
             get {
                 return ResourceManager.GetString("CertificatePathNullOrEmpty", resourceCulture);
             }
@@ -216,7 +216,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to La stringa base64 del certificato non può essere nè vuota nè null.
         /// </summary>
-        public static string CertificateRawStringNullOrEmpty {
+        internal static string CertificateRawStringNullOrEmpty {
             get {
                 return ResourceManager.GetString("CertificateRawStringNullOrEmpty", resourceCulture);
             }
@@ -225,7 +225,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Impossibile convertire la stringa base64 in ascii.
         /// </summary>
-        public static string ConversionBase64Errror {
+        internal static string ConversionBase64Errror {
             get {
                 return ResourceManager.GetString("ConversionBase64Errror", resourceCulture);
             }
@@ -234,7 +234,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to {0} diverso da {1}.
         /// </summary>
-        public static string DifferentFrom {
+        internal static string DifferentFrom {
             get {
                 return ResourceManager.GetString("DifferentFrom", resourceCulture);
             }
@@ -243,7 +243,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to {0} in un formato non valido.
         /// </summary>
-        public static string FormatNotValid {
+        internal static string FormatNotValid {
             get {
                 return ResourceManager.GetString("FormatNotValid", resourceCulture);
             }
@@ -252,7 +252,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Valore InResponseTo non valido.
         /// </summary>
-        public static string InResponseToNotValid {
+        internal static string InResponseToNotValid {
             get {
                 return ResourceManager.GetString("InResponseToNotValid", resourceCulture);
             }
@@ -261,7 +261,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Attributo Destination della risposta diverso da quello della richiesta.
         /// </summary>
-        public static string InvalidDestination {
+        internal static string InvalidDestination {
             get {
                 return ResourceManager.GetString("InvalidDestination", resourceCulture);
             }
@@ -270,7 +270,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Signature non valida.
         /// </summary>
-        public static string InvalidSignature {
+        internal static string InvalidSignature {
             get {
                 return ResourceManager.GetString("InvalidSignature", resourceCulture);
             }
@@ -279,7 +279,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to IssueInstant mancante.
         /// </summary>
-        public static string IssueInstantMissing {
+        internal static string IssueInstantMissing {
             get {
                 return ResourceManager.GetString("IssueInstantMissing", resourceCulture);
             }
@@ -288,7 +288,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Attributo Assertion IssueIstant successivo a IssueInstant della richiesta.
         /// </summary>
-        public static string IssueIstantAssertionGreaterThanRequest {
+        internal static string IssueIstantAssertionGreaterThanRequest {
             get {
                 return ResourceManager.GetString("IssueIstantAssertionGreaterThanRequest", resourceCulture);
             }
@@ -297,7 +297,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Attributo Assertion IssueIstant precedente a IssueInstant della richiesta.
         /// </summary>
-        public static string IssueIstantAssertionLessThanRequest {
+        internal static string IssueIstantAssertionLessThanRequest {
             get {
                 return ResourceManager.GetString("IssueIstantAssertionLessThanRequest", resourceCulture);
             }
@@ -306,7 +306,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to IssueIstant diverso da quello di richiesta.
         /// </summary>
-        public static string IssueIstantDifferentFromRequest {
+        internal static string IssueIstantDifferentFromRequest {
             get {
                 return ResourceManager.GetString("IssueIstantDifferentFromRequest", resourceCulture);
             }
@@ -315,7 +315,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Elemento Issuer diverso da EntityID IdP.
         /// </summary>
-        public static string IssuerDifferentFromEntityId {
+        internal static string IssuerDifferentFromEntityId {
             get {
                 return ResourceManager.GetString("IssuerDifferentFromEntityId", resourceCulture);
             }
@@ -324,7 +324,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Attributo Format di Issuer diverso.
         /// </summary>
-        public static string IssuerFormatDifferent {
+        internal static string IssuerFormatDifferent {
             get {
                 return ResourceManager.GetString("IssuerFormatDifferent", resourceCulture);
             }
@@ -333,7 +333,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Elemento Issuer mancante.
         /// </summary>
-        public static string IssuerMissing {
+        internal static string IssuerMissing {
             get {
                 return ResourceManager.GetString("IssuerMissing", resourceCulture);
             }
@@ -342,7 +342,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Elemento Issuer non specificato.
         /// </summary>
-        public static string IssuerNotSpecified {
+        internal static string IssuerNotSpecified {
             get {
                 return ResourceManager.GetString("IssuerNotSpecified", resourceCulture);
             }
@@ -351,7 +351,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to {0} mancante.
         /// </summary>
-        public static string Missing {
+        internal static string Missing {
             get {
                 return ResourceManager.GetString("Missing", resourceCulture);
             }
@@ -360,7 +360,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to NotBefore maggiore della data di ricezione della response.
         /// </summary>
-        public static string NotBeforeGreaterThenRequest {
+        internal static string NotBeforeGreaterThenRequest {
             get {
                 return ResourceManager.GetString("NotBeforeGreaterThenRequest", resourceCulture);
             }
@@ -369,7 +369,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to {0} non definito.
         /// </summary>
-        public static string NotDefined {
+        internal static string NotDefined {
             get {
                 return ResourceManager.GetString("NotDefined", resourceCulture);
             }
@@ -378,7 +378,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to NotOnOrAfter precedente alla ricezione della response.
         /// </summary>
-        public static string NotOnOrAfterLessThenRequest {
+        internal static string NotOnOrAfterLessThenRequest {
             get {
                 return ResourceManager.GetString("NotOnOrAfterLessThenRequest", resourceCulture);
             }
@@ -387,7 +387,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to {0} non specificato.
         /// </summary>
-        public static string NotSpecified {
+        internal static string NotSpecified {
             get {
                 return ResourceManager.GetString("NotSpecified", resourceCulture);
             }
@@ -396,7 +396,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Non valido.
         /// </summary>
-        public static string NotValid {
+        internal static string NotValid {
             get {
                 return ResourceManager.GetString("NotValid", resourceCulture);
             }
@@ -405,7 +405,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Il parametro {0} non può essere null.
         /// </summary>
-        public static string ParameterCantNull {
+        internal static string ParameterCantNull {
             get {
                 return ResourceManager.GetString("ParameterCantNull", resourceCulture);
             }
@@ -414,7 +414,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Il parametro {0} non può essere ne null ne vuoto.
         /// </summary>
-        public static string ParameterCantNullOrEmpty {
+        internal static string ParameterCantNullOrEmpty {
             get {
                 return ResourceManager.GetString("ParameterCantNullOrEmpty", resourceCulture);
             }
@@ -423,7 +423,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to {0} non valido.
         /// </summary>
-        public static string ParameterNotValid {
+        internal static string ParameterNotValid {
             get {
                 return ResourceManager.GetString("ParameterNotValid", resourceCulture);
             }
@@ -432,7 +432,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to La chiave privata del certificato non è presente.
         /// </summary>
-        public static string PrivateKeyNotFound {
+        internal static string PrivateKeyNotFound {
             get {
                 return ResourceManager.GetString("PrivateKeyNotFound", resourceCulture);
             }
@@ -441,7 +441,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to La referenceUri non può essere nè vuota nè null.
         /// </summary>
-        public static string ReferenceUriNullOrWhitespace {
+        internal static string ReferenceUriNullOrWhitespace {
             get {
                 return ResourceManager.GetString("ReferenceUriNullOrWhitespace", resourceCulture);
             }
@@ -450,7 +450,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Assertion non trovata nella risposta.
         /// </summary>
-        public static string ResponseAssertionNotFound {
+        internal static string ResponseAssertionNotFound {
             get {
                 return ResourceManager.GetString("ResponseAssertionNotFound", resourceCulture);
             }
@@ -459,7 +459,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to AuthnResponse non valida.
         /// </summary>
-        public static string ResponseNotValid {
+        internal static string ResponseNotValid {
             get {
                 return ResourceManager.GetString("ResponseNotValid", resourceCulture);
             }
@@ -468,7 +468,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Signature Response non trovata.
         /// </summary>
-        public static string ResponseSignatureNotFound {
+        internal static string ResponseSignatureNotFound {
             get {
                 return ResourceManager.GetString("ResponseSignatureNotFound", resourceCulture);
             }
@@ -477,7 +477,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Signature Response non valida.
         /// </summary>
-        public static string ResponseSignatureNotValid {
+        internal static string ResponseSignatureNotValid {
             get {
                 return ResourceManager.GetString("ResponseSignatureNotValid", resourceCulture);
             }
@@ -486,7 +486,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to L&apos;url del single signon deve essere valorizzato.
         /// </summary>
-        public static string SingleSignOnUrlRequired {
+        internal static string SingleSignOnUrlRequired {
             get {
                 return ResourceManager.GetString("SingleSignOnUrlRequired", resourceCulture);
             }
@@ -495,7 +495,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Cookie relativo alla sessione di login mancante, e&apos; necessario effettuare una nuova login.
         /// </summary>
-        public static string SpidPropertiesNotFound {
+        internal static string SpidPropertiesNotFound {
             get {
                 return ResourceManager.GetString("SpidPropertiesNotFound", resourceCulture);
             }
@@ -504,7 +504,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to StatusCode non valido.
         /// </summary>
-        public static string StatusCodeNotValid {
+        internal static string StatusCodeNotValid {
             get {
                 return ResourceManager.GetString("StatusCodeNotValid", resourceCulture);
             }
@@ -513,7 +513,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Status non valido.
         /// </summary>
-        public static string StatusNotValid {
+        internal static string StatusNotValid {
             get {
                 return ResourceManager.GetString("StatusNotValid", resourceCulture);
             }
@@ -522,7 +522,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Url metadata identity provider non configurato.
         /// </summary>
-        public static string UrlMetadataIDPNull {
+        internal static string UrlMetadataIDPNull {
             get {
                 return ResourceManager.GetString("UrlMetadataIDPNull", resourceCulture);
             }
@@ -531,7 +531,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Version non valida.
         /// </summary>
-        public static string VersionNotValid {
+        internal static string VersionNotValid {
             get {
                 return ResourceManager.GetString("VersionNotValid", resourceCulture);
             }
@@ -540,7 +540,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Il documento XML non può essere null.
         /// </summary>
-        public static string XmlDocNull {
+        internal static string XmlDocNull {
             get {
                 return ResourceManager.GetString("XmlDocNull", resourceCulture);
             }

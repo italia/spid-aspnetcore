@@ -3,7 +3,7 @@
     /// <summary>
     /// Default values related to Spid authentication handler
     /// </summary>
-    public static class SpidDefaults
+    public sealed class SpidDefaults
     {
         /// <summary>
         /// The default authentication type used when registering the SpidHandler.

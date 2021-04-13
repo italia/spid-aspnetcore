@@ -3,7 +3,7 @@ using System;
 
 namespace SPID.AspNetCore.Authentication.Helpers
 {
-    public static class BusinessValidation
+    internal static class BusinessValidation
     {
         public static void Argument<T>(T input, string error) where T : class
         {

@@ -2,7 +2,7 @@
 
 namespace SPID.AspNetCore.Authentication.Events
 {
-    public class SecurityTokenCreatingOptions
+    public sealed class SecurityTokenCreatingOptions
     {
         public string EntityId { get; set; }
         public ushort AssertionConsumerServiceIndex { get; set; }

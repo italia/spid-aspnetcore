@@ -4,7 +4,7 @@ using SPID.AspNetCore.Authentication.Models;
 
 namespace SPID.AspNetCore.Authentication.Events
 {
-    public class SecurityTokenCreatingContext : RemoteAuthenticationContext<SpidOptions>
+    public sealed class SecurityTokenCreatingContext : RemoteAuthenticationContext<SpidOptions>
     {
         /// <summary>
         /// Creates a <see cref="SecurityTokenValidatedContext"/>

@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace SPID.AspNetCore.Authentication.Saml
 {
-    public class SamlDefaultSettings
+    internal class SamlDefaultSettings
     {
         /// <summary>
         /// The date time format

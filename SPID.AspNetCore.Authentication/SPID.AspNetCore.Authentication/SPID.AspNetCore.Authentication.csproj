@@ -11,11 +11,11 @@
     <PackageTags>spid;aspnetcore;authentication</PackageTags>
     <PackageProjectUrl>https://github.com/italia/spid-aspnetcore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageVersion>1.1.5</PackageVersion>
-    <Version>1.1.5</Version>
-    <AssemblyVersion>1.1.5</AssemblyVersion>
-    <FileVersion>1.1.5</FileVersion>
-    <InformationalVersion>1.1.5</InformationalVersion>
+    <PackageVersion>1.2.0</PackageVersion>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0</AssemblyVersion>
+    <FileVersion>1.2.0</FileVersion>
+    <InformationalVersion>1.2.0</InformationalVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
@@ -56,7 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources\ErrorLocalization.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
+      <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ErrorLocalization.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>

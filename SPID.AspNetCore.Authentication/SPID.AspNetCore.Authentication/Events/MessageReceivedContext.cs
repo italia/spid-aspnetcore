@@ -5,7 +5,7 @@ using SPID.AspNetCore.Authentication.Saml;
 
 namespace SPID.AspNetCore.Authentication.Events
 {
-    public class MessageReceivedContext : RemoteAuthenticationContext<SpidOptions>
+    public sealed class MessageReceivedContext : RemoteAuthenticationContext<SpidOptions>
     {
         /// <summary>
         /// Creates a new context object.

@@ -9,7 +9,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace SPID.AspNetCore.Authentication.Models
 {
-    public class SpidOptions : RemoteAuthenticationOptions
+    public sealed class SpidOptions : RemoteAuthenticationOptions
     {
         private readonly List<IdentityProvider> _identityProviders = new();
 
@@ -123,6 +123,8 @@ namespace SPID.AspNetCore.Authentication.Models
             }
         }
 
+        public bool RandomIdentityProvidersOrder { get; set; }
+
         public bool IsStagingValidatorEnabled { get; set; }
 
         public bool IsLocalValidatorEnabled { get; set; }
@@ -165,6 +167,7 @@ namespace SPID.AspNetCore.Authentication.Models
             SkipUnrecognizedRequests = conf.SkipUnrecognizedRequests;
             Certificate = conf.Certificate;
             CacheIdpMetadata = conf.CacheIdpMetadata;
+            RandomIdentityProvidersOrder = conf.RandomIdentityProvidersOrder;
         }
     }
 }
