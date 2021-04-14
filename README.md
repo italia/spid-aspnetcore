@@ -237,7 +237,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
     "IsStagingValidatorEnabled": true,
     "EntityId": "https://entityID",
     "AssertionConsumerServiceIndex": 0,
-    "AttributeConsumingServiceIndex": 0
+    "AttributeConsumingServiceIndex": 0,
+    "RandomIdentityProvidersOrder": false
   }
 ```
 La configurazione del certificato del SP avviene specificando nel campo `Source` uno tra i valori `Store/File/Raw/None` (nel caso di `None` non verrà caricato un certificato durante lo startup, ma sarà necessario fornirne uno a runtime, tramite l'uso dei `CustomSpidEvents`, che verranno presentati più nel dettaglio nella sezione successiva) e compilando opportunamente la sezione corrispondente al valore specificato. Le sezioni non usate (quelle cioè corrispondenti agli altri valori) potranno essere tranquillamente eliminate dal file di configurazione, dal momento che non verranno lette.
@@ -304,6 +305,62 @@ public class CustomSpidEvents : SpidEvents
         return base.AuthenticationSuccess(context);
     }
 
+}
+```
+
+# Error Handling
+La libreria può, in qualunque fase (sia in fase di creazione della Request sia in fase di gestione della Response), sollevare eccezioni. 
+Un tipico scenario è quello in cui vengono ricevuti i codici di errore previsti dal protocollo SPID (n.19, n.20, ecc....), in tal caso la libreria solleva un'eccezione contenente il corrispondente messaggio d'errore localizzato, richiesto dalle specifiche SPID, che è possibile gestire (ad esempio per la visualizzazione) utilizzando il normale flusso previsto per AspNetCore. L'esempio seguente fa uso del middleware di ExceptionHandling di AspNetCore.
+
+```csharp
+public void Configure(IApplicationBuilder app, IHostEnvironment env)
+{
+    ...
+    app.UseExceptionHandler("/Home/Error");
+    ...
+}
+
+.......
+
+// HomeController
+[AllowAnonymous]
+public async Task<IActionResult> Error()
+{
+    var exceptionHandlerPathFeature =
+        HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+
+    string errorMessage = string.Empty;
+
+    if (exceptionHandlerPathFeature?.Error != null)
+    {
+        var messages = FromHierarchy(exceptionHandlerPathFeature?.Error, ex => ex.InnerException)
+            .Select(ex => ex.Message)
+            .ToList();
+        errorMessage = String.Join(" ", messages);
+    }
+
+    return View(new ErrorViewModel
+    {
+        RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+        Message = errorMessage
+    });
+}
+
+private IEnumerable<TSource> FromHierarchy<TSource>(TSource source,
+            Func<TSource, TSource> nextItem,
+            Func<TSource, bool> canContinue)
+{
+    for (var current = source; canContinue(current); current = nextItem(current))
+    {
+        yield return current;
+    }
+}
+
+private IEnumerable<TSource> FromHierarchy<TSource>(TSource source,
+    Func<TSource, TSource> nextItem)
+    where TSource : class
+{
+    return FromHierarchy(source, nextItem, s => s != null);
 }
 ```
 
