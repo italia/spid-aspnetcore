@@ -5,5 +5,6 @@
         DevelopmentProvider,
         StagingProvider,
         IdentityProvider,
+        StandaloneProvider
     }
 }

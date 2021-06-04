@@ -88,10 +88,12 @@ namespace SPID.AspNetCore.Authentication.Models
             {
                 var result = _identityProviders.AsEnumerable();
                 if (!IsLocalValidatorEnabled)
-                    result = result.Where(c => c.ProviderType != ProviderType.DevelopmentProvider);
+                    result = result.Where(c => c.ProviderType != ProviderType.DevelopmentProvider
+                        && c.ProviderType != ProviderType.StandaloneProvider);
 
                 if (!IsStagingValidatorEnabled)
-                    result = result.Where(c => c.ProviderType != ProviderType.StagingProvider);
+                    result = result.Where(c => c.ProviderType != ProviderType.StagingProvider
+                        && c.ProviderType != ProviderType.StandaloneProvider);
 
                 return RandomIdentityProvidersOrder
                     ? result.OrderBy(x => Guid.NewGuid())

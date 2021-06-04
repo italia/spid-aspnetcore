@@ -108,8 +108,8 @@ namespace SPID.AspNetCore.Authentication.Models
         /// <value>
         /// The identity providers.
         /// </value>
-        public IEnumerable<IdentityProvider> IdentityProviders 
-        { 
+        public IEnumerable<IdentityProvider> IdentityProviders
+        {
             get
             {
                 var result = _identityProviders.AsEnumerable();
@@ -159,7 +159,7 @@ namespace SPID.AspNetCore.Authentication.Models
             AllowUnsolicitedLogins = conf.AllowUnsolicitedLogins;
             AssertionConsumerServiceIndex = conf.AssertionConsumerServiceIndex;
             AttributeConsumingServiceIndex = conf.AttributeConsumingServiceIndex;
-            CallbackPath = conf.CallbackPath.HasValue ? conf.CallbackPath: CallbackPath;
+            CallbackPath = conf.CallbackPath.HasValue ? conf.CallbackPath : CallbackPath;
             EntityId = conf.EntityId;
             RemoteSignOutPath = conf.RemoteSignOutPath.HasValue ? conf.RemoteSignOutPath : RemoteSignOutPath;
             SignOutScheme = conf.SignOutScheme;

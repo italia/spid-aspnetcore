@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Models;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -13,7 +12,22 @@ namespace SPID.AspNetCore.Authentication.Helpers
             var section = configuration.GetSection("Spid");
             var options = new SpidConfiguration();
 
-            options.AddIdentityProviders(section
+            options.IsStagingValidatorEnabled = section.GetValue<bool?>("IsStagingValidatorEnabled") ?? false;
+            options.IsLocalValidatorEnabled = section.GetValue<bool?>("IsLocalValidatorEnabled") ?? false;
+            options.AllowUnsolicitedLogins = section.GetValue<bool?>("AllowUnsolicitedLogins") ?? false;
+            options.AssertionConsumerServiceIndex = section.GetValue<ushort?>("AssertionConsumerServiceIndex") ?? 0;
+            options.AttributeConsumingServiceIndex = section.GetValue<ushort?>("AttributeConsumingServiceIndex") ?? 0;
+            options.CallbackPath = section.GetValue<string>("CallbackPath");
+            options.EntityId = section.GetValue<string>("EntityId");
+            options.RemoteSignOutPath = section.GetValue<string>("RemoteSignOutPath");
+            options.SignOutScheme = section.GetValue<string>("SignOutScheme");
+            options.UseTokenLifetime = section.GetValue<bool?>("UseTokenLifetime") ?? false;
+            options.SkipUnrecognizedRequests = section.GetValue<bool?>("SkipUnrecognizedRequests") ?? true;
+            options.CacheIdpMetadata = section.GetValue<bool?>("CacheIdpMetadata") ?? false;
+            options.RandomIdentityProvidersOrder = section.GetValue<bool?>("RandomIdentityProvidersOrder") ?? false;
+            options.SecurityLevel = section.GetValue<int?>("SecurityLevel") ?? 2;
+
+            var identityProviders = section
                 .GetSection("Providers")
                 .GetChildren()
                 .ToList()
@@ -31,21 +45,32 @@ namespace SPID.AspNetCore.Authentication.Helpers
                     SingleSignOutServiceUrl = x.GetValue<string>("SingleSignOutServiceUrl"),
                     SubjectNameIdRemoveText = x.GetValue<string>("SubjectNameIdRemoveText"),
                     SecurityLevel = x.GetValue<int?>("SecurityLevel") ?? 2,
-                }));
-            options.IsStagingValidatorEnabled = section.GetValue<bool?>("IsStagingValidatorEnabled") ?? false;
-            options.IsLocalValidatorEnabled = section.GetValue<bool?>("IsLocalValidatorEnabled") ?? false;
-            options.AllowUnsolicitedLogins = section.GetValue<bool?>("AllowUnsolicitedLogins") ?? false;
-            options.AssertionConsumerServiceIndex = section.GetValue<ushort?>("AssertionConsumerServiceIndex") ?? 0;
-            options.AttributeConsumingServiceIndex = section.GetValue<ushort?>("AttributeConsumingServiceIndex") ?? 0;
-            options.CallbackPath = section.GetValue<string>("CallbackPath");
-            options.EntityId = section.GetValue<string>("EntityId");
-            options.RemoteSignOutPath = section.GetValue<string>("RemoteSignOutPath");
-            options.SignOutScheme = section.GetValue<string>("SignOutScheme");
-            options.UseTokenLifetime = section.GetValue<bool?>("UseTokenLifetime") ?? false;
-            options.SkipUnrecognizedRequests = section.GetValue<bool?>("SkipUnrecognizedRequests") ?? true;
-            options.CacheIdpMetadata = section.GetValue<bool?>("CacheIdpMetadata") ?? false;
-            options.RandomIdentityProvidersOrder = section.GetValue<bool?>("RandomIdentityProvidersOrder") ?? false;
-            options.SecurityLevel = section.GetValue<int?>("SecurityLevel") ?? 2;
+                    AttributeConsumingServiceIndex = x.GetValue<ushort?>("AttributeConsumingServiceIndex")
+                        ?? options.AttributeConsumingServiceIndex
+                }).ToList();
+            var eidasSection = configuration.GetSection("Eidas");
+            if (eidasSection.Exists())
+            {
+                identityProviders.Add(new IdentityProvider
+                {
+                    Method = eidasSection.GetValue<RequestMethod>("Method"),
+                    Name = eidasSection.GetValue<string>("Name"),
+                    OrganizationDisplayName = eidasSection.GetValue<string>("OrganizationDisplayName"),
+                    OrganizationLogoUrl = eidasSection.GetValue<string>("OrganizationLogoUrl"),
+                    OrganizationName = eidasSection.GetValue<string>("OrganizationName"),
+                    OrganizationUrl = eidasSection.GetValue<string>("OrganizationUrl"),
+                    OrganizationUrlMetadata = eidasSection.GetValue<string>("OrganizationUrlMetadata"),
+                    ProviderType = ProviderType.StandaloneProvider,
+                    SingleSignOnServiceUrl = eidasSection.GetValue<string>("SingleSignOnServiceUrl"),
+                    SingleSignOutServiceUrl = eidasSection.GetValue<string>("SingleSignOutServiceUrl"),
+                    SubjectNameIdRemoveText = eidasSection.GetValue<string>("SubjectNameIdRemoveText"),
+                    SecurityLevel = eidasSection.GetValue<int?>("SecurityLevel") ?? 2,
+                    AttributeConsumingServiceIndex = eidasSection.GetValue<ushort?>("AttributeConsumingServiceIndex")
+                        ?? options.AttributeConsumingServiceIndex
+                });
+            }
+            options.AddIdentityProviders(identityProviders);
+
             var certificateSection = section.GetSection("Certificate");
             if (certificateSection != null)
             {
@@ -59,10 +84,11 @@ namespace SPID.AspNetCore.Authentication.Helpers
                     var findValue = storeConfiguration.GetValue<string>("FindValue");
                     var validOnly = storeConfiguration.GetValue<bool>("validOnly");
                     options.Certificate = X509Helpers.GetCertificateFromStore(
-                                        StoreLocation.CurrentUser, StoreName.My,
-                                        X509FindType.FindBySubjectName,
+                                        location,
+                                        name,
+                                        findType,
                                         findValue,
-                                        validOnly: false);
+                                        validOnly);
                 }
                 else if (certificateSource == "File")
                 {
@@ -71,7 +97,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
                     var password = storeConfiguration.GetValue<string>("Password");
                     options.Certificate = X509Helpers.GetCertificateFromFile(path, password);
                 }
-                else if(certificateSource == "Raw")
+                else if (certificateSource == "Raw")
                 {
                     var storeConfiguration = certificateSection.GetSection("Raw");
                     var certificate = storeConfiguration.GetValue<string>("Certificate");

@@ -259,7 +259,7 @@ namespace SPID.AspNetCore.Authentication
             return true;
         }
 
-        private async Task<HandleRequestResult> ValidateAuthenticationResponse(ResponseType response, AuthnRequestType request, AuthenticationProperties properties, string idPName)
+        private async Task<HandleRequestResult> ValidateAuthenticationResponse(ResponseType response, AuthnRequestType request, AuthenticationProperties properties, string idpName)
         {
             if (response == null)
             {
@@ -276,7 +276,7 @@ namespace SPID.AspNetCore.Authentication
                 return HandleRequestResult.Fail("Unsolicited logins are not allowed.");
             }
 
-            var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idPName);
+            var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
 
             var metadataIdp = await DownloadMetadataIDP(idp.OrganizationUrlMetadata);
 

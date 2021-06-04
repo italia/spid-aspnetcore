@@ -31,7 +31,7 @@ namespace SPID.AspNetCore.Authentication
             _urlHelper = urlHelper;
         }
 
-        public SpidButtonSize Size { get; set; }
+        public SpidButtonSize Size { get; set; } = SpidButtonSize.Medium;
 
         public string CircleImagePath { get; set; }
 

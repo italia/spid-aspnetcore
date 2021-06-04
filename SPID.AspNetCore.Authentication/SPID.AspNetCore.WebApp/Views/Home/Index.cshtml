@@ -1,15 +1,17 @@
 ﻿@{
-	ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home Page";
 }
 @section styles {
-	<style spid></style>
+    <style spid></style>
+    <style eidas></style>
 }
 
 <div class="text-center">
-	<h1 class="display-4">Welcome</h1>
-	<spid-providers challenge-url="/home/login" size="Medium" class="text-left"></spid-providers>
+    <h1 class="display-4">Welcome</h1>
+    <spid-providers challenge-url="/home/login" size="Medium" class="text-left"></spid-providers>
+    <eidas-button challenge-url="/home/login" size="Medium" circle-image-type="ywb" class="text-left"></eidas-button>
 </div>
 
 @section scripts {
-	<script spid></script>
+    <script spid></script>
 }
