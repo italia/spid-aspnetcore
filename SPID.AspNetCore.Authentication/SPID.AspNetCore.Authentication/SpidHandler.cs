@@ -94,14 +94,19 @@ namespace SPID.AspNetCore.Authentication
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
 
 
-            var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context, Scheme, Options, properties, authenticationRequestId);
+            var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context,
+                Scheme,
+                Options,
+                idp,
+                properties,
+                authenticationRequestId);
 
             // Create the signed SAML request
             var message = SamlHandler.GetAuthnRequest(
                 authenticationRequestId,
                 securityTokenCreatingContext.TokenOptions.EntityId,
                 securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceIndex,
-                securityTokenCreatingContext.TokenOptions.AttributeConsumingServiceIndex,
+                idp.AttributeConsumingServiceIndex,
                 securityTokenCreatingContext.TokenOptions.Certificate,
                 idp);
 
@@ -197,7 +202,12 @@ namespace SPID.AspNetCore.Authentication
 
             var idp = Options.IdentityProviders.FirstOrDefault(i => i.Name == idpName);
 
-            var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context, Scheme, Options, properties, authenticationRequestId);
+            var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context,
+                Scheme,
+                Options,
+                idp,
+                properties,
+                authenticationRequestId);
 
             var message = SamlHandler.GetLogoutRequest(
                 authenticationRequestId,
@@ -424,7 +434,12 @@ namespace SPID.AspNetCore.Authentication
                 _events = events;
             }
 
-            public async Task<SecurityTokenCreatingContext> HandleSecurityTokenCreatingContext(HttpContext context, AuthenticationScheme scheme, SpidOptions options, AuthenticationProperties properties, string samlAuthnRequestId)
+            public async Task<SecurityTokenCreatingContext> HandleSecurityTokenCreatingContext(HttpContext context,
+                AuthenticationScheme scheme,
+                SpidOptions options,
+                IdentityProvider idp,
+                AuthenticationProperties properties,
+                string samlAuthnRequestId)
             {
                 var securityTokenCreatingContext = new SecurityTokenCreatingContext(context, scheme, options, properties)
                 {
@@ -434,7 +449,7 @@ namespace SPID.AspNetCore.Authentication
                         EntityId = options.EntityId,
                         Certificate = options.Certificate,
                         AssertionConsumerServiceIndex = options.AssertionConsumerServiceIndex,
-                        AttributeConsumingServiceIndex = options.AttributeConsumingServiceIndex
+                        AttributeConsumingServiceIndex = idp.AttributeConsumingServiceIndex
                     }
                 };
                 await _events.TokenCreating(securityTokenCreatingContext);
