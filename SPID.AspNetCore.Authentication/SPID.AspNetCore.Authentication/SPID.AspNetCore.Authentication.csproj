@@ -10,7 +10,7 @@
     <PackageId>SPID.AspNetCore.Authentication</PackageId>
     <PackageTags>spid;aspnetcore;authentication</PackageTags>
     <PackageProjectUrl>https://github.com/italia/spid-aspnetcore</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/italia/spid-aspnetcore/main/SPID.AspNetCore.Authentication/SPID.AspNetCore.Authentication/Mvc/Resources/spid-nuget.png</PackageIconUrl>
+    <PackageIcon>spid-nuget.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageVersion>1.3.1</PackageVersion>
     <Version>1.3.1</Version>
@@ -19,6 +19,10 @@
     <InformationalVersion>1.3.1</InformationalVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Mvc\Resources\spid-nuget.png" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="Mvc\Resources\eidas.css" />
