@@ -39,7 +39,7 @@ Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla V
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @addTagHelper *, SPID.AspNetCore.Authentication
 @{
-	ViewData["Title"] = "Home Page";
+	ViewData["Title"] = "Login Page";
 }
 @section styles {
 	<style spid></style>
@@ -54,7 +54,8 @@ Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla V
 }
 ```
 
-Il TagHelper `spid-providers` si occuperà di generare automaticamente il codice HTML necessario per la renderizzazione della lista di IdentityProviders che è stata inizializzata tra le SpidOptions in fase di startup. `<style spid></style>` e `<script spid></script>` invece rappresentano i TagHelper per la renderizzazione rispettivamente delle classi CSS e del codice JS necessari all'esecuzione del pulsante.
+Il TagHelper `spid-providers` si occuperà di generare automaticamente il codice HTML necessario per la renderizzazione della lista di IdentityProviders che è stata inizializzata tra le SpidOptions in fase di startup. L'attributo `size` può essere valorizzato con i valori `Small, Medium, Large, ExtraLarge`.
+`<style spid></style>` e `<script spid></script>` invece rappresentano i TagHelper per la renderizzazione rispettivamente delle classi CSS e del codice JS necessari all'esecuzione del pulsante.
 Un esempio completo di webapp AspNetCore MVC che fa uso di questa libreria è presente all'interno di questo repository sotto la cartella `SPID.AspNetCore.Authentication/SPID.AspNetCore.WebApp`. Per utilizzarla è sufficiente configurare in `appsettings.json` i parametri `AssertionConsumerServiceIndex`, `AttributeConsumingServiceIndex`, `EntityId` e `Certificate` con quelli relativi al proprio metadata di test, e lanciare la webapp.
 
 # Configurazione
@@ -363,6 +364,50 @@ private IEnumerable<TSource> FromHierarchy<TSource>(TSource source,
     return FromHierarchy(source, nextItem, s => s != null);
 }
 ```
+
+# eIDAS
+Dalla versione 1.3.0 in poi la libreria supporta anche la login con eIDAS. Per utilizzare tale modalità è sufficiente aggiungere la sezione "Eidas" all'interno del file di configurazione, come segue:
+
+```
+  "Spid": {
+  ......
+  },
+  "Eidas": {
+    "Name": "Eidas",
+    "OrganizationName": "eIDAS Test/PreProduzione",
+    "OrganizationDisplayName": "eIDAS Test/PreProduzione",
+    "OrganizationUrlMetadata": "https://sp-proxy.pre.eid.gov.it/spproxy/idpitmetadata",
+    "OrganizationUrl": "https://www.eid.gov.it/",
+    "OrganizationLogoUrl": "https://www.eid.gov.it/assets/img/logo-eIDAS-login.svg",
+    "SingleSignOnServiceUrl": "https://sp-proxy.pre.eid.gov.it/spproxy/samlsso",
+    "SingleSignOutServiceUrl": "https://sp-proxy.pre.eid.gov.it/spproxy/samlslo",
+    "Method": "Post",
+    "SecurityLevel": 2,
+    "AttributeConsumingServiceIndex": 99 // Or 100
+  }
+```
+
+All'interno della configurazione dell'IdentityProvider è possibile specificare il valore di `AttributeConsumingServiceIndex` (99 o 100, come riportato nei metadata) da utilizzare per costruire la request. 
+Per renderizzare il pulsante "Login with eIDAS" è sufficiente aggiungere il seguente codice alla view Razor.
+
+```razor
+@using SPID.AspNetCore.Authentication
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, SPID.AspNetCore.Authentication
+@{
+	ViewData["Title"] = "Login Page";
+}
+@section styles {
+	<style eidas></style>
+}
+<div class="text-center">
+	<h1 class="display-4">Welcome</h1>
+	<eidas-button challenge-url="/home/login" size="Medium" circle-image-type="ywb" class="text-left"></eidas-button>
+</div>
+```
+
+Il tag `eidas-button` prevede, oltre agli attributi già definiti per il pulsante SPID (come `size` e `challenge-url`), un attributo `circle-image-type`, che definisce le diverse tipologie di pulsanti eIDAS che è possibile renderizzare, e i valori che può assumere sono `db, lb, ybw, ywb`.
+
 
 # Compatibilità con Bootstrap
 Se la WebApp utilizza Bootstrap, è necessario aggiungere la seguente classe al fine di visualizzare correttamente il pulsante "Entra con SPID"
