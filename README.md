@@ -387,7 +387,7 @@ Dalla versione 1.3.0 in poi la libreria supporta anche la login con eIDAS. Per u
   }
 ```
 
-All'interno della configurazione dell'IdentityProvider è possibile specificare il valore di `AttributeConsumingServiceIndex` (99 o 100, come riportato nei metadata) da utilizzare per costruire la request. 
+All'interno della configurazione dell'IdentityProvider è possibile specificare il valore di `AttributeConsumingServiceIndex` (99 o 100, come riportato nei metadata) da utilizzare per costruire la request, valore che sovrascrive (per eIDAS) il valore di default specificato nella sezione `Spid`.
 Per renderizzare il pulsante "Login with eIDAS" è sufficiente aggiungere il seguente codice alla view Razor.
 
 ```razor
