@@ -348,7 +348,7 @@ namespace SPID.AspNetCore.Authentication
 
         private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) CreatePrincipal(ResponseType idpAuthnResponse)
         {
-            var claims = new Claim[]
+            var claims = new List<Claim>
             {
                 new Claim( SpidClaimTypes.Name.Value, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.name.Equals(x.Name) || SamlConst.name.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
                 new Claim( SpidClaimTypes.Email.Value, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
@@ -370,6 +370,10 @@ namespace SPID.AspNetCore.Authentication
                 new Claim( SpidClaimTypes.RegisteredOffice.Value, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.registeredOffice.Equals(x.Name) || SamlConst.registeredOffice.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
                 new Claim( SpidClaimTypes.SpidCode.Value, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.spidCode.Equals(x.Name) || SamlConst.spidCode.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
             };
+
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, claims.FirstOrDefault(c => c.Type.Equals(Options.PrincipalNameClaimType.Value))?.Value));
+            claims.Add(new Claim(ClaimTypes.Email, claims.FirstOrDefault(c => c.Type.Equals(SpidClaimTypes.Email.Value))?.Value));
+
             var identity = new ClaimsIdentity(claims, Scheme.Name, Options.PrincipalNameClaimType.Value, null);
 
             var returnedPrincipal = new ClaimsPrincipal(identity);

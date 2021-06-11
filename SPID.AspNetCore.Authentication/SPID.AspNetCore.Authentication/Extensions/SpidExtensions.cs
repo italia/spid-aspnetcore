@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Models;
 using System;
+using System.Security.Claims;
 
 namespace SPID.AspNetCore.Authentication
 {
@@ -53,14 +54,36 @@ namespace SPID.AspNetCore.Authentication
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<SpidOptions>, SpidPostConfigureOptions>());
             builder.Services.TryAdd(ServiceDescriptor.Singleton<IActionContextAccessor, ActionContextAccessor>());
             builder.Services.AddHttpClient("spid");
-            builder.Services.TryAddScoped(factory =>
-            {
+            builder.Services.TryAddScoped(factory => {
                 var actionContext = factory.GetService<IActionContextAccessor>().ActionContext;
                 var urlHelperFactory = factory.GetService<IUrlHelperFactory>();
                 return urlHelperFactory.GetUrlHelper(actionContext);
             });
             builder.Services.AddOptions<SpidConfiguration>().Configure(o => OptionsHelper.LoadFromConfiguration(o, configuration));
             return builder.AddRemoteScheme<SpidOptions, SpidHandler>(authenticationScheme, displayName, configureOptions);
+        }
+
+
+        /// <summary>
+        /// Finds the first value.
+        /// </summary>
+        /// <param name="principal">The principal.</param>
+        /// <param name="claimType">Type of the claim.</param>
+        /// <returns></returns>
+        public static string FindFirstValue(this ClaimsPrincipal principal, SpidClaimTypes claimType)
+        {
+            return principal.FindFirstValue(claimType.Value);
+        }
+
+        /// <summary>
+        /// Finds the first.
+        /// </summary>
+        /// <param name="principal">The principal.</param>
+        /// <param name="claimType">Type of the claim.</param>
+        /// <returns></returns>
+        public static Claim FindFirst(this ClaimsPrincipal principal, SpidClaimTypes claimType)
+        {
+            return principal.FindFirst(claimType.Value);
         }
     }
 }
