@@ -293,12 +293,12 @@ public class CustomSpidEvents : SpidEvents
     
     public override Task AuthenticationSuccess(AuthenticationSuccessContext context)
     {
-        var principal = context.Principal;
+        var principal = context.AuthenticationTicket.Principal;
 	
 	// Recupero dati provenienti da Spid da ClaimsPrincipal
         var spidCode = principal.FindFirst(SpidClaimTypes.SpidCode);
         var name = principal.FindFirst(SpidClaimTypes.Name);
-        var surname = principal.FindFirst(SpidClaimTypes.Surname);
+        var surname = principal.FindFirst(SpidClaimTypes.FamilyName);
         var email = principal.FindFirst(SpidClaimTypes.Email);
         var fiscalCode = principal.FindFirst(SpidClaimTypes.FiscalNumber);
         // ............etc........
