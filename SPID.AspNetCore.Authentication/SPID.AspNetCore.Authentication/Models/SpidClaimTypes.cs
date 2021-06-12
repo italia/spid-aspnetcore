@@ -8,11 +8,10 @@ namespace SPID.AspNetCore.Authentication.Models
             { nameof(Name), new SpidClaimTypes(nameof(Name)) },
             { nameof(FamilyName), new SpidClaimTypes(nameof(FamilyName)) },
             { nameof(FiscalNumber), new SpidClaimTypes(nameof(FiscalNumber)) },
+            { nameof(RawFiscalNumber), new SpidClaimTypes(nameof(RawFiscalNumber)) },
             { nameof(Email), new SpidClaimTypes(nameof(Email)) },
             { nameof(DigitalAddress), new SpidClaimTypes(nameof(DigitalAddress)) },
             { nameof(Mail), new SpidClaimTypes(nameof(Mail)) },
-            { nameof(Surname), new SpidClaimTypes(nameof(Surname)) },
-            { nameof(Firstname), new SpidClaimTypes(nameof(Firstname)) },
             { nameof(Address), new SpidClaimTypes(nameof(Address)) },
             { nameof(CompanyName), new SpidClaimTypes(nameof(CompanyName)) },
             { nameof(CountyOfBirth), new SpidClaimTypes(nameof(CountyOfBirth)) },
@@ -37,11 +36,10 @@ namespace SPID.AspNetCore.Authentication.Models
         public static SpidClaimTypes Name { get { return _types[nameof(Name)]; } }
         public static SpidClaimTypes FamilyName { get { return _types[nameof(FamilyName)]; } }
         public static SpidClaimTypes FiscalNumber { get { return _types[nameof(FiscalNumber)]; } }
+        public static SpidClaimTypes RawFiscalNumber { get { return _types[nameof(RawFiscalNumber)]; } }
         public static SpidClaimTypes Email { get { return _types[nameof(Email)]; } }
         public static SpidClaimTypes DigitalAddress { get { return _types[nameof(DigitalAddress)]; } }
         public static SpidClaimTypes Mail { get { return _types[nameof(Mail)]; } }
-        public static SpidClaimTypes Surname { get { return _types[nameof(Surname)]; } }
-        public static SpidClaimTypes Firstname { get { return _types[nameof(Firstname)]; } }
         public static SpidClaimTypes Address { get { return _types[nameof(Address)]; } }
         public static SpidClaimTypes CompanyName { get { return _types[nameof(CompanyName)]; } }
         public static SpidClaimTypes CountyOfBirth { get { return _types[nameof(CountyOfBirth)]; } }
