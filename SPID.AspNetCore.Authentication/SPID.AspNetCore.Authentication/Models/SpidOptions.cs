@@ -123,10 +123,28 @@ namespace SPID.AspNetCore.Authentication.Models
             }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the identity providers order is random or not.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [random identity providers order]; otherwise, <c>false</c>.
+        /// </value>
         public bool RandomIdentityProvidersOrder { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the staging validator is enabled.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is staging validator enabled; otherwise, <c>false</c>.
+        /// </value>
         public bool IsStagingValidatorEnabled { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the local validator is enabled.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is local validator enabled; otherwise, <c>false</c>.
+        /// </value>
         public bool IsLocalValidatorEnabled { get; set; }
 
         /// <summary>
@@ -145,11 +163,29 @@ namespace SPID.AspNetCore.Authentication.Models
         /// </value>
         public bool CacheIdpMetadata { get; set; }
 
+        /// <summary>
+        /// Gets or sets the type of the principal name claim.
+        /// </summary>
+        /// <value>
+        /// The type of the principal name claim.
+        /// </value>
+        public SpidClaimTypes PrincipalNameClaimType { get; set; } = SpidClaimTypes.Email;
+
+        /// <summary>
+        /// Adds the identity providers.
+        /// </summary>
+        /// <param name="identityProviders">The identity providers.</param>
+        /// <returns></returns>
         public void AddIdentityProviders(IEnumerable<IdentityProvider> identityProviders)
         {
             _identityProviders.AddRange(identityProviders);
         }
 
+        /// <summary>
+        /// Loads from configuration.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <returns></returns>
         public void LoadFromConfiguration(IConfiguration configuration)
         {
             var conf = OptionsHelper.CreateFromConfiguration(configuration);

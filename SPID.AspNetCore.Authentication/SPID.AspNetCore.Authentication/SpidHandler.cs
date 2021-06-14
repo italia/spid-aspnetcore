@@ -346,33 +346,48 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
+        private string GetAttributeValue(ResponseType response, string attributeName)
+            => response.GetAssertion()?
+                .GetAttributeStatement()?
+                .GetAttributes()?
+                .FirstOrDefault(x => attributeName.Equals(x.Name) || attributeName.Equals(x.FriendlyName))?
+                .GetAttributeValue()?
+                .Trim() ?? string.Empty;
+
+        private string RemoveFiscalNumberPrefix(string fiscalNumber)
+            => fiscalNumber?
+                .Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries)
+                .LastOrDefault() ?? string.Empty;
+
         private (ClaimsPrincipal principal, DateTimeOffset? validFrom, DateTimeOffset? validTo) CreatePrincipal(ResponseType idpAuthnResponse)
         {
-            var claims = new Claim[]
+            var claims = new List<Claim>
             {
-                new Claim( ClaimTypes.NameIdentifier, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( ClaimTypes.Email, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.Name, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.name.Equals(x.Name) || SamlConst.name.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.Email, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.email.Equals(x.Name) || SamlConst.email.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.FamilyName, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.familyName.Equals(x.Name) || SamlConst.familyName.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.FiscalNumber, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.fiscalNumber.Equals(x.Name) || SamlConst.fiscalNumber.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim()?.Replace("TINIT-", "") ?? string.Empty),
-                new Claim( SpidClaimTypes.Surname, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.surname.Equals(x.Name) || SamlConst.surname.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.Mail, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.mail.Equals(x.Name) || SamlConst.mail.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.Address, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.address.Equals(x.Name) || SamlConst.address.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.CompanyName, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.companyName.Equals(x.Name) || SamlConst.companyName.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.CountyOfBirth, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.countyOfBirth.Equals(x.Name) || SamlConst.countyOfBirth.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.DateOfBirth, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.dateOfBirth.Equals(x.Name) || SamlConst.dateOfBirth.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.DigitalAddress, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.digitalAddress.Equals(x.Name) || SamlConst.digitalAddress.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.ExpirationDate, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.expirationDate.Equals(x.Name) || SamlConst.expirationDate.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.Gender, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.gender.Equals(x.Name) || SamlConst.gender.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.IdCard, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.idCard.Equals(x.Name) || SamlConst.idCard.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.IvaCode, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.ivaCode.Equals(x.Name) || SamlConst.ivaCode.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.MobilePhone, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.mobilePhone.Equals(x.Name) || SamlConst.mobilePhone.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.PlaceOfBirth, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.placeOfBirth.Equals(x.Name) || SamlConst.placeOfBirth.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.RegisteredOffice, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.registeredOffice.Equals(x.Name) || SamlConst.registeredOffice.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
-                new Claim( SpidClaimTypes.SpidCode, idpAuthnResponse.GetAssertion().GetAttributeStatement().GetAttributes().FirstOrDefault(x => SamlConst.spidCode.Equals(x.Name) || SamlConst.spidCode.Equals(x.FriendlyName))?.GetAttributeValue()?.Trim() ?? string.Empty),
+                new Claim( SpidClaimTypes.Name.Value, GetAttributeValue(idpAuthnResponse, SamlConst.name)),
+                new Claim( SpidClaimTypes.Email.Value, GetAttributeValue(idpAuthnResponse, SamlConst.email)),
+                new Claim( SpidClaimTypes.FamilyName.Value, GetAttributeValue(idpAuthnResponse, SamlConst.familyName)),
+                new Claim( SpidClaimTypes.FiscalNumber.Value, RemoveFiscalNumberPrefix(GetAttributeValue(idpAuthnResponse, SamlConst.fiscalNumber))),
+                new Claim( SpidClaimTypes.RawFiscalNumber.Value, GetAttributeValue(idpAuthnResponse, SamlConst.fiscalNumber)),
+                new Claim( SpidClaimTypes.Mail.Value, GetAttributeValue(idpAuthnResponse, SamlConst.mail)),
+                new Claim( SpidClaimTypes.Address.Value, GetAttributeValue(idpAuthnResponse, SamlConst.address)),
+                new Claim( SpidClaimTypes.CompanyName.Value, GetAttributeValue(idpAuthnResponse, SamlConst.companyName)),
+                new Claim( SpidClaimTypes.CountyOfBirth.Value, GetAttributeValue(idpAuthnResponse, SamlConst.countyOfBirth)),
+                new Claim( SpidClaimTypes.DateOfBirth.Value, GetAttributeValue(idpAuthnResponse, SamlConst.dateOfBirth)),
+                new Claim( SpidClaimTypes.DigitalAddress.Value, GetAttributeValue(idpAuthnResponse, SamlConst.digitalAddress)),
+                new Claim( SpidClaimTypes.ExpirationDate.Value, GetAttributeValue(idpAuthnResponse, SamlConst.expirationDate)),
+                new Claim( SpidClaimTypes.Gender.Value, GetAttributeValue(idpAuthnResponse, SamlConst.gender)),
+                new Claim( SpidClaimTypes.IdCard.Value, GetAttributeValue(idpAuthnResponse, SamlConst.idCard)),
+                new Claim( SpidClaimTypes.IvaCode.Value, GetAttributeValue(idpAuthnResponse, SamlConst.ivaCode)),
+                new Claim( SpidClaimTypes.MobilePhone.Value, GetAttributeValue(idpAuthnResponse, SamlConst.mobilePhone)),
+                new Claim( SpidClaimTypes.PlaceOfBirth.Value, GetAttributeValue(idpAuthnResponse, SamlConst.placeOfBirth)),
+                new Claim( SpidClaimTypes.RegisteredOffice.Value, GetAttributeValue(idpAuthnResponse, SamlConst.registeredOffice)),
+                new Claim( SpidClaimTypes.SpidCode.Value, GetAttributeValue(idpAuthnResponse, SamlConst.spidCode)),
             };
-            var identity = new ClaimsIdentity(claims, Scheme.Name, SamlConst.email, null);
+
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, claims.FirstOrDefault(c => c.Type.Equals(Options.PrincipalNameClaimType.Value))?.Value));
+            claims.Add(new Claim(ClaimTypes.Email, claims.FirstOrDefault(c => c.Type.Equals(SpidClaimTypes.Email.Value))?.Value));
+
+            var identity = new ClaimsIdentity(claims, Scheme.Name, Options.PrincipalNameClaimType.Value, null);
 
             var returnedPrincipal = new ClaimsPrincipal(identity);
             return (returnedPrincipal, new DateTimeOffset(idpAuthnResponse.IssueInstant), new DateTimeOffset(idpAuthnResponse.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter));

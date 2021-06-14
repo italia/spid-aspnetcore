@@ -1,30 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace SPID.AspNetCore.Authentication.Models
 {
     public sealed class SpidClaimTypes
     {
-        public static string Name = nameof(Name);
-        public static string FamilyName = nameof(FamilyName);
-        public static string FiscalNumber = nameof(FiscalNumber);
-        public static string Email = nameof(Email);
-        public static string DigitalAddress = nameof(DigitalAddress);
-        public static string Mail = nameof(Mail);
-        public static string Surname = nameof(Surname);
-        public static string Firstname = nameof(Firstname);
-        public static string Address = nameof(Address);
-        public static string CompanyName = nameof(CompanyName);
-        public static string CountyOfBirth = nameof(CountyOfBirth);
-        public static string DateOfBirth = nameof(DateOfBirth);
-        public static string ExpirationDate = nameof(ExpirationDate);
-        public static string Gender = nameof(Gender);
-        public static string IdCard = nameof(IdCard);
-        public static string IvaCode = nameof(IvaCode);
-        public static string MobilePhone = nameof(MobilePhone);
-        public static string PlaceOfBirth = nameof(PlaceOfBirth);
-        public static string RegisteredOffice = nameof(RegisteredOffice);
-        public static string SpidCode = nameof(SpidCode);
+        private static Dictionary<string, SpidClaimTypes> _types = new Dictionary<string, SpidClaimTypes>() {
+            { nameof(Name), new SpidClaimTypes(nameof(Name)) },
+            { nameof(FamilyName), new SpidClaimTypes(nameof(FamilyName)) },
+            { nameof(FiscalNumber), new SpidClaimTypes(nameof(FiscalNumber)) },
+            { nameof(RawFiscalNumber), new SpidClaimTypes(nameof(RawFiscalNumber)) },
+            { nameof(Email), new SpidClaimTypes(nameof(Email)) },
+            { nameof(DigitalAddress), new SpidClaimTypes(nameof(DigitalAddress)) },
+            { nameof(Mail), new SpidClaimTypes(nameof(Mail)) },
+            { nameof(Address), new SpidClaimTypes(nameof(Address)) },
+            { nameof(CompanyName), new SpidClaimTypes(nameof(CompanyName)) },
+            { nameof(CountyOfBirth), new SpidClaimTypes(nameof(CountyOfBirth)) },
+            { nameof(DateOfBirth), new SpidClaimTypes(nameof(DateOfBirth)) },
+            { nameof(ExpirationDate), new SpidClaimTypes(nameof(ExpirationDate)) },
+            { nameof(Gender), new SpidClaimTypes(nameof(Gender)) },
+            { nameof(IdCard), new SpidClaimTypes(nameof(IdCard)) },
+            { nameof(IvaCode), new SpidClaimTypes(nameof(IvaCode)) },
+            { nameof(MobilePhone), new SpidClaimTypes(nameof(MobilePhone)) },
+            { nameof(PlaceOfBirth), new SpidClaimTypes(nameof(PlaceOfBirth)) },
+            { nameof(RegisteredOffice), new SpidClaimTypes(nameof(RegisteredOffice)) },
+            { nameof(SpidCode), new SpidClaimTypes(nameof(SpidCode)) }
+        };
+
+        private SpidClaimTypes(string value)
+        {
+            Value = value;
+        }
+
+        public string Value { get; private set; }
+
+        public static SpidClaimTypes Name { get { return _types[nameof(Name)]; } }
+        public static SpidClaimTypes FamilyName { get { return _types[nameof(FamilyName)]; } }
+        public static SpidClaimTypes FiscalNumber { get { return _types[nameof(FiscalNumber)]; } }
+        public static SpidClaimTypes RawFiscalNumber { get { return _types[nameof(RawFiscalNumber)]; } }
+        public static SpidClaimTypes Email { get { return _types[nameof(Email)]; } }
+        public static SpidClaimTypes DigitalAddress { get { return _types[nameof(DigitalAddress)]; } }
+        public static SpidClaimTypes Mail { get { return _types[nameof(Mail)]; } }
+        public static SpidClaimTypes Address { get { return _types[nameof(Address)]; } }
+        public static SpidClaimTypes CompanyName { get { return _types[nameof(CompanyName)]; } }
+        public static SpidClaimTypes CountyOfBirth { get { return _types[nameof(CountyOfBirth)]; } }
+        public static SpidClaimTypes DateOfBirth { get { return _types[nameof(DateOfBirth)]; } }
+        public static SpidClaimTypes ExpirationDate { get { return _types[nameof(ExpirationDate)]; } }
+        public static SpidClaimTypes Gender { get { return _types[nameof(Gender)]; } }
+        public static SpidClaimTypes IdCard { get { return _types[nameof(IdCard)]; } }
+        public static SpidClaimTypes IvaCode { get { return _types[nameof(IvaCode)]; } }
+        public static SpidClaimTypes MobilePhone { get { return _types[nameof(MobilePhone)]; } }
+        public static SpidClaimTypes PlaceOfBirth { get { return _types[nameof(PlaceOfBirth)]; } }
+        public static SpidClaimTypes RegisteredOffice { get { return _types[nameof(RegisteredOffice)]; } }
+        public static SpidClaimTypes SpidCode { get { return _types[nameof(SpidCode)]; } }
     }
 }
