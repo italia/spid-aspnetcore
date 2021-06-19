@@ -27,6 +27,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             {
                 string stringResult => stringResult,
                 XmlNode[] xmlNodeResult => xmlNodeResult?.FirstOrDefault()?.Value,
+                DateTime dateTimeResult => dateTimeResult.ToString("yyyy-MM-dd"),
                 _ => null,
             };
 
