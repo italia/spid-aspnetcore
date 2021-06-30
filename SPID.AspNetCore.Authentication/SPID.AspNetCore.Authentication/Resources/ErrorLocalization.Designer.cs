@@ -61,6 +61,96 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Formato della richiesta non conforme alle specifiche SAML.
+        /// </summary>
+        internal static string _08 {
+            get {
+                return ResourceManager.GetString("08", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parametro Version non presente, malformato o diverso da 2.0.
+        /// </summary>
+        internal static string _09 {
+            get {
+                return ResourceManager.GetString("09", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ID non presente, malformato o non conforme.
+        /// </summary>
+        internal static string _11 {
+            get {
+                return ResourceManager.GetString("11", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RequestAuthnContext non presente, malformato o non previsto da Spid.
+        /// </summary>
+        internal static string _12 {
+            get {
+                return ResourceManager.GetString("12", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IssueInstant non presente, malformato o non coerente con l&apos;orario di arrivo della richiesta.
+        /// </summary>
+        internal static string _13 {
+            get {
+                return ResourceManager.GetString("13", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Destination non presente, malformata o non coincidente con il gestore delle identità ricevente la richiesta.
+        /// </summary>
+        internal static string _14 {
+            get {
+                return ResourceManager.GetString("14", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attributo IsPassive presente e attualizzato al valore True.
+        /// </summary>
+        internal static string _15 {
+            get {
+                return ResourceManager.GetString("15", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AssertionConsumerService non correttamente valorizzato.
+        /// </summary>
+        internal static string _16 {
+            get {
+                return ResourceManager.GetString("16", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attributo Format dell&apos;elemento NameIdPolicy assente o non valorizzato secondo specifica.
+        /// </summary>
+        internal static string _17 {
+            get {
+                return ResourceManager.GetString("17", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AttributeConsumerServiceIndex malformato o che riferisce a un valore non registrato nei metadati di SP.
+        /// </summary>
+        internal static string _18 {
+            get {
+                return ResourceManager.GetString("18", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autenticazione fallita per ripetuta sottomissione di credenziali errate (superato numero  tentativi secondo le policy adottate).
         /// </summary>
         internal static string _19 {
@@ -111,6 +201,15 @@ namespace SPID.AspNetCore.Authentication.Resources {
         internal static string _25 {
             get {
                 return ResourceManager.GetString("25", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tentativo dell&apos;utente di utilizzare una tipologia di identità digitale diversa da quanto richiesto dal SP.
+        /// </summary>
+        internal static string _30 {
+            get {
+                return ResourceManager.GetString("30", resourceCulture);
             }
         }
         

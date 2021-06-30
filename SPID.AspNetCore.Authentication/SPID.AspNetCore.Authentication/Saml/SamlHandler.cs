@@ -183,6 +183,26 @@ namespace SPID.AspNetCore.Authentication.Saml
                 {
                     switch (errorCode)
                     {
+                        case 8:
+                            throw new Exception(ErrorLocalization._08);
+                        case 9:
+                            throw new Exception(ErrorLocalization._09);
+                        case 11:
+                            throw new Exception(ErrorLocalization._11);
+                        case 12:
+                            throw new Exception(ErrorLocalization._12);
+                        case 13:
+                            throw new Exception(ErrorLocalization._13);
+                        case 14:
+                            throw new Exception(ErrorLocalization._14);
+                        case 15:
+                            throw new Exception(ErrorLocalization._15);
+                        case 16:
+                            throw new Exception(ErrorLocalization._16);
+                        case 17:
+                            throw new Exception(ErrorLocalization._17);
+                        case 18:
+                            throw new Exception(ErrorLocalization._18);
                         case 19:
                             throw new Exception(ErrorLocalization._19);
                         case 20:
@@ -195,6 +215,8 @@ namespace SPID.AspNetCore.Authentication.Saml
                             throw new Exception(ErrorLocalization._23);
                         case 25:
                             throw new Exception(ErrorLocalization._25);
+                        case 30:
+                            throw new Exception(ErrorLocalization._30);
                         default:
                             break;
                     }
