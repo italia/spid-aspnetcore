@@ -79,7 +79,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://validator.spid.gov.it/img/idp-logo.png",
         "SingleSignOnServiceUrl": "https://validator.spid.gov.it/samlsso",
         "SingleSignOutServiceUrl": "https://validator.spid.gov.it/samlsso",
-        "Method": "Post",
+	"SecurityLevel": 2,
+	"Method": "Post",
         "Type": "StagingProvider",
         "PerformFullResponseValidation": true
       },
@@ -92,6 +93,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://validator.spid.gov.it/img/idp-logo.png",
         "SingleSignOnServiceUrl": "http://localhost:8088/sso",
         "SingleSignOutServiceUrl": "http://localhost:8088/slo",
+	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "DevelopmentProvider",
         "PerformFullResponseValidation": false
@@ -105,6 +107,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-arubaid.png",
         "SingleSignOnServiceUrl": "https://loginspid.aruba.it/ServiceLoginWelcome",
         "SingleSignOutServiceUrl": "https://loginspid.aruba.it/ServiceLogoutRequest",
+	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
         "PerformFullResponseValidation": false
@@ -118,6 +121,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-posteid.png",
         "SingleSignOnServiceUrl": "https://posteid.poste.it/jod-fs/ssoservicepost",
         "SingleSignOutServiceUrl": "https://posteid.poste.it/jod-fs/sloservicepost",
+	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
         "PerformFullResponseValidation": false
@@ -131,6 +135,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-intesaid.png",
         "SingleSignOnServiceUrl": "https://spid.intesa.it/Time4UserServices/services/idp/AuthnRequest/",
         "SingleSignOutServiceUrl": "https://spid.intesa.it/Time4UserServices/services/idp/SingleLogout",
+	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
         "PerformFullResponseValidation": false
@@ -144,6 +149,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-infocertid.png",
         "SingleSignOnServiceUrl": "https://identity.infocert.it/spid/samlsso",
         "SingleSignOutServiceUrl": "https://identity.infocert.it/spid/samlslo",
+	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
         "PerformFullResponseValidation": false
@@ -157,6 +163,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://id.lepida.it/idm/app/pubblica/lepida_spid.png",
         "SingleSignOnServiceUrl": "https://id.lepida.it/idp/profile/SAML2/POST/SSO",
         "SingleSignOutServiceUrl": "https://id.lepida.it/idp/profile/SAML2/POST/SLO",
+	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
         "PerformFullResponseValidation": false
@@ -170,6 +177,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-namirialid.png",
         "SingleSignOnServiceUrl": "https://idp.namirialtsp.com/idp/profile/SAML2/POST/SSO",
         "SingleSignOutServiceUrl": "https://idp.namirialtsp.com/idp/profile/SAML2/POST/SLO",
+	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
         "PerformFullResponseValidation": false
@@ -183,6 +191,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-spiditalia.png",
         "SingleSignOnServiceUrl": "https://spid.register.it/login/sso",
         "SingleSignOutServiceUrl": "https://spid.register.it/login/singleLogout",
+	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
         "PerformFullResponseValidation": false
@@ -196,6 +205,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-sielteid.png",
         "SingleSignOnServiceUrl": "https://identity.sieltecloud.it/simplesaml/saml2/idp/SSO.php",
         "SingleSignOutServiceUrl": "https://identity.sieltecloud.it/simplesaml/saml2/idp/SLO.php",
+	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
         "NowDelta": -2,
@@ -210,6 +220,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-timid.png",
         "SingleSignOnServiceUrl": "https://login.id.tim.it/affwebservices/public/saml2sso",
         "SingleSignOutServiceUrl": "https://login.id.tim.it/affwebservices/public/saml2slo",
+	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
         "NowDelta": -2,
