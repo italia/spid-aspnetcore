@@ -27,6 +27,8 @@ jobs:
       run: sudo apt update
     - name: Install dependencies
       run: sudo apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3-pip
+    - name: Install spid-sp-test
+      run: sudo pip install spid-sp-test --upgrade --no-cache
     - name: Run SPID.AspNetCore.WebApp
       working-directory: SPID.AspNetCore.WebApp
       run: dotnet bin/Debug/net5.0/SPID.AspNetCore.WebApp.dll &
