@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
 namespace SPID.AspNetCore.Authentication.Models
@@ -81,25 +78,6 @@ namespace SPID.AspNetCore.Authentication.Models
         public IEnumerable<IdentityProvider> IdentityProviders => _identityProviders;
 
         public bool RandomIdentityProvidersOrder { get; set; }
-
-        public IEnumerable<IdentityProvider> FilteredIdentityProviders
-        {
-            get
-            {
-                var result = _identityProviders.AsEnumerable();
-                if (!IsLocalValidatorEnabled)
-                    result = result.Where(c => c.ProviderType != ProviderType.DevelopmentProvider
-                        && c.ProviderType != ProviderType.StandaloneProvider);
-
-                if (!IsStagingValidatorEnabled)
-                    result = result.Where(c => c.ProviderType != ProviderType.StagingProvider
-                        && c.ProviderType != ProviderType.StandaloneProvider);
-
-                return RandomIdentityProvidersOrder
-                    ? result.OrderBy(x => Guid.NewGuid())
-                    : result;
-            }
-        }
 
         public bool IsStagingValidatorEnabled { get; set; }
 

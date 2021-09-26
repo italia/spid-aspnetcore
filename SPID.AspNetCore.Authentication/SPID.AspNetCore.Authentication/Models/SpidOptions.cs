@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using SPID.AspNetCore.Authentication.Events;
 using SPID.AspNetCore.Authentication.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -170,6 +171,25 @@ namespace SPID.AspNetCore.Authentication.Models
         /// The type of the principal name claim.
         /// </value>
         public SpidClaimTypes PrincipalNameClaimType { get; set; } = SpidClaimTypes.Email;
+
+        public IEnumerable<IdentityProvider> FilteredIdentityProviders
+        {
+            get
+            {
+                var result = _identityProviders.AsEnumerable();
+                if (!IsLocalValidatorEnabled)
+                    result = result.Where(c => c.ProviderType != ProviderType.DevelopmentProvider
+                        && c.ProviderType != ProviderType.StandaloneProvider);
+
+                if (!IsStagingValidatorEnabled)
+                    result = result.Where(c => c.ProviderType != ProviderType.StagingProvider
+                        && c.ProviderType != ProviderType.StandaloneProvider);
+
+                return RandomIdentityProvidersOrder
+                    ? result.OrderBy(x => Guid.NewGuid())
+                    : result;
+            }
+        }
 
         /// <summary>
         /// Adds the identity providers.

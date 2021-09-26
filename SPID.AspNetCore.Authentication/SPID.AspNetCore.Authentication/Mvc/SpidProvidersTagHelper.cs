@@ -22,10 +22,10 @@ namespace SPID.AspNetCore.Authentication
             { SpidButtonSize.ExtraLarge, ("xl", "xlarge") }
         };
 
-        SpidConfiguration _options;
+        SpidOptions _options;
         IUrlHelper _urlHelper;
 
-        public SpidProvidersTagHelper(IOptionsSnapshot<SpidConfiguration> options, IUrlHelper urlHelper)
+        public SpidProvidersTagHelper(IOptionsSnapshot<SpidOptions> options, IUrlHelper urlHelper)
         {
             _options = options.Value;
             _urlHelper = urlHelper;
