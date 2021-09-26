@@ -23,10 +23,12 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
       working-directory: SPID.AspNetCore.Authentication
-    - name: Test with spid-sp-test
+    - name: Update apt repo
+      run: sudo apt update
+    - name: Install dependencies
+      run: sudo apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3-pip
+    - name: Run SPID.AspNetCore.WebApp
       working-directory: SPID.AspNetCore.WebApp
-      run: |
-        sudo apt update 
-        sudo apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3-pip
-        dotnet bin/Debug/net5.0/SPID.AspNetCore.WebApp.dll &
-        spid_sp_test --metadata-url https://localhost:5001/spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-ag-public-full
+      run: dotnet bin/Debug/net5.0/SPID.AspNetCore.WebApp.dll &
+    - name: Test with spid-sp-test
+      run: spid_sp_test --metadata-url https://localhost:5001/spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-ag-public-full
