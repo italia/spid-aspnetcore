@@ -30,7 +30,7 @@ jobs:
     - name: Install spid-sp-test
       run: sudo pip install spid-sp-test --upgrade --no-cache
     - name: Run SPID.AspNetCore.WebApp
-      working-directory: SPID.AspNetCore.WebApp
+      working-directory: SPID.AspNetCore.Authentication/SPID.AspNetCore.WebApp
       run: dotnet bin/Debug/net5.0/SPID.AspNetCore.WebApp.dll &
     - name: Test with spid-sp-test
       run: spid_sp_test --metadata-url https://localhost:5001/spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-ag-public-full
