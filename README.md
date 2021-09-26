@@ -3,6 +3,7 @@ This is a custom implementation of an AspNetCore RemoteAuthenticationHandler for
 Since it's an Italian-only thing, there's no point in struggling with an english README, just italian from now on.
 
 Lo scopo di questo progetto è quello di fornire uno strumento semplice ed immediato per integrare, in una WebApp sviluppata con AspNetCore MVC, i servizi di autenticazione di SPID, automatizzando i flussi di login/logout, la gestione del protocollo SAML, la security e semplificando le attività di sviluppo e markup.
+All'interno del repository è presente sia il codice della libreria (SPID.AspNetCore.Authentication), che una web app demo (SPID.AspNetCore.WebApp) che mostra una integrazione di esempio della libreria all'interno di un'app AspNetCore ed è utilizzata anche nell'action di CI per la validazione dei test di compliance.
 
 # Integrazione
 
@@ -430,7 +431,7 @@ Se la WebApp utilizza Bootstrap, è necessario aggiungere la seguente classe al 
 ```
 
 # Compliance
-La libreria è stata oggetto di collaudo da parte di AGID, sia per soluzioni come ServiceProvider che come Aggregatore, ha superato tutti i test di [spid-saml-check](https://github.com/italia/spid-saml-check) ed è compliant con le direttive specificate negli avvisi SPID.
+La libreria è stata oggetto di collaudo da parte di AGID, sia per soluzioni come ServiceProvider che come Aggregatore, ha superato tutti i test di [spid-sp-test](https://github.com/italia/spid-sp-test) (che è integrata in CI, è possibile vedere i log nelle actions), ed è compliant con le direttive specificate negli avvisi SPID.
 
 # Authors
 * [Daniele Giallonardo](https://github.com/danielegiallonardo) (maintainer) - [Stefano Mostarda](https://github.com/sm15455)
