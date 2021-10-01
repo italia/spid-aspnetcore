@@ -417,7 +417,7 @@ namespace SPID.AspNetCore.Authentication
             {
                 return (
                     Request.Query["RelayState"].FirstOrDefault(),
-                    SamlHandler.GetAuthnResponse(DecompressString(HttpUtility.UrlDecode(Request.Query["SAMLResponse"].FirstOrDefault())))
+                    SamlHandler.GetAuthnResponse(DecompressString(Request.Query["SAMLResponse"].FirstOrDefault()))
                 );
             }
             return (null, null);
@@ -443,7 +443,7 @@ namespace SPID.AspNetCore.Authentication
             {
                 return (
                     Request.Query["RelayState"].FirstOrDefault(),
-                    SamlHandler.GetLogoutResponse(DecompressString(HttpUtility.UrlDecode(Request.Query["SAMLResponse"].FirstOrDefault())))
+                    SamlHandler.GetLogoutResponse(DecompressString(Request.Query["SAMLResponse"].FirstOrDefault()))
                 );
             }
             return (null, null);
