@@ -1,5 +1,11 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using System.IO.Compression;
+using System.IO;
+using System.Text;
+using System;
+using System.Web;
+using SPID.AspNetCore.Authentication.Saml;
 
 namespace SPID.AspNetCore.WebApp
 {

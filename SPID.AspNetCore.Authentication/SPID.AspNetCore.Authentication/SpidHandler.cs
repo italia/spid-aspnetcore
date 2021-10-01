@@ -408,7 +408,7 @@ namespace SPID.AspNetCore.Authentication
 
                 return (
                     form["RelayState"].ToString(),
-                    SamlHandler.GetAuthnResponse(form["SAMLResponse"][0])
+                    SamlHandler.GetBase64AuthnResponse(form["SAMLResponse"][0])
                 );
             }
             else if (HttpMethods.IsGet(Request.Method)
@@ -434,7 +434,7 @@ namespace SPID.AspNetCore.Authentication
 
                 return (
                     form["RelayState"].ToString(),
-                    SamlHandler.GetLogoutResponse(form["SAMLResponse"][0])
+                    SamlHandler.GetBase64LogoutResponse(form["SAMLResponse"][0])
                 );
             }
             else if (HttpMethods.IsGet(Request.Method)

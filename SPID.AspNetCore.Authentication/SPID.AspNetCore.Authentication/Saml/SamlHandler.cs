@@ -12,7 +12,7 @@ using System.Xml.Serialization;
 
 namespace SPID.AspNetCore.Authentication.Saml
 {
-    internal static class SamlHandler
+    public static class SamlHandler
     {
         private static readonly Dictionary<Type, XmlSerializer> serializers = new Dictionary<Type, XmlSerializer>
         {
@@ -141,15 +141,26 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// </summary>
         /// <param name="base64Response"></param>
         /// <returns>IdpSaml2Response</returns>
-        public static ResponseType GetAuthnResponse(string base64Response)
+        public static ResponseType GetBase64AuthnResponse(string base64Response)
         {
             string idpResponse = null;
             BusinessValidation.Argument(base64Response, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(base64Response)));
             BusinessValidation.ValidationTry(() => idpResponse = Encoding.UTF8.GetString(Convert.FromBase64String(base64Response)), ErrorLocalization.SingleSignOnUrlRequired);
+            return GetAuthnResponse(idpResponse);
+        }
+
+        /// <summary>
+        /// Get the IdP Authn Response and extract metadata to the returned DTO class
+        /// </summary>
+        /// <param name="base64Response"></param>
+        /// <returns>IdpSaml2Response</returns>
+        public static ResponseType GetAuthnResponse(string serializedResponse)
+        {
+            BusinessValidation.Argument(serializedResponse, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(serializedResponse)));
             ResponseType response = null;
             try
             {
-                response = DeserializeMessage<ResponseType>(idpResponse);
+                response = DeserializeMessage<ResponseType>(serializedResponse);
 
                 BusinessValidation.ValidationCondition(() => response == null, ErrorLocalization.ResponseNotValid);
 
@@ -462,7 +473,7 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// </summary>
         /// <param name="base64Response"></param>
         /// <returns></returns>
-        public static LogoutResponseType GetLogoutResponse(string base64Response)
+        public static LogoutResponseType GetBase64LogoutResponse(string base64Response)
         {
             string logoutResponse;
 
@@ -471,18 +482,25 @@ namespace SPID.AspNetCore.Authentication.Saml
                 throw new ArgumentNullException("The base64Response parameter can't be null or empty.");
             }
 
-            try
+            return GetLogoutResponse(Encoding.UTF8.GetString(Convert.FromBase64String(base64Response)));
+        }
+
+                /// <summary>
+        /// Get the IdP Logout Response and extract metadata to the returned DTO class
+        /// </summary>
+        /// <param name="base64Response"></param>
+        /// <returns></returns>
+        public static LogoutResponseType GetLogoutResponse(string serializedLogoutResponse)
+        {
+
+            if (String.IsNullOrEmpty(serializedLogoutResponse))
             {
-                logoutResponse = Encoding.UTF8.GetString(Convert.FromBase64String(base64Response));
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException("Unable to converto base64 response to ascii string.", ex);
+                throw new ArgumentNullException("The serializedLogoutResponse parameter can't be null or empty.");
             }
 
             try
             {
-                return DeserializeMessage<LogoutResponseType>(logoutResponse);
+                return DeserializeMessage<LogoutResponseType>(serializedLogoutResponse);
             }
             catch (Exception ex)
             {
