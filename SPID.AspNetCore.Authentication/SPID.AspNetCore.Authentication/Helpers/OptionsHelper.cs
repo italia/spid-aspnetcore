@@ -15,6 +15,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             options.IsStagingValidatorEnabled = section.GetValue<bool?>("IsStagingValidatorEnabled") ?? false;
             options.IsLocalValidatorEnabled = section.GetValue<bool?>("IsLocalValidatorEnabled") ?? false;
             options.AllowUnsolicitedLogins = section.GetValue<bool?>("AllowUnsolicitedLogins") ?? false;
+            options.AssertionConsumerServiceURL = section.GetValue<string>("AssertionConsumerServiceURL");
             options.AssertionConsumerServiceIndex = section.GetValue<ushort?>("AssertionConsumerServiceIndex") ?? 0;
             options.AttributeConsumingServiceIndex = section.GetValue<ushort?>("AttributeConsumingServiceIndex") ?? 0;
             options.CallbackPath = section.GetValue<string>("CallbackPath");
@@ -113,6 +114,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             var createdOptions = CreateFromConfiguration(configuration);
             options.AddIdentityProviders(createdOptions.IdentityProviders);
             options.AllowUnsolicitedLogins = createdOptions.AllowUnsolicitedLogins;
+            options.AssertionConsumerServiceURL = createdOptions.AssertionConsumerServiceURL;
             options.AssertionConsumerServiceIndex = createdOptions.AssertionConsumerServiceIndex;
             options.AttributeConsumingServiceIndex = createdOptions.AttributeConsumingServiceIndex;
             options.CallbackPath = createdOptions.CallbackPath;

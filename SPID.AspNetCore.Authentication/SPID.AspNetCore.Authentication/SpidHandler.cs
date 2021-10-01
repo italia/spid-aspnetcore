@@ -105,6 +105,7 @@ namespace SPID.AspNetCore.Authentication
             var message = SamlHandler.GetAuthnRequest(
                 authenticationRequestId,
                 securityTokenCreatingContext.TokenOptions.EntityId,
+                securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceURL,
                 securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceIndex,
                 securityTokenCreatingContext.TokenOptions.AttributeConsumingServiceIndex,
                 securityTokenCreatingContext.TokenOptions.Certificate,
@@ -289,7 +290,7 @@ namespace SPID.AspNetCore.Authentication
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
 
             var metadataIdp = await DownloadMetadataIDP(idp.OrganizationUrlMetadata);
-
+            
             response.ValidateAuthnResponse(request, metadataIdp, serializedResponse);
             return null;
         }
@@ -308,7 +309,6 @@ namespace SPID.AspNetCore.Authentication
             {
                 using var httpClientHandler = new HttpClientHandler();
                 httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
-                //using var client = _httpClientFactory.CreateClient("spid");
                 using var client = new HttpClient(httpClientHandler);
                 xml = await client.GetStringAsync(urlMetadataIdp);
             }
@@ -500,6 +500,7 @@ namespace SPID.AspNetCore.Authentication
                     {
                         EntityId = options.EntityId,
                         Certificate = options.Certificate,
+                        AssertionConsumerServiceURL = options.AssertionConsumerServiceURL,
                         AssertionConsumerServiceIndex = options.AssertionConsumerServiceIndex,
                         AttributeConsumingServiceIndex = idp.AttributeConsumingServiceIndex
                     }

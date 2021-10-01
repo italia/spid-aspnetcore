@@ -9,14 +9,16 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <summary>
         /// The date time format
         /// </summary>
-        public const string DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
+        public const string DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffffffZ";
+        public const string DateTimeMillisecondsFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
         public const string DateTimeShortFormat = "yyyy-MM-ddTHH:mm:ssZ";
 
         public static DateTime ParseExact(string s, string fieldName)
         {
             DateTime result = default;
             if (!(DateTime.TryParseExact(s, DateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result)
-                || DateTime.TryParseExact(s, DateTimeShortFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result)))
+                || DateTime.TryParseExact(s, DateTimeShortFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result)
+                || DateTime.TryParseExact(s, DateTimeMillisecondsFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result)))
             {
                 throw new System.Exception(string.Format(ErrorLocalization.ParameterNotValid, fieldName));
             };

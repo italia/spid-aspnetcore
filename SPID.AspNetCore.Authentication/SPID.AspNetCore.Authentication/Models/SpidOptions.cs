@@ -88,6 +88,14 @@ namespace SPID.AspNetCore.Authentication.Models
         public string EntityId { get; set; }
 
         /// <summary>
+        /// Gets or sets the URL of the assertion consumer service.
+        /// </summary>
+        /// <value>
+        /// The index of the assertion consumer service.
+        /// </value>
+        public string AssertionConsumerServiceURL { get; set; }
+
+        /// <summary>
         /// Gets or sets the index of the assertion consumer service.
         /// </summary>
         /// <value>
@@ -213,6 +221,7 @@ namespace SPID.AspNetCore.Authentication.Models
             IsStagingValidatorEnabled = conf.IsStagingValidatorEnabled;
             IsLocalValidatorEnabled = conf.IsLocalValidatorEnabled;
             AllowUnsolicitedLogins = conf.AllowUnsolicitedLogins;
+            AssertionConsumerServiceURL = conf.AssertionConsumerServiceURL;
             AssertionConsumerServiceIndex = conf.AssertionConsumerServiceIndex;
             AttributeConsumingServiceIndex = conf.AttributeConsumingServiceIndex;
             CallbackPath = conf.CallbackPath.HasValue ? conf.CallbackPath : CallbackPath;

@@ -1,7 +1,6 @@
 ﻿using SPID.AspNetCore.Authentication.Resources;
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
@@ -23,7 +22,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <returns></returns>
         /// <exception cref="FieldAccessException"></exception>
         internal static XmlElement SignXMLDoc(XmlDocument doc,
-            X509Certificate2 certificate, 
+            X509Certificate2 certificate,
             string referenceUri,
             string signatureMethod,
             string digestMethod)
@@ -45,7 +44,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
             SignedXml signedXml = new SignedXml(doc)
             {
-                SigningKey = privateKey 
+                SigningKey = privateKey
             };
 
             signedXml.SignedInfo.SignatureMethod = signatureMethod;
@@ -74,7 +73,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <param name="signedDocument">The signed document.</param>
         /// <param name="xmlMetadata">The XML metadata.</param>
         /// <returns></returns>
-        internal static bool VerifySignature(XmlDocument signedDocument, XmlDocument xmlMetadata = null)
+        internal static bool VerifySignature(XmlDocument signedDocument, Saml.EntityDescriptor xmlMetadata = null)
         {
             BusinessValidation.Argument(signedDocument, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(signedDocument)));
 
@@ -84,16 +83,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
                 if (xmlMetadata is not null)
                 {
-                    XmlNodeList MetadataNodeList = xmlMetadata.SelectNodes("//*[local-name()='Signature']");
-                    SignedXml signedMetadataXml = new SignedXml(xmlMetadata);
-                    signedMetadataXml.LoadXml((XmlElement)MetadataNodeList[0]);
-                    var x509dataMetadata = signedMetadataXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
-                    var publicMetadataCert = x509dataMetadata.Certificates[0] as X509Certificate2;
+                    var publicMetadataCert = new X509Certificate2(Convert.FromBase64String(xmlMetadata.IDPSSODescriptor.KeyDescriptor.KeyInfo.X509Data.X509Certificate));
                     XmlNodeList nodeList = (signedDocument.GetElementsByTagName("ds:Signature")?.Count > 1) ?
-                                                   signedDocument.GetElementsByTagName("ds:Signature") :
-                                                   (signedDocument.GetElementsByTagName("ns2:Signature")?.Count > 1) ?
-                                                   signedDocument.GetElementsByTagName("ns2:Signature") :
-                                                   signedDocument.GetElementsByTagName("Signature");
+                                                       signedDocument.GetElementsByTagName("ds:Signature") :
+                                                       (signedDocument.GetElementsByTagName("ns2:Signature")?.Count > 1) ?
+                                                       signedDocument.GetElementsByTagName("ns2:Signature") :
+                                                       signedDocument.GetElementsByTagName("Signature");
                     signedXml.LoadXml((XmlElement)nodeList[0]);
                     return signedXml.CheckSignature(publicMetadataCert, true);
                 }
