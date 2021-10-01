@@ -306,7 +306,10 @@ namespace SPID.AspNetCore.Authentication
             }
             if (string.IsNullOrWhiteSpace(xml))
             {
-                using var client = _httpClientFactory.CreateClient("spid");
+                using var httpClientHandler = new HttpClientHandler();
+                httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+                //using var client = _httpClientFactory.CreateClient("spid");
+                using var client = new HttpClient(httpClientHandler);
                 xml = await client.GetStringAsync(urlMetadataIdp);
             }
             if (Options.CacheIdpMetadata
@@ -408,6 +411,15 @@ namespace SPID.AspNetCore.Authentication
                     SamlHandler.GetAuthnResponse(form["SAMLResponse"][0])
                 );
             }
+            else if (HttpMethods.IsGet(Request.Method)
+                && Request.Query.ContainsKey("SAMLResponse")
+                && Request.Query.ContainsKey("RelayState"))
+            {
+                return (
+                    Request.Query["RelayState"].FirstOrDefault(),
+                    SamlHandler.GetAuthnResponse(DecompressString(HttpUtility.UrlDecode(Request.Query["SAMLResponse"].FirstOrDefault())))
+                );
+            }
             return (null, null);
         }
 
@@ -425,7 +437,24 @@ namespace SPID.AspNetCore.Authentication
                     SamlHandler.GetLogoutResponse(form["SAMLResponse"][0])
                 );
             }
+            else if (HttpMethods.IsGet(Request.Method)
+                && Request.Query.ContainsKey("SAMLResponse")
+                && Request.Query.ContainsKey("RelayState"))
+            {
+                return (
+                    Request.Query["RelayState"].FirstOrDefault(),
+                    SamlHandler.GetLogoutResponse(DecompressString(HttpUtility.UrlDecode(Request.Query["SAMLResponse"].FirstOrDefault())))
+                );
+            }
             return (null, null);
+        }
+
+        private static string DecompressString(string value)
+        {
+            using MemoryStream output = new MemoryStream(Convert.FromBase64String(value));
+            using DeflateStream stream = new DeflateStream(output, CompressionMode.Decompress);
+            using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+            return reader.ReadToEnd();
         }
 
         private bool ValidateSignOutResponse(LogoutResponseType response, LogoutRequestType request)
@@ -574,7 +603,7 @@ namespace SPID.AspNetCore.Authentication
 
                 var dict = new Dictionary<string, StringValues>()
                 {
-                    { "SAMLRequest", DeflateString(unsignedSerializedMessage) },
+                    { "SAMLRequest", CompressString(unsignedSerializedMessage) },
                     { "RelayState", samlAuthnRequestId },
                     { "SigAlg", SamlConst.SignatureMethod}
                 };
@@ -588,12 +617,12 @@ namespace SPID.AspNetCore.Authentication
                 return samlEndpoint + queryStringSeparator + BuildURLParametersString(dict).Substring(1);
             }
 
-            private string DeflateString(string value)
+            private string CompressString(string value)
             {
                 using MemoryStream output = new MemoryStream();
-                using (DeflateStream gzip = new DeflateStream(output, CompressionMode.Compress))
+                using (DeflateStream stream = new DeflateStream(output, CompressionMode.Compress))
                 {
-                    using StreamWriter writer = new StreamWriter(gzip, Encoding.UTF8);
+                    using StreamWriter writer = new StreamWriter(stream, Encoding.UTF8);
                     writer.Write(value);
                 }
 
