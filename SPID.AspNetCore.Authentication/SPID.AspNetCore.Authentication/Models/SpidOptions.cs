@@ -101,7 +101,7 @@ namespace SPID.AspNetCore.Authentication.Models
         /// <value>
         /// The index of the assertion consumer service.
         /// </value>
-        public ushort AssertionConsumerServiceIndex { get; set; }
+        public ushort? AssertionConsumerServiceIndex { get; set; }
 
         /// <summary>
         /// Gets or sets the index of the attribute consuming service.

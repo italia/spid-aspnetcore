@@ -42,7 +42,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             string entityId,
             string assertionConsumerServiceURL,
             ushort? assertionConsumerServiceIndex,
-            ushort? attributeConsumingServiceIndex,
+            ushort attributeConsumingServiceIndex,
             X509Certificate2 certificate,
             IdentityProvider identityProvider)
         {
@@ -83,8 +83,8 @@ namespace SPID.AspNetCore.Authentication.Saml
                 },
                 AssertionConsumerServiceURL= assertionConsumerServiceURL,
                 AssertionConsumerServiceIndex = assertionConsumerServiceIndex ?? SamlDefaultSettings.AssertionConsumerServiceIndex,
-                AssertionConsumerServiceIndexSpecified = true,
-                AttributeConsumingServiceIndex = attributeConsumingServiceIndex ?? SamlDefaultSettings.AttributeConsumingServiceIndex,
+                AssertionConsumerServiceIndexSpecified = assertionConsumerServiceIndex.HasValue,
+                AttributeConsumingServiceIndex = attributeConsumingServiceIndex,
                 AttributeConsumingServiceIndexSpecified = true,
                 NameIDPolicy = new NameIDPolicyType
                 {

@@ -16,7 +16,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             options.IsLocalValidatorEnabled = section.GetValue<bool?>("IsLocalValidatorEnabled") ?? false;
             options.AllowUnsolicitedLogins = section.GetValue<bool?>("AllowUnsolicitedLogins") ?? false;
             options.AssertionConsumerServiceURL = section.GetValue<string>("AssertionConsumerServiceURL");
-            options.AssertionConsumerServiceIndex = section.GetValue<ushort?>("AssertionConsumerServiceIndex") ?? 0;
+            options.AssertionConsumerServiceIndex = section.GetValue<ushort?>("AssertionConsumerServiceIndex");
             options.AttributeConsumingServiceIndex = section.GetValue<ushort?>("AttributeConsumingServiceIndex") ?? 0;
             options.CallbackPath = section.GetValue<string>("CallbackPath");
             options.EntityId = section.GetValue<string>("EntityId");
