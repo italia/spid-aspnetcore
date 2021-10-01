@@ -12,7 +12,7 @@ using System.Xml.Serialization;
 
 namespace SPID.AspNetCore.Authentication.Saml
 {
-    public static class SamlHandler
+    internal static class SamlHandler
     {
         private static readonly Dictionary<Type, XmlSerializer> serializers = new Dictionary<Type, XmlSerializer>
         {
@@ -141,19 +141,6 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// </summary>
         /// <param name="base64Response"></param>
         /// <returns>IdpSaml2Response</returns>
-        public static ResponseType GetBase64AuthnResponse(string base64Response)
-        {
-            string idpResponse = null;
-            BusinessValidation.Argument(base64Response, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(base64Response)));
-            BusinessValidation.ValidationTry(() => idpResponse = Encoding.UTF8.GetString(Convert.FromBase64String(base64Response)), ErrorLocalization.SingleSignOnUrlRequired);
-            return GetAuthnResponse(idpResponse);
-        }
-
-        /// <summary>
-        /// Get the IdP Authn Response and extract metadata to the returned DTO class
-        /// </summary>
-        /// <param name="base64Response"></param>
-        /// <returns>IdpSaml2Response</returns>
         public static ResponseType GetAuthnResponse(string serializedResponse)
         {
             BusinessValidation.Argument(serializedResponse, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(serializedResponse)));
@@ -180,10 +167,11 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <param name="metadataIdp">The metadata idp.</param>
         /// <exception cref="Exception">
         /// </exception>
-        public static void ValidateAuthnResponse(this ResponseType response, AuthnRequestType request, EntityDescriptor metadataIdp)
+        public static void ValidateAuthnResponse(this ResponseType response, AuthnRequestType request, EntityDescriptor metadataIdp, string serializedResponse)
         {
             // Verify signature
-            var xmlDoc = response.SerializeToXmlDoc();
+            var xmlDoc = new XmlDocument() { PreserveWhitespace = true };
+            xmlDoc.LoadXml(serializedResponse);
 
             BusinessValidation.ValidationCondition(() => response.Status == null, ErrorLocalization.StatusNotValid);
             BusinessValidation.ValidationCondition(() => response.Status.StatusCode == null, ErrorLocalization.StatusCodeNotValid);
@@ -240,7 +228,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature == null, ErrorLocalization.AssertionSignatureNotFound);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo.GetX509Data().GetBase64X509Certificate() != response.Signature.KeyInfo.GetX509Data().GetBase64X509Certificate(), ErrorLocalization.AssertionSignatureDifferent);
             var metadataXmlDoc = metadataIdp.SerializeToXmlDoc();
-            BusinessValidation.ValidationCondition(() => XmlHelpers.VerifySignature(xmlDoc, metadataXmlDoc), ErrorLocalization.InvalidSignature);
+            BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc, metadataXmlDoc), ErrorLocalization.InvalidSignature);
 
             using var responseCertificate = new X509Certificate2(response.Signature.KeyInfo.GetX509Data().GetRawX509Certificate());
             using var assertionCertificate = new X509Certificate2(response.GetAssertion()?.Signature.KeyInfo.GetX509Data().GetRawX509Certificate());
@@ -473,23 +461,6 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// </summary>
         /// <param name="base64Response"></param>
         /// <returns></returns>
-        public static LogoutResponseType GetBase64LogoutResponse(string base64Response)
-        {
-            string logoutResponse;
-
-            if (String.IsNullOrEmpty(base64Response))
-            {
-                throw new ArgumentNullException("The base64Response parameter can't be null or empty.");
-            }
-
-            return GetLogoutResponse(Encoding.UTF8.GetString(Convert.FromBase64String(base64Response)));
-        }
-
-                /// <summary>
-        /// Get the IdP Logout Response and extract metadata to the returned DTO class
-        /// </summary>
-        /// <param name="base64Response"></param>
-        /// <returns></returns>
         public static LogoutResponseType GetLogoutResponse(string serializedLogoutResponse)
         {
 
@@ -514,11 +485,12 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <param name="response"></param>
         /// <param name="request"></param>
         /// <returns>True if valid, false otherwise</returns>
-        public static bool ValidateLogoutResponse(LogoutResponseType response, LogoutRequestType request)
+        public static bool ValidateLogoutResponse(LogoutResponseType response, LogoutRequestType request, string serializedResponse)
         {
-            var xmlDoc = response.SerializeToXmlDoc();
+            var xmlDoc = new XmlDocument() { PreserveWhitespace = true };
+            xmlDoc.LoadXml(serializedResponse);
 
-            BusinessValidation.ValidationCondition(() => XmlHelpers.VerifySignature(xmlDoc), ErrorLocalization.InvalidSignature);
+            BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc), ErrorLocalization.InvalidSignature);
 
             return (response.InResponseTo == request.ID);
         }

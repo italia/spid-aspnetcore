@@ -102,14 +102,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
                     XmlNodeList nodeList = (signedDocument.GetElementsByTagName("ds:Signature")?.Count > 0) ?
                                            signedDocument.GetElementsByTagName("ds:Signature") :
                                            signedDocument.GetElementsByTagName("Signature");
-
-                    foreach (var node in nodeList)
-                    {
-                        signedXml.LoadXml((XmlElement)node);
-                        if (!signedXml.CheckSignature())
-                            return false;
-                    }
-                    return true;
+                    signedXml.LoadXml((XmlElement)nodeList[0]);
+                    return signedXml.CheckSignature();
                 }
             }
             catch (Exception)
