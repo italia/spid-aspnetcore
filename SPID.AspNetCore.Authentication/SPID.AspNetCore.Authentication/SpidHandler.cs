@@ -105,6 +105,7 @@ namespace SPID.AspNetCore.Authentication
             var message = SamlHandler.GetAuthnRequest(
                 authenticationRequestId,
                 securityTokenCreatingContext.TokenOptions.EntityId,
+                securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceURL,
                 securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceIndex,
                 securityTokenCreatingContext.TokenOptions.AttributeConsumingServiceIndex,
                 securityTokenCreatingContext.TokenOptions.Certificate,
@@ -135,14 +136,14 @@ namespace SPID.AspNetCore.Authentication
             AuthenticationProperties properties = new AuthenticationProperties();
             properties.Load(Request, Options.StateDataFormat);
 
-            var (id, message) = await ExtractInfoFromAuthenticationResponse();
+            var (id, message, serializedResponse) = await ExtractInfoFromAuthenticationResponse();
 
             try
             {
                 var idpName = properties.GetIdentityProviderName();
                 var request = properties.GetAuthenticationRequest();
 
-                var validationMessageResult = await ValidateAuthenticationResponse(message, request, properties, idpName);
+                var validationMessageResult = await ValidateAuthenticationResponse(message, request, properties, idpName, serializedResponse);
                 if (validationMessageResult != null)
                     return validationMessageResult;
 
@@ -236,14 +237,14 @@ namespace SPID.AspNetCore.Authentication
 
         protected virtual async Task<bool> HandleRemoteSignOutAsync()
         {
-            var (id, message) = await ExtractInfoFromSignOutResponse();
+            var (id, message, serializedResponse) = await ExtractInfoFromSignOutResponse();
 
             AuthenticationProperties requestProperties = new AuthenticationProperties();
             requestProperties.Load(Request, Options.StateDataFormat);
 
             var logoutRequest = requestProperties.GetLogoutRequest();
 
-            var validSignOut = ValidateSignOutResponse(message, logoutRequest);
+            var validSignOut = ValidateSignOutResponse(message, logoutRequest, serializedResponse);
             if (!validSignOut)
                 return false;
 
@@ -269,7 +270,7 @@ namespace SPID.AspNetCore.Authentication
             return true;
         }
 
-        private async Task<HandleRequestResult> ValidateAuthenticationResponse(ResponseType response, AuthnRequestType request, AuthenticationProperties properties, string idpName)
+        private async Task<HandleRequestResult> ValidateAuthenticationResponse(ResponseType response, AuthnRequestType request, AuthenticationProperties properties, string idpName, string serializedResponse)
         {
             if (response == null)
             {
@@ -289,8 +290,8 @@ namespace SPID.AspNetCore.Authentication
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
 
             var metadataIdp = await DownloadMetadataIDP(idp.OrganizationUrlMetadata);
-
-            response.ValidateAuthnResponse(request, metadataIdp);
+            
+            response.ValidateAuthnResponse(request, metadataIdp, serializedResponse);
             return null;
         }
 
@@ -306,7 +307,9 @@ namespace SPID.AspNetCore.Authentication
             }
             if (string.IsNullOrWhiteSpace(xml))
             {
-                using var client = _httpClientFactory.CreateClient("spid");
+                using var httpClientHandler = new HttpClientHandler();
+                httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+                using var client = new HttpClient(httpClientHandler);
                 xml = await client.GetStringAsync(urlMetadataIdp);
             }
             if (Options.CacheIdpMetadata
@@ -393,7 +396,7 @@ namespace SPID.AspNetCore.Authentication
             return (returnedPrincipal, new DateTimeOffset(idpAuthnResponse.IssueInstant), new DateTimeOffset(idpAuthnResponse.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter));
         }
 
-        private async Task<(string Id, ResponseType Message)> ExtractInfoFromAuthenticationResponse()
+        private async Task<(string Id, ResponseType Message, string serializedResponse)> ExtractInfoFromAuthenticationResponse()
         {
             if (HttpMethods.IsPost(Request.Method)
               && !string.IsNullOrEmpty(Request.ContentType)
@@ -403,15 +406,28 @@ namespace SPID.AspNetCore.Authentication
             {
                 var form = await Request.ReadFormAsync();
 
+                var serializedResponse = Encoding.UTF8.GetString(Convert.FromBase64String(form["SAMLResponse"][0]));
                 return (
                     form["RelayState"].ToString(),
-                    SamlHandler.GetAuthnResponse(form["SAMLResponse"][0])
+                    SamlHandler.GetAuthnResponse(serializedResponse),
+                    serializedResponse
                 );
             }
-            return (null, null);
+            else if (HttpMethods.IsGet(Request.Method)
+                && Request.Query.ContainsKey("SAMLResponse")
+                && Request.Query.ContainsKey("RelayState"))
+            {
+                var serializedResponse = DecompressString(Request.Query["SAMLResponse"].FirstOrDefault());
+                return (
+                    Request.Query["RelayState"].FirstOrDefault(),
+                    SamlHandler.GetAuthnResponse(serializedResponse),
+                    serializedResponse
+                );
+            }
+            return (null, null, null);
         }
 
-        private async Task<(string Id, LogoutResponseType Message)> ExtractInfoFromSignOutResponse()
+        private async Task<(string Id, LogoutResponseType Message, string serializedResponse)> ExtractInfoFromSignOutResponse()
         {
             if (HttpMethods.IsPost(Request.Method)
               && !string.IsNullOrEmpty(Request.ContentType)
@@ -420,17 +436,38 @@ namespace SPID.AspNetCore.Authentication
             {
                 var form = await Request.ReadFormAsync();
 
+                var serializedResponse = Encoding.UTF8.GetString(Convert.FromBase64String(form["SAMLResponse"][0]));
                 return (
                     form["RelayState"].ToString(),
-                    SamlHandler.GetLogoutResponse(form["SAMLResponse"][0])
+                    SamlHandler.GetLogoutResponse(serializedResponse),
+                    serializedResponse
                 );
             }
-            return (null, null);
+            else if (HttpMethods.IsGet(Request.Method)
+                && Request.Query.ContainsKey("SAMLResponse")
+                && Request.Query.ContainsKey("RelayState"))
+            {
+                var serializedResponse = DecompressString(Request.Query["SAMLResponse"].FirstOrDefault());
+                return (
+                    Request.Query["RelayState"].FirstOrDefault(),
+                    SamlHandler.GetLogoutResponse(serializedResponse),
+                    serializedResponse
+                );
+            }
+            return (null, null, null);
         }
 
-        private bool ValidateSignOutResponse(LogoutResponseType response, LogoutRequestType request)
+        private static string DecompressString(string value)
         {
-            var valid = response.Status.StatusCode.Value == SamlConst.Success && SamlHandler.ValidateLogoutResponse(response, request);
+            using MemoryStream output = new MemoryStream(Convert.FromBase64String(value));
+            using DeflateStream stream = new DeflateStream(output, CompressionMode.Decompress);
+            using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+            return reader.ReadToEnd();
+        }
+
+        private bool ValidateSignOutResponse(LogoutResponseType response, LogoutRequestType request, string serializedResponse)
+        {
+            var valid = response.Status.StatusCode.Value == SamlConst.Success && SamlHandler.ValidateLogoutResponse(response, request, serializedResponse);
             if (valid)
             {
                 return true;
@@ -463,6 +500,7 @@ namespace SPID.AspNetCore.Authentication
                     {
                         EntityId = options.EntityId,
                         Certificate = options.Certificate,
+                        AssertionConsumerServiceURL = options.AssertionConsumerServiceURL,
                         AssertionConsumerServiceIndex = options.AssertionConsumerServiceIndex,
                         AttributeConsumingServiceIndex = idp.AttributeConsumingServiceIndex
                     }
@@ -574,7 +612,7 @@ namespace SPID.AspNetCore.Authentication
 
                 var dict = new Dictionary<string, StringValues>()
                 {
-                    { "SAMLRequest", DeflateString(unsignedSerializedMessage) },
+                    { "SAMLRequest", CompressString(unsignedSerializedMessage) },
                     { "RelayState", samlAuthnRequestId },
                     { "SigAlg", SamlConst.SignatureMethod}
                 };
@@ -588,12 +626,12 @@ namespace SPID.AspNetCore.Authentication
                 return samlEndpoint + queryStringSeparator + BuildURLParametersString(dict).Substring(1);
             }
 
-            private string DeflateString(string value)
+            private string CompressString(string value)
             {
                 using MemoryStream output = new MemoryStream();
-                using (DeflateStream gzip = new DeflateStream(output, CompressionMode.Compress))
+                using (DeflateStream stream = new DeflateStream(output, CompressionMode.Compress))
                 {
-                    using StreamWriter writer = new StreamWriter(gzip, Encoding.UTF8);
+                    using StreamWriter writer = new StreamWriter(stream, Encoding.UTF8);
                     writer.Write(value);
                 }
 

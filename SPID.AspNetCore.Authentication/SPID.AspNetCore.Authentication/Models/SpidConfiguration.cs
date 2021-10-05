@@ -54,12 +54,20 @@ namespace SPID.AspNetCore.Authentication.Models
         public string EntityId { get; set; }
 
         /// <summary>
+        /// Gets or sets the URL of the assertion consumer service.
+        /// </summary>
+        /// <value>
+        /// The index of the assertion consumer service.
+        /// </value>
+        public string AssertionConsumerServiceURL { get; set; }
+
+        /// <summary>
         /// Gets or sets the index of the assertion consumer service.
         /// </summary>
         /// <value>
         /// The index of the assertion consumer service.
         /// </value>
-        public ushort AssertionConsumerServiceIndex { get; set; }
+        public ushort? AssertionConsumerServiceIndex { get; set; }
 
         /// <summary>
         /// Gets or sets the index of the attribute consuming service.

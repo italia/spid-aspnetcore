@@ -40,8 +40,9 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <returns>Returns a Base64 Encoded String of the SAML request</returns>
         public static AuthnRequestType GetAuthnRequest(string requestId,
             string entityId,
+            string assertionConsumerServiceURL,
             ushort? assertionConsumerServiceIndex,
-            ushort? attributeConsumingServiceIndex,
+            ushort attributeConsumingServiceIndex,
             X509Certificate2 certificate,
             IdentityProvider identityProvider)
         {
@@ -80,9 +81,10 @@ namespace SPID.AspNetCore.Authentication.Saml
                     Format = SamlConst.IssuerFormat,
                     NameQualifier = entityId
                 },
+                AssertionConsumerServiceURL= assertionConsumerServiceURL,
                 AssertionConsumerServiceIndex = assertionConsumerServiceIndex ?? SamlDefaultSettings.AssertionConsumerServiceIndex,
-                AssertionConsumerServiceIndexSpecified = true,
-                AttributeConsumingServiceIndex = attributeConsumingServiceIndex ?? SamlDefaultSettings.AttributeConsumingServiceIndex,
+                AssertionConsumerServiceIndexSpecified = assertionConsumerServiceIndex.HasValue,
+                AttributeConsumingServiceIndex = attributeConsumingServiceIndex,
                 AttributeConsumingServiceIndexSpecified = true,
                 NameIDPolicy = new NameIDPolicyType
                 {
@@ -141,15 +143,13 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// </summary>
         /// <param name="base64Response"></param>
         /// <returns>IdpSaml2Response</returns>
-        public static ResponseType GetAuthnResponse(string base64Response)
+        public static ResponseType GetAuthnResponse(string serializedResponse)
         {
-            string idpResponse = null;
-            BusinessValidation.Argument(base64Response, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(base64Response)));
-            BusinessValidation.ValidationTry(() => idpResponse = Encoding.UTF8.GetString(Convert.FromBase64String(base64Response)), ErrorLocalization.SingleSignOnUrlRequired);
+            BusinessValidation.Argument(serializedResponse, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(serializedResponse)));
             ResponseType response = null;
             try
             {
-                response = DeserializeMessage<ResponseType>(idpResponse);
+                response = DeserializeMessage<ResponseType>(serializedResponse);
 
                 BusinessValidation.ValidationCondition(() => response == null, ErrorLocalization.ResponseNotValid);
 
@@ -169,10 +169,11 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <param name="metadataIdp">The metadata idp.</param>
         /// <exception cref="Exception">
         /// </exception>
-        public static void ValidateAuthnResponse(this ResponseType response, AuthnRequestType request, EntityDescriptor metadataIdp)
+        public static void ValidateAuthnResponse(this ResponseType response, AuthnRequestType request, EntityDescriptor metadataIdp, string serializedResponse)
         {
             // Verify signature
-            var xmlDoc = response.SerializeToXmlDoc();
+            var xmlDoc = new XmlDocument() { PreserveWhitespace = true };
+            xmlDoc.LoadXml(serializedResponse);
 
             BusinessValidation.ValidationCondition(() => response.Status == null, ErrorLocalization.StatusNotValid);
             BusinessValidation.ValidationCondition(() => response.Status.StatusCode == null, ErrorLocalization.StatusCodeNotValid);
@@ -227,16 +228,9 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => response.Signature == null, ErrorLocalization.ResponseSignatureNotFound);
             BusinessValidation.ValidationCondition(() => response?.GetAssertion() == null, ErrorLocalization.ResponseAssertionNotFound);
             BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature == null, ErrorLocalization.AssertionSignatureNotFound);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo.GetX509Data().GetBase64X509Certificate() != response.Signature.KeyInfo.GetX509Data().GetBase64X509Certificate(), ErrorLocalization.AssertionSignatureDifferent);
-            var metadataXmlDoc = metadataIdp.SerializeToXmlDoc();
-            BusinessValidation.ValidationCondition(() => XmlHelpers.VerifySignature(xmlDoc, metadataXmlDoc), ErrorLocalization.InvalidSignature);
-
-            using var responseCertificate = new X509Certificate2(response.Signature.KeyInfo.GetX509Data().GetRawX509Certificate());
-            using var assertionCertificate = new X509Certificate2(response.GetAssertion()?.Signature.KeyInfo.GetX509Data().GetRawX509Certificate());
-            using var idpCertificate = new X509Certificate2(Convert.FromBase64String(metadataIdp.IDPSSODescriptor.KeyDescriptor.KeyInfo.X509Data.X509Certificate));
-
-            BusinessValidation.ValidationCondition(() => responseCertificate.Thumbprint != idpCertificate.Thumbprint, ErrorLocalization.ResponseSignatureNotValid);
-            BusinessValidation.ValidationCondition(() => assertionCertificate.Thumbprint != idpCertificate.Thumbprint, ErrorLocalization.AssertionSignatureNotValid);
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo?.GetX509Data()?.GetBase64X509Certificate() != response.Signature.KeyInfo?.GetX509Data()?.GetBase64X509Certificate(), ErrorLocalization.AssertionSignatureDifferent);
+            //var metadataXmlDoc = metadataIdp.SerializeToXmlDoc();
+            BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc, metadataIdp), ErrorLocalization.InvalidSignature);
 
             BusinessValidation.ValidationCondition(() => response.Version != SamlConst.Version, ErrorLocalization.VersionNotValid);
             BusinessValidation.ValidationNotNullNotWhitespace(response.ID, nameof(response.ID));
@@ -299,9 +293,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationNotNullNotWhitespace(response.Destination, nameof(response.Destination));
 
             if (!string.IsNullOrWhiteSpace(request.AssertionConsumerServiceURL))
-            {
                 BusinessValidation.ValidationCondition(() => !response.Destination.Equals(request.AssertionConsumerServiceURL), string.Format(ErrorLocalization.DifferentFrom, nameof(response.Destination), nameof(request.AssertionConsumerServiceURL)));
-            }
 
             BusinessValidation.ValidationNotNullNotEmpty(response.Status, nameof(response.Status));
 
@@ -338,10 +330,10 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.SubjectConfirmationData.Recipient"));
             BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient), string.Format(ErrorLocalization.Missing, "Assertion.SubjectConfirmationData.Recipient"));
             BusinessValidation.ValidationCondition(() => !response.Destination.Equals(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient, StringComparison.OrdinalIgnoreCase), ErrorLocalization.InvalidDestination);
+
             if (!string.IsNullOrWhiteSpace(request.AssertionConsumerServiceURL))
-            {
                 BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient.Equals(request.AssertionConsumerServiceURL), string.Format(ErrorLocalization.DifferentFrom, "Assertion.SubjectConfirmationData.Recipient", "Request"));
-            }
+
             BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.InResponseTo, ErrorFields.InResponseTo);
             BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.InResponseTo.Equals(request.ID), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.InResponseTo));
 
@@ -462,27 +454,17 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// </summary>
         /// <param name="base64Response"></param>
         /// <returns></returns>
-        public static LogoutResponseType GetLogoutResponse(string base64Response)
+        public static LogoutResponseType GetLogoutResponse(string serializedLogoutResponse)
         {
-            string logoutResponse;
 
-            if (String.IsNullOrEmpty(base64Response))
+            if (String.IsNullOrEmpty(serializedLogoutResponse))
             {
-                throw new ArgumentNullException("The base64Response parameter can't be null or empty.");
+                throw new ArgumentNullException("The serializedLogoutResponse parameter can't be null or empty.");
             }
 
             try
             {
-                logoutResponse = Encoding.UTF8.GetString(Convert.FromBase64String(base64Response));
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException("Unable to converto base64 response to ascii string.", ex);
-            }
-
-            try
-            {
-                return DeserializeMessage<LogoutResponseType>(logoutResponse);
+                return DeserializeMessage<LogoutResponseType>(serializedLogoutResponse);
             }
             catch (Exception ex)
             {
@@ -496,11 +478,12 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <param name="response"></param>
         /// <param name="request"></param>
         /// <returns>True if valid, false otherwise</returns>
-        public static bool ValidateLogoutResponse(LogoutResponseType response, LogoutRequestType request)
+        public static bool ValidateLogoutResponse(LogoutResponseType response, LogoutRequestType request, string serializedResponse)
         {
-            var xmlDoc = response.SerializeToXmlDoc();
+            var xmlDoc = new XmlDocument() { PreserveWhitespace = true };
+            xmlDoc.LoadXml(serializedResponse);
 
-            BusinessValidation.ValidationCondition(() => XmlHelpers.VerifySignature(xmlDoc), ErrorLocalization.InvalidSignature);
+            BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc), ErrorLocalization.InvalidSignature);
 
             return (response.InResponseTo == request.ID);
         }
