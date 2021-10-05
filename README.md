@@ -249,6 +249,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
     "IsLocalValidatorEnabled": false,
     "IsStagingValidatorEnabled": true,
     "EntityId": "https://entityID",
+    "AssertionConsumerServiceURL": "https://localhost:5001/signin-spid",
     "AssertionConsumerServiceIndex": 0,
     "AttributeConsumingServiceIndex": 0,
     "RandomIdentityProvidersOrder": false
@@ -258,6 +259,7 @@ La configurazione del certificato del SP avviene specificando nel campo `Source`
 
 In alternativa, è possibile configurare tutte le suddette opzioni programmaticamente, dal metodo `AddSpid(options => ...)`.
 Gli endpoint di callback per le attività di signin e signout sono impostati di default, rispettivamente, a `/signin-spid` e `/signout-spid`, ma laddove fosse necessario modificare queste impostazioni, è possibile sovrascriverle (sia da configurazione che da codice) reimpostando le options `CallbackPath` e `RemoteSignOutPath`.
+I valori di AssertionConsumerServiceIndex e AssertionConsumerServiceURL sono mutuamente esclusivi, è possibile indicare l'uno o l'altro, ma l'indicazione di entrambi causa la restituzione del codice di errore n.16 da parte dell'IdentityProvider.
 
 # Punti d'estensione
 E' possibile intercettare le varie fasi di esecuzione del RemoteAuthenticator, effettuando l'override degli eventi esposti dalla option Events, ed eventualmente utilizzare la DependencyInjection per avere a disposizione i vari servizi configurati nella webapp.
