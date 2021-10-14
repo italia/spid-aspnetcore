@@ -249,6 +249,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
     "IsLocalValidatorEnabled": false,
     "IsStagingValidatorEnabled": true,
     "EntityId": "https://entityID",
+    "AssertionConsumerServiceURL": "https://localhost:5001/signin-spid",
     "AssertionConsumerServiceIndex": 0,
     "AttributeConsumingServiceIndex": 0,
     "RandomIdentityProvidersOrder": false
@@ -258,6 +259,7 @@ La configurazione del certificato del SP avviene specificando nel campo `Source`
 
 In alternativa, è possibile configurare tutte le suddette opzioni programmaticamente, dal metodo `AddSpid(options => ...)`.
 Gli endpoint di callback per le attività di signin e signout sono impostati di default, rispettivamente, a `/signin-spid` e `/signout-spid`, ma laddove fosse necessario modificare queste impostazioni, è possibile sovrascriverle (sia da configurazione che da codice) reimpostando le options `CallbackPath` e `RemoteSignOutPath`.
+I valori di AssertionConsumerServiceIndex e AssertionConsumerServiceURL sono mutuamente esclusivi, è possibile indicare l'uno o l'altro, ma l'indicazione di entrambi causa la restituzione del codice di errore n.16 da parte dell'IdentityProvider.
 
 # Punti d'estensione
 E' possibile intercettare le varie fasi di esecuzione del RemoteAuthenticator, effettuando l'override degli eventi esposti dalla option Events, ed eventualmente utilizzare la DependencyInjection per avere a disposizione i vari servizi configurati nella webapp.
@@ -318,6 +320,63 @@ public class CustomSpidEvents : SpidEvents
         return base.AuthenticationSuccess(context);
     }
 
+}
+```
+
+Inoltre è possibile usare gli SpidEvents per implementare il log obbligatorio delle request e delle response SAML, come previsto dalle regole tecniche e dalla convenzione.
+Di seguito un esempio che fa uso di uno storage esterno per conservare i log serializzati xml delle request e delle response SAML:
+
+```csharp
+private static XmlSerializer loginRequestSerializer = new XmlSerializer(typeof(AuthnRequestType));
+private static XmlSerializer logoutRequestSerializer = new XmlSerializer(typeof(LogoutRequestType));
+public override async Task RedirectToIdentityProvider(RedirectContext context)
+{
+    using MemoryStream stream = new MemoryStream();
+    string id = string.Empty;
+    if (context.SignedProtocolMessage is AuthnRequestType loginRequest)
+    {
+        id = loginRequest.ID;
+        loginRequestSerializer.Serialize(stream, loginRequest);
+    }
+    else if (context.SignedProtocolMessage is LogoutRequestType logoutRequest)
+    {
+        id = logoutRequest.ID;
+        logoutRequestSerializer.Serialize(stream, logoutRequest);
+    }
+
+    stream.Position = 0;
+
+    await _fileStorage.UploadFileAsync("spid", $"{id}_Request", stream, "application/xml", $"{id}_Request");
+
+    await base.RedirectToIdentityProvider(context);
+}
+
+private static XmlSerializer loginResponseSerializer = new XmlSerializer(typeof(ResponseType));
+public override async Task MessageReceived(MessageReceivedContext context)
+{
+    var id = context.ProtocolMessage.InResponseTo;
+    using MemoryStream stream = new MemoryStream();
+    loginResponseSerializer.Serialize(stream, context.ProtocolMessage);
+
+    stream.Position = 0;
+
+    await _fileStorage.UploadFileAsync("spid", $"{id}_Response", stream, "application/xml", $"{id}_Response");
+
+    await base.MessageReceived(context);
+}
+
+private static XmlSerializer logoutResponseSerializer = new XmlSerializer(typeof(LogoutResponseType));
+public override async Task RemoteSignOut(RemoteSignOutContext context)
+{
+    var id = context.ProtocolMessage.InResponseTo;
+    using MemoryStream stream = new MemoryStream();
+    logoutResponseSerializer.Serialize(stream, context.ProtocolMessage);
+
+    stream.Position = 0;
+
+    await _fileStorage.UploadFileAsync("spid", $"{id}_Response", stream, "application/xml", $"{id}_Response");
+
+    await base.RemoteSignOut(context);
 }
 ```
 
