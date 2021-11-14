@@ -19,10 +19,10 @@ jobs:
         dotnet-version: 5.0.x
     - name: Restore dependencies
       run: dotnet restore
-      working-directory: SPID.AspNetCore.Authentication
+      working-directory: samples/1_SimpleSPWebApp
     - name: Build
       run: dotnet build --no-restore
-      working-directory: SPID.AspNetCore.Authentication
+      working-directory: samples/1_SimpleSPWebApp
     - name: Update apt repo
       run: sudo apt update
     - name: Install dependencies
@@ -30,7 +30,7 @@ jobs:
     - name: Install spid-sp-test
       run: sudo pip install spid-sp-test --upgrade --no-cache
     - name: Run SPID.AspNetCore.WebApp
-      working-directory: SPID.AspNetCore.Authentication/SPID.AspNetCore.WebApp
+      working-directory: samples/1_SimpleSPWebApp/SPID.AspNetCore.WebApp
       run: dotnet bin/Debug/net5.0/SPID.AspNetCore.WebApp.dll &
     - name: Test with spid-sp-test
       run: spid_sp_test --metadata-url https://localhost:5001/spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-ag-public-full -tr
