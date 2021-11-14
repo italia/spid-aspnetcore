@@ -30,7 +30,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-In questo modo vengono aggiunti i middleware necessari per la gestione delle richieste/risposte di login/logout da/verso SPID.
+In questo modo vengono aggiunti i middleware necessari per la gestione delle richieste/risposte di login/logout da/verso SPID. Tali middleware aggiungono alla webapp gli endpoint `/signin-spid` e `/signout-spid` sui quali la libreria è in ascolto per interpretare le risposte rispettivamente di Login e Logout provenienti dagli IdentityProvider di spid. Tali endpoint, nella loro URL assoluta, e quindi comprensivi di schema e hostname (ad esempio `https://webapp.customdomain.it/signin-spid` e `https://webapp.customdomain.it/signin-spid`), devono essere indicati rispettivamente nei tag `AssertionConsumerService` e `SingleLogoutService` del metadata del SP.
 
 Nella libreria è inclusa anche l'implementazione di un TagHelper per la renderizzazione (conforme alle specifiche) del pulsante "Entra con SPID".
 Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla View Razor dove lo si desidera posizionare:
@@ -248,7 +248,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
 La configurazione del certificato del SP avviene specificando nel campo `Source` uno tra i valori `Store/File/Raw/None` (nel caso di `None` non verrà caricato un certificato durante lo startup, ma sarà necessario fornirne uno a runtime, tramite l'uso dei `CustomSpidEvents`, che verranno presentati più nel dettaglio nella sezione successiva) e compilando opportunamente la sezione corrispondente al valore specificato. Le sezioni non usate (quelle cioè corrispondenti agli altri valori) potranno essere tranquillamente eliminate dal file di configurazione, dal momento che non verranno lette.
 
 In alternativa, è possibile configurare tutte le suddette opzioni programmaticamente, dal metodo `AddSpid(options => ...)`.
-Gli endpoint di callback per le attività di signin e signout sono impostati di default, rispettivamente, a `/signin-spid` e `/signout-spid` (che, come URL assoluta, e quindi comprensivi di schema e hostname, devono essere indicati rispettivamente nei tag `AssertionConsumerService` e `SingleLogoutService` del metadata del SP), ma laddove fosse necessario modificare queste impostazioni, è possibile sovrascriverle (sia da configurazione che da codice) reimpostando le options `CallbackPath` e `RemoteSignOutPath`.
+Gli endpoint di callback per le attività di signin e signout sono impostati di default, rispettivamente, a `/signin-spid` e `/signout-spid` (che, sotto forma di URL assoluta, e quindi comprensivi di schema e hostname, devono essere indicati rispettivamente nei tag `AssertionConsumerService` e `SingleLogoutService` del metadata del SP), ma laddove fosse necessario modificare queste impostazioni, è possibile sovrascriverle (sia da configurazione che da codice) reimpostando le options `CallbackPath` e `RemoteSignOutPath`.
 I valori di AssertionConsumerServiceIndex e AssertionConsumerServiceURL sono mutuamente esclusivi, è possibile indicare l'uno o l'altro, ma l'indicazione di entrambi causa la restituzione del codice di errore n.16 da parte dell'IdentityProvider.
 
 # Punti d'estensione
@@ -478,6 +478,11 @@ Se la WebApp utilizza Bootstrap, è necessario aggiungere la seguente classe al 
   box-sizing: content-box;
 }
 ```
+
+#Esempi
+All'interno della cartella `samples` è possibile trovare alcune implementazioni esemplificative di webapp che fanno uso della libreria:
+- 1_SimpleSPWebApp: semplice webapp AspNetCore MVC che utilizza Spid come sistema di login
+- 2_IdentityServer: implementazione di una istanza di IdentityServer4 (che fa da IAM proxy OIDC verso Spid) che utilizza Spid come sistema di login esterna, e una webapp MVC federata con l'istanza di IdentityServer4. 
 
 # Compliance
 La libreria è stata oggetto di collaudo da parte di AGID, sia per soluzioni come ServiceProvider che come Aggregatore, ha superato tutti i test di [spid-sp-test](https://github.com/italia/spid-sp-test) (che è integrata in CI, è possibile vedere i log nelle actions), ed è compliant con le direttive specificate negli avvisi SPID.
