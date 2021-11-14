@@ -479,10 +479,13 @@ Se la WebApp utilizza Bootstrap, è necessario aggiungere la seguente classe al 
 }
 ```
 
-#Esempi
+# Esempi
 All'interno della cartella `samples` è possibile trovare alcune implementazioni esemplificative di webapp che fanno uso della libreria:
+
 - 1_SimpleSPWebApp: semplice webapp AspNetCore MVC che utilizza Spid come sistema di login
-- 2_IdentityServer: implementazione di una istanza di IdentityServer4 (che fa da IAM proxy OIDC verso Spid) che utilizza Spid come sistema di login esterna, e una webapp MVC federata con l'istanza di IdentityServer4. 
+- 2_IdentityServer: implementazione di una istanza di IdentityServer4 (che fa da IAM proxy OIDC verso Spid) che utilizza Spid come sistema di login esterna, e una webapp MVC federata con l'istanza di IdentityServer4
+
+Questi esempi sono solo esemplificativi dell'integrazione con la libreria, non devono essere utilizzati "as-is" in ambienti di produzione.
 
 # Compliance
 La libreria è stata oggetto di collaudo da parte di AGID, sia per soluzioni come ServiceProvider che come Aggregatore, ha superato tutti i test di [spid-sp-test](https://github.com/italia/spid-sp-test) (che è integrata in CI, è possibile vedere i log nelle actions), ed è compliant con le direttive specificate negli avvisi SPID.
