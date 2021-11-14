@@ -80,24 +80,32 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://validator.spid.gov.it/img/idp-logo.png",
         "SingleSignOnServiceUrl": "https://validator.spid.gov.it/samlsso",
         "SingleSignOutServiceUrl": "https://validator.spid.gov.it/samlsso",
-	"SecurityLevel": 2,
-	"Method": "Post",
-        "Type": "StagingProvider",
-        "PerformFullResponseValidation": true
+        "Method": "Post",
+        "Type": "StagingProvider"
       },
       {
-        "Name": "Local",
-        "OrganizationName": "Local",
-        "OrganizationDisplayName": "Local",
-        "OrganizationUrlMetadata": "http://localhost:8088/metadata",
+        "Name": "SpidSpTest",
+        "OrganizationName": "SpidSpTest",
+        "OrganizationDisplayName": "SpidSpTest",
+        "OrganizationUrlMetadata": "https://localhost:5001/spid/idp_metadata.xml",
         "OrganizationUrl": "https://github.com/italia/spid-testenv-docker",
         "OrganizationLogoUrl": "https://validator.spid.gov.it/img/idp-logo.png",
-        "SingleSignOnServiceUrl": "http://localhost:8088/sso",
-        "SingleSignOutServiceUrl": "http://localhost:8088/slo",
-	"SecurityLevel": 2,
+        "SingleSignOnServiceUrl": "https://localhost:8080/samlsso",
+        "SingleSignOutServiceUrl": "https://localhost:8080/samlsso",
         "Method": "Post",
-        "Type": "DevelopmentProvider",
-        "PerformFullResponseValidation": false
+        "Type": "DevelopmentProvider"
+      },
+      {
+        "Name": "DemoSpid",
+        "OrganizationName": "DemoSpid",
+        "OrganizationDisplayName": "DemoSpid",
+        "OrganizationUrlMetadata": "https://demo.spid.gov.it/validator/metadata.xml",
+        "OrganizationUrl": "https://demo.spid.gov.it",
+        "OrganizationLogoUrl": "https://validator.spid.gov.it/img/idp-logo.png",
+        "SingleSignOnServiceUrl": "https://demo.spid.gov.it/validator/samlsso",
+        "SingleSignOutServiceUrl": "https://demo.spid.gov.it/validator/samlsso",
+        "Method": "Post",
+        "Type": "DevelopmentProvider"
       },
       {
         "Name": "Aruba",
@@ -108,10 +116,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-arubaid.png",
         "SingleSignOnServiceUrl": "https://loginspid.aruba.it/ServiceLoginWelcome",
         "SingleSignOutServiceUrl": "https://loginspid.aruba.it/ServiceLogoutRequest",
-	"SecurityLevel": 2,
         "Method": "Post",
-        "Type": "IdentityProvider",
-        "PerformFullResponseValidation": false
+        "Type": "IdentityProvider"
       },
       {
         "Name": "Poste",
@@ -122,10 +128,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-posteid.png",
         "SingleSignOnServiceUrl": "https://posteid.poste.it/jod-fs/ssoservicepost",
         "SingleSignOutServiceUrl": "https://posteid.poste.it/jod-fs/sloservicepost",
-	"SecurityLevel": 2,
         "Method": "Post",
-        "Type": "IdentityProvider",
-        "PerformFullResponseValidation": false
+        "Type": "IdentityProvider"
       },
       {
         "Name": "Intesa",
@@ -136,10 +140,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-intesaid.png",
         "SingleSignOnServiceUrl": "https://spid.intesa.it/Time4UserServices/services/idp/AuthnRequest/",
         "SingleSignOutServiceUrl": "https://spid.intesa.it/Time4UserServices/services/idp/SingleLogout",
-	"SecurityLevel": 2,
         "Method": "Post",
-        "Type": "IdentityProvider",
-        "PerformFullResponseValidation": false
+        "Type": "IdentityProvider"
       },
       {
         "Name": "Infocert",
@@ -150,10 +152,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-infocertid.png",
         "SingleSignOnServiceUrl": "https://identity.infocert.it/spid/samlsso",
         "SingleSignOutServiceUrl": "https://identity.infocert.it/spid/samlslo",
-	"SecurityLevel": 2,
         "Method": "Post",
-        "Type": "IdentityProvider",
-        "PerformFullResponseValidation": false
+        "Type": "IdentityProvider"
       },
       {
         "Name": "Lepida",
@@ -164,10 +164,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://id.lepida.it/idm/app/pubblica/lepida_spid.png",
         "SingleSignOnServiceUrl": "https://id.lepida.it/idp/profile/SAML2/POST/SSO",
         "SingleSignOutServiceUrl": "https://id.lepida.it/idp/profile/SAML2/POST/SLO",
-	"SecurityLevel": 2,
         "Method": "Post",
-        "Type": "IdentityProvider",
-        "PerformFullResponseValidation": false
+        "Type": "IdentityProvider"
       },
       {
         "Name": "Namirial",
@@ -178,10 +176,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-namirialid.png",
         "SingleSignOnServiceUrl": "https://idp.namirialtsp.com/idp/profile/SAML2/POST/SSO",
         "SingleSignOutServiceUrl": "https://idp.namirialtsp.com/idp/profile/SAML2/POST/SLO",
-	"SecurityLevel": 2,
         "Method": "Post",
-        "Type": "IdentityProvider",
-        "PerformFullResponseValidation": false
+        "Type": "IdentityProvider"
       },
       {
         "Name": "Register",
@@ -192,10 +188,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-spiditalia.png",
         "SingleSignOnServiceUrl": "https://spid.register.it/login/sso",
         "SingleSignOutServiceUrl": "https://spid.register.it/login/singleLogout",
-	"SecurityLevel": 2,
         "Method": "Post",
-        "Type": "IdentityProvider",
-        "PerformFullResponseValidation": false
+        "Type": "IdentityProvider"
       },
       {
         "Name": "Sielte",
@@ -206,11 +200,9 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-sielteid.png",
         "SingleSignOnServiceUrl": "https://identity.sieltecloud.it/simplesaml/saml2/idp/SSO.php",
         "SingleSignOutServiceUrl": "https://identity.sieltecloud.it/simplesaml/saml2/idp/SLO.php",
-	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
-        "NowDelta": -2,
-        "PerformFullResponseValidation": false
+        "NowDelta": -2
       },
       {
         "Name": "Tim",
@@ -221,11 +213,9 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-timid.png",
         "SingleSignOnServiceUrl": "https://login.id.tim.it/affwebservices/public/saml2sso",
         "SingleSignOutServiceUrl": "https://login.id.tim.it/affwebservices/public/saml2slo",
-	"SecurityLevel": 2,
         "Method": "Post",
         "Type": "IdentityProvider",
-        "NowDelta": -2,
-        "PerformFullResponseValidation": false
+        "NowDelta": -2
       }
     ],
     "Certificate": {
@@ -258,7 +248,7 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
 La configurazione del certificato del SP avviene specificando nel campo `Source` uno tra i valori `Store/File/Raw/None` (nel caso di `None` non verrà caricato un certificato durante lo startup, ma sarà necessario fornirne uno a runtime, tramite l'uso dei `CustomSpidEvents`, che verranno presentati più nel dettaglio nella sezione successiva) e compilando opportunamente la sezione corrispondente al valore specificato. Le sezioni non usate (quelle cioè corrispondenti agli altri valori) potranno essere tranquillamente eliminate dal file di configurazione, dal momento che non verranno lette.
 
 In alternativa, è possibile configurare tutte le suddette opzioni programmaticamente, dal metodo `AddSpid(options => ...)`.
-Gli endpoint di callback per le attività di signin e signout sono impostati di default, rispettivamente, a `/signin-spid` e `/signout-spid`, ma laddove fosse necessario modificare queste impostazioni, è possibile sovrascriverle (sia da configurazione che da codice) reimpostando le options `CallbackPath` e `RemoteSignOutPath`.
+Gli endpoint di callback per le attività di signin e signout sono impostati di default, rispettivamente, a `/signin-spid` e `/signout-spid` (che, come URL assoluta, e quindi comprensivi di schema e hostname, devono essere indicati rispettivamente nei tag `AssertionConsumerService` e `SingleLogoutService` del metadata del SP), ma laddove fosse necessario modificare queste impostazioni, è possibile sovrascriverle (sia da configurazione che da codice) reimpostando le options `CallbackPath` e `RemoteSignOutPath`.
 I valori di AssertionConsumerServiceIndex e AssertionConsumerServiceURL sono mutuamente esclusivi, è possibile indicare l'uno o l'altro, ma l'indicazione di entrambi causa la restituzione del codice di errore n.16 da parte dell'IdentityProvider.
 
 # Punti d'estensione
