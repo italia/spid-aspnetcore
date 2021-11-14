@@ -34,12 +34,12 @@ namespace SPID.AspNetCore.IdentityServerSample.IdentityServer
                 SpidClaimTypes.PlaceOfBirth.Value,
                 SpidClaimTypes.RegisteredOffice.Value,
                 SpidClaimTypes.SpidCode.Value,
-                //SpidClaimTypes.CompanyFiscalNumber.Value,
-                //SpidClaimTypes.DomicileStreetAddress.Value,
-                //SpidClaimTypes.DomicilePostalCode.Value,
-                //SpidClaimTypes.DomicileMunicipality.Value,
-                //SpidClaimTypes.DomicileProvince.Value,
-                //SpidClaimTypes.DomicileNation.Value,
+                SpidClaimTypes.CompanyFiscalNumber.Value,
+                SpidClaimTypes.DomicileStreetAddress.Value,
+                SpidClaimTypes.DomicilePostalCode.Value,
+                SpidClaimTypes.DomicileMunicipality.Value,
+                SpidClaimTypes.DomicileProvince.Value,
+                SpidClaimTypes.DomicileNation.Value,
             };
         }
     }
