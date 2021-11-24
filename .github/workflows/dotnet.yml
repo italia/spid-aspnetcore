@@ -1,6 +1,6 @@
 name: .NET
 
-on: [push, pull_request]
+on:[push, pull_request]
 
 jobs:
   build:
@@ -25,14 +25,20 @@ jobs:
       run: sudo apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3-pip
     - name: Install spid-sp-test
       run: sudo pip install spid-sp-test --upgrade --no-cache
-    - name: Run Tests
+    - name: Run SPID.AspNetCore.WebApp
       working-directory: samples/1_SimpleSPWebApp/SPID.AspNetCore.WebApp
-      run: |
-        dotnet bin/Debug/net5.0/SPID.AspNetCore.WebApp.dll &
-        spid_sp_test --metadata-url https://localhost:5001/spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-ag-public-full -tr
-        spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata.xml --extra --debug ERROR --profile spid-sp-public
-        spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata1.xml --extra --debug ERROR --profile spid-sp-private 
-        spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata2.xml --extra --debug ERROR --profile spid-sp-ag-public-full
-        spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata4.xml --extra --debug ERROR --profile spid-sp-ag-public-lite
-        spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata6.xml --extra --debug ERROR --profile spid-sp-op-public-full
-        spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata7.xml --extra --debug ERROR --profile spid-sp-op-public-lite
+      run: dotnet bin/Debug/net5.0/SPID.AspNetCore.WebApp.dll &
+    - name: Test Requests/Responses with spid-sp-test
+      run: spid_sp_test --metadata-url https://localhost:5001/spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-ag-public-full -tr
+    - name: Test Metadata spid-sp-public with spid-sp-test
+      run: spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata.xml --extra --debug ERROR --profile spid-sp-public
+    - name: Test Metadata spid-sp-private with spid-sp-test
+      run: spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata1.xml --extra --debug ERROR --profile spid-sp-private 
+    - name: Test Metadata spid-sp-ag-public-full with spid-sp-test
+      run: spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata2.xml --extra --debug ERROR --profile spid-sp-ag-public-full
+    - name: Test Metadata spid-sp-ag-public-lite with spid-sp-test
+      run: spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata4.xml --extra --debug ERROR --profile spid-sp-ag-public-lite
+    - name: Test Metadata spid-sp-op-public-full with spid-sp-test
+      run: spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata6.xml --extra --debug ERROR --profile spid-sp-op-public-full
+    - name: Test Metadata spid-sp-op-public-lite with spid-sp-test
+      run: spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata7.xml --extra --debug ERROR --profile spid-sp-op-public-lite
