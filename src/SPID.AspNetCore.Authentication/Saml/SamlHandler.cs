@@ -20,6 +20,9 @@ namespace SPID.AspNetCore.Authentication.Saml
             { typeof(ResponseType), new XmlSerializer(typeof(ResponseType)) },
             { typeof(LogoutRequestType), new XmlSerializer(typeof(LogoutRequestType)) },
             { typeof(LogoutResponseType), new XmlSerializer(typeof(LogoutResponseType)) },
+            { typeof(Aggregated.EntityDescriptorType), new XmlSerializer(typeof(Aggregated.EntityDescriptorType)) },
+            { typeof(SP.EntityDescriptorType), new XmlSerializer(typeof(SP.EntityDescriptorType)) },
+            { typeof(SPAv29.EntityDescriptorType), new XmlSerializer(typeof(SPAv29.EntityDescriptorType)) },
         };
         private static readonly List<string> listAuthRefValid = new List<string>
         {
@@ -123,19 +126,31 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <param name="certificate">The certificate.</param>
         /// <param name="uuid">The UUID.</param>
         /// <returns></returns>
-        public static string SignRequest<T>(T message, X509Certificate2 certificate, string uuid) where T : class
+        public static string SignSerializedDocument(string serializedDocument, X509Certificate2 certificate, string uuid) 
         {
-            var serializedMessage = SerializeMessage(message);
+            return SignDocumentInternal(serializedDocument, certificate, uuid, 1);
+        }
 
+        public static string SignSerializedMetadata(string serializedDocument, X509Certificate2 certificate, string uuid)
+        {
+            return SignDocumentInternal(serializedDocument, certificate, uuid, 0);
+        }
+
+        private static string SignDocumentInternal(string serializedDocument, X509Certificate2 certificate, string uuid, int childIndex)
+        {
             var doc = new XmlDocument();
-            doc.LoadXml(serializedMessage);
+            doc.LoadXml(serializedDocument);
 
             var signature = XmlHelpers.SignXMLDoc(doc, certificate, uuid, SamlConst.SignatureMethod, SamlConst.DigestMethod);
-            doc.DocumentElement.InsertBefore(signature, doc.DocumentElement.ChildNodes[1]);
+            doc.DocumentElement.InsertBefore(signature, doc.DocumentElement.ChildNodes[childIndex]);
 
+            return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + doc.OuterXml;
+        }
+
+        public static string ConvertToBase64(string message) {
             return Convert.ToBase64String(
-                Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + doc.OuterXml),
-                Base64FormattingOptions.None);
+                   Encoding.UTF8.GetBytes(message),
+                   Base64FormattingOptions.None);
         }
 
         /// <summary>
@@ -492,6 +507,29 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc), ErrorLocalization.InvalidSignature);
 
             return (response.InResponseTo == request.ID);
+        }
+
+        public static string SerializeMetadata<T>(T message, bool addBillingNamespace = false) where T : class
+        {
+            var serializer = serializers[typeof(T)];
+            var ns = new XmlSerializerNamespaces();
+            ns.Add(SamlConst.md, SamlConst.Saml2pMetadata);
+            ns.Add(SamlConst.ds, SamlConst.xmlnsds);
+            ns.Add(SamlConst.spid, SamlConst.spidExtensions);
+            if(addBillingNamespace)
+                ns.Add(SamlConst.fpa, SamlConst.fpaNamespace);
+
+            var settings = new XmlWriterSettings
+            {
+                OmitXmlDeclaration = true,
+                Indent = false,
+                Encoding = Encoding.UTF8
+            };
+
+            using var stringWriter = new StringWriter();
+            using var responseWriter = XmlTextWriter.Create(stringWriter, settings);
+            serializer.Serialize(responseWriter, message, ns);
+            return stringWriter.ToString();
         }
 
         /// <summary>

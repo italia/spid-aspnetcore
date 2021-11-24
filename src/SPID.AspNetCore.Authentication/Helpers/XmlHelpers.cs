@@ -127,5 +127,33 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
             return doc;
         }
+
+        public static XmlElement SerializeInternalExtensionToXmlElement(object o, string namespacePrefix, string xmlNamespace)
+        {
+            XmlDocument doc = SerializeExtensionToXmlElementInternal(o, namespacePrefix, xmlNamespace);
+
+            return doc.DocumentElement.FirstChild as XmlElement;
+        }
+
+        public static XmlElement SerializeExtensionToXmlElement(object o, string namespacePrefix, string xmlNamespace)
+        {
+            XmlDocument doc = SerializeExtensionToXmlElementInternal(o, namespacePrefix, xmlNamespace);
+
+            return doc.DocumentElement;
+        }
+
+        private static XmlDocument SerializeExtensionToXmlElementInternal(object o, string namespacePrefix, string xmlNamespace)
+        {
+            XmlDocument doc = new XmlDocument();
+
+            using (XmlWriter writer = doc.CreateNavigator().AppendChild())
+            {
+                var ns = new XmlSerializerNamespaces();
+                ns.Add(namespacePrefix, xmlNamespace);
+                new XmlSerializer(o.GetType()).Serialize(writer, o, ns);
+            }
+
+            return doc;
+        }
     }
 }

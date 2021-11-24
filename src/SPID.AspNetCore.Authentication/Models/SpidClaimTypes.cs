@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using SPID.AspNetCore.Authentication.Saml;
+using System;
+using System.Collections.Generic;
 
 namespace SPID.AspNetCore.Authentication.Models
 {
@@ -64,5 +66,38 @@ namespace SPID.AspNetCore.Authentication.Models
         public static SpidClaimTypes DomicileMunicipality { get { return _types[nameof(DomicileMunicipality)]; } }
         public static SpidClaimTypes DomicileProvince { get { return _types[nameof(DomicileProvince)]; } }
         public static SpidClaimTypes DomicileNation { get { return _types[nameof(DomicileNation)]; } }
+
+        internal string GetSamlAttributeName()
+        {
+            return Value switch
+            {
+                nameof(Name) => SamlConst.name,
+                nameof(FamilyName) => SamlConst.familyName,
+                nameof(FiscalNumber) or nameof(RawFiscalNumber) => SamlConst.fiscalNumber,
+                nameof(Email) => SamlConst.email,
+                nameof(DigitalAddress) => SamlConst.digitalAddress,
+                nameof(Mail) => SamlConst.mail,
+                nameof(Address) => SamlConst.address,
+                nameof(CompanyName) => SamlConst.companyName,
+                nameof(CountyOfBirth) => SamlConst.countyOfBirth,
+                nameof(DateOfBirth) => SamlConst.dateOfBirth,
+                nameof(ExpirationDate) => SamlConst.expirationDate,
+                nameof(Gender) => SamlConst.gender,
+                nameof(IdCard) => SamlConst.idCard,
+                nameof(IvaCode) => SamlConst.ivaCode,
+                nameof(MobilePhone) => SamlConst.mobilePhone,
+                nameof(PlaceOfBirth) => SamlConst.placeOfBirth,
+                nameof(RegisteredOffice) => SamlConst.registeredOffice,
+                nameof(SpidCode) => SamlConst.spidCode,
+                nameof(CompanyFiscalNumber) => SamlConst.companyFiscalNumber,
+                nameof(DomicileStreetAddress) => SamlConst.domicileStreetAddress,
+                nameof(DomicilePostalCode) => SamlConst.domicilePostalCode,
+                nameof(DomicileMunicipality) => SamlConst.domicileMunicipality,
+                nameof(DomicileProvince) => SamlConst.domicileProvince,
+                nameof(DomicileNation) => SamlConst.domicileNation,
+                _ => throw new Exception("Invalid ClaimType"),
+            };
+        }
+
     }
 }

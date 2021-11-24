@@ -75,8 +75,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
             var certificateSection = section.GetSection("Certificate");
             if (certificateSection != null)
             {
-                var certificateSource = certificateSection.GetValue<string>("Source");
-                if (certificateSource == "Store")
+                var certificateSource = certificateSection.GetValue<CertificateSource>("Source");
+                if (certificateSource == CertificateSource.Store)
                 {
                     var storeConfiguration = certificateSection.GetSection("Store");
                     var location = storeConfiguration.GetValue<StoreLocation>("Location");
@@ -91,14 +91,14 @@ namespace SPID.AspNetCore.Authentication.Helpers
                                         findValue,
                                         validOnly);
                 }
-                else if (certificateSource == "File")
+                else if (certificateSource == CertificateSource.File)
                 {
                     var storeConfiguration = certificateSection.GetSection("File");
                     var path = storeConfiguration.GetValue<string>("Path");
                     var password = storeConfiguration.GetValue<string>("Password");
                     options.Certificate = X509Helpers.GetCertificateFromFile(path, password);
                 }
-                else if (certificateSource == "Raw")
+                else if (certificateSource == CertificateSource.Raw)
                 {
                     var storeConfiguration = certificateSection.GetSection("Raw");
                     var certificate = storeConfiguration.GetValue<string>("Certificate");
