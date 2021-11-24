@@ -29,12 +29,10 @@ namespace SPID.AspNetCore.Authentication
     {
         EventsHandler _eventsHandler;
         RequestGenerator _requestGenerator;
-        IHttpClientFactory _httpClientFactory;
 
-        public SpidHandler(IOptionsMonitor<SpidOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IHttpClientFactory httpClientFactory)
+        public SpidHandler(IOptionsMonitor<SpidOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
             : base(options, logger, encoder, clock)
         {
-            _httpClientFactory = httpClientFactory;
         }
 
         protected new SpidEvents Events
@@ -296,7 +294,7 @@ namespace SPID.AspNetCore.Authentication
         }
 
         private static readonly XmlSerializer entityDescriptorSerializer = new(typeof(EntityDescriptor));
-        private static ConcurrentDictionary<string, string> metadataCache = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> metadataCache = new ConcurrentDictionary<string, string>();
         private async Task<EntityDescriptor> DownloadMetadataIDP(string urlMetadataIdp)
         {
             string xml = null;
@@ -580,7 +578,7 @@ namespace SPID.AspNetCore.Authentication
 
                 if (method == RequestMethod.Post)
                 {
-                    var signedSerializedMessage = SamlHandler.SignRequest(message, certificate, messageId);
+                    var signedSerializedMessage = SamlHandler.ConvertToBase64(SamlHandler.SignSerializedDocument(SamlHandler.SerializeMessage(message), certificate, messageId));
                     await HandlePostRequest(signedSerializedMessage, signOnUrl, messageGuid);
                 }
                 else

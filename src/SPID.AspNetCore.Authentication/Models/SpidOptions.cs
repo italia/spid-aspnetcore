@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using SPID.AspNetCore.Authentication.Events;
 using SPID.AspNetCore.Authentication.Helpers;
+using SPID.AspNetCore.Authentication.Models.ServiceProviders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace SPID.AspNetCore.Authentication.Models
     public sealed class SpidOptions : RemoteAuthenticationOptions
     {
         private readonly List<IdentityProvider> _identityProviders = new();
+        private readonly List<ServiceProvider> _spMetadata = new();
 
         public SpidOptions()
         {
@@ -21,6 +23,7 @@ namespace SPID.AspNetCore.Authentication.Models
             // In AAD it sends the cleanup message to a random Reply Url and there's no deterministic way to configure it.
             //  If you manage to get it configured, then you can set RemoteSignOutPath accordingly.
             RemoteSignOutPath = "/signout-spid";
+            ServiceProvidersMetadataEndpointsBasePath = "/metadata-spid";
             Events = new SpidEvents();
         }
 
@@ -179,6 +182,22 @@ namespace SPID.AspNetCore.Authentication.Models
         /// The type of the principal name claim.
         /// </value>
         public SpidClaimTypes PrincipalNameClaimType { get; set; } = SpidClaimTypes.Email;
+
+        /// <summary>
+        /// Gets or sets the base path where the configured SP metadata will be exposed.
+        /// </summary>
+        /// <value>
+        /// The SP Metadata Endpoints BasePath.
+        /// </value>
+        public PathString ServiceProvidersMetadataEndpointsBasePath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the collection of the exposed SP metadata.
+        /// </summary>
+        /// <value>
+        /// The collection of the exposed SP metadata.
+        /// </value>
+        public List<ServiceProvider> ServiceProviders { get { return _spMetadata; } }
 
         public IEnumerable<IdentityProvider> FilteredIdentityProviders
         {

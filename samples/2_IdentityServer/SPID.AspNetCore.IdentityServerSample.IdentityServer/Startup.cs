@@ -31,7 +31,7 @@ namespace SPID.AspNetCore.IdentityServerSample.IdentityServer
                    options.ClientId = "<insert here>";
                    options.ClientSecret = "<insert here>";
                })
-               .AddSpid(SpidDefaults.AuthenticationScheme, Configuration, o =>
+               .AddSpid(SpidDefaults.AuthenticationScheme, o =>
                {
                    o.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
                    o.LoadFromConfiguration(Configuration);
