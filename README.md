@@ -370,6 +370,122 @@ public override async Task RemoteSignOut(RemoteSignOutContext context)
 }
 ```
 
+# Generazione Metadata Service Provider
+La libreria è dotata della possibilità di generare dinamicamente dei metadata per Service Provider conformi con i seguenti profili:
+
+- spid-sp-public: Public Spid SP
+- spid-sp-private: Private Spid SP
+- spid-sp-ag-public-full: Public Spid SP Aggregatore Full
+- spid-sp-ag-public-lite: Public Spid SP Aggregatore Lite
+- spid-sp-op-public-full: Public Spid SP Gestore Full
+- spid-sp-op-public-lite: Public Spid SP Gestore Lite
+
+E' possibile aggiungere nuovi ServiceProvider sia in maniera procedurale, in fase di `Startup`, come segue:
+
+```csharp
+.AddSpid(o =>
+{
+    o.LoadFromConfiguration(Configuration);
+    o.Events.OnTokenCreating = async (s) => await s.HttpContext.RequestServices.GetRequiredService<CustomSpidEvents>().TokenCreating(s);
+    o.ServiceProviders.AddRange(GetServiceProviders(o));
+})
+
+......
+
+private List<Authentication.Models.ServiceProviders.ServiceProvider> GetServiceProviders(SpidOptions o)
+{
+    return new List<Authentication.Models.ServiceProviders.ServiceProvider>(){
+	    new Authentication.Models.ServiceProviders.ServiceProviderPublic()
+	    {
+		FileName = "metadata.xml",
+		Certificate = o.Certificate,
+		Id = Guid.NewGuid(),
+		EntityId = "https://spid.asfweb.it/",
+		SingleLogoutServiceLocations = new List<SingleLogoutService>() {
+		    new SingleLogoutService() {
+			Location = "https://localhost:5001/signout-spid",
+			ProtocolBinding = ProtocolBinding.POST
+		    }
+		},
+		AssertionConsumerServices = new System.Collections.Generic.List<AssertionConsumerService>() {
+		    new AssertionConsumerService() {
+			Index = 0,
+			IsDefault = true,
+			Location = "https://localhost:5001/signin-spid",
+			ProtocolBinding = ProtocolBinding.POST
+		    },
+		    new AssertionConsumerService() {
+			Index = 1,
+			IsDefault = false,
+			Location = "https://localhost:5001/signin-spid",
+			ProtocolBinding = ProtocolBinding.Redirect
+		    }
+		},
+		AttributeConsumingServices = new System.Collections.Generic.List<AttributeConsumingService>() {
+		    new AttributeConsumingService() {
+			Index = 0,
+			ServiceName = "Service 1",
+			ServiceDescription = "Service 1",
+			ClaimTypes = new SpidClaimTypes[] {
+			    SpidClaimTypes.Name,
+			    SpidClaimTypes.FamilyName,
+			    SpidClaimTypes.FiscalNumber,
+			    SpidClaimTypes.Email
+
+			}
+		    },
+		    new AttributeConsumingService() {
+			Index = 1,
+			ServiceName = "Service 2",
+			ServiceDescription = "Service 2",
+			ClaimTypes = new SpidClaimTypes[] {
+			    SpidClaimTypes.Name,
+			    SpidClaimTypes.FamilyName,
+			    SpidClaimTypes.FiscalNumber,
+			    SpidClaimTypes.Email
+			}
+		    }
+		},
+		OrganizationName = "Organizzazione fittizia per il collaudo",
+		OrganizationDisplayName = "Organizzazione fittizia per il collaudo",
+		OrganizationURL = "https://www.asfweb.it/",
+		VatNumber = "IT01261280620",
+		EmailAddress = "info@asfweb.it",
+		TelephoneNumber = "+3908241748276",
+		IPACode = "__aggrsint"
+	    },
+.......
+```
+sia utilizzando una classe che implementa l'interfaccia `IServiceProvidersFactory` e configurandola come segue:
+
+```csharp
+.AddSpid(o =>
+{
+    o.LoadFromConfiguration(Configuration);
+    o.Events.OnTokenCreating = async (s) => await s.HttpContext.RequestServices.GetRequiredService<CustomSpidEvents>().TokenCreating(s);
+})
+.AddServiceProvidersFactory<ServiceProvidersFactory>();
+
+........
+
+public class ServiceProvidersFactory : IServiceProvidersFactory
+{
+	public Task<List<ServiceProvider>> GetServiceProviders()
+	    => Task.FromResult(new List<ServiceProvider>() {
+		new Authentication.Models.ServiceProviders.ServiceProviderPublicFullAggregator()
+		{
+..............
+```
+
+Infine, per poter esporre gli endpoint dei metadata relativi ai Service Provider registrati, sarà necessario aggiungere la seguente riga:
+```csharp
+app.AddSpidSPMetadataEndpoints();
+```
+
+Tutti i metadata generati vengono automaticamente esposti su endpoint diversi, che hanno come BasePath `/metadata-spid` (ad esempio, un metadata definito con NomeFile = `metadata.xml` verrà esposto sull'endpoint `/metadata-spid/metadata.xml`): il BasePath può essere cambiato, sovrascrivendo la proprietà `ServiceProvidersMetadataEndpointsBasePath` sulle SpidOptions nello `Startup.cs`.
+
+All'interno dell'esempio `1_SimpleSPWebApp` è presente un ServiceProvider di esempio per ogni tipologia di profilo, sia configurato in maniera procedurale, sia tramite `IServiceProvidersFactory`.
+
 # Error Handling
 La libreria può, in qualunque fase (sia in fase di creazione della Request sia in fase di gestione della Response), sollevare eccezioni. 
 Un tipico scenario è quello in cui vengono ricevuti i codici di errore previsti dal protocollo SPID (n.19, n.20, ecc....), in tal caso la libreria solleva un'eccezione contenente il corrispondente messaggio d'errore localizzato, richiesto dalle specifiche SPID, che è possibile gestire (ad esempio per la visualizzazione) utilizzando il normale flusso previsto per AspNetCore. L'esempio seguente fa uso del middleware di ExceptionHandling di AspNetCore.
