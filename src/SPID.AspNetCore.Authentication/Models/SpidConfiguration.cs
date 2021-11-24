@@ -119,11 +119,4 @@ namespace SPID.AspNetCore.Authentication.Models
             _identityProviders.AddRange(identityProviders);
         }
     }
-
-    public enum CertificateSource 
-    { 
-        Store,
-        File,
-        Raw
-    }
 }
