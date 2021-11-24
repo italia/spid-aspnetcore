@@ -386,7 +386,6 @@ E' possibile aggiungere nuovi ServiceProvider sia in maniera procedurale, in fas
 .AddSpid(o =>
 {
     o.LoadFromConfiguration(Configuration);
-    o.Events.OnTokenCreating = async (s) => await s.HttpContext.RequestServices.GetRequiredService<CustomSpidEvents>().TokenCreating(s);
     o.ServiceProviders.AddRange(GetServiceProviders(o));
 })
 
@@ -462,7 +461,6 @@ sia utilizzando una classe che implementa l'interfaccia `IServiceProvidersFactor
 .AddSpid(o =>
 {
     o.LoadFromConfiguration(Configuration);
-    o.Events.OnTokenCreating = async (s) => await s.HttpContext.RequestServices.GetRequiredService<CustomSpidEvents>().TokenCreating(s);
 })
 .AddServiceProvidersFactory<ServiceProvidersFactory>();
 
