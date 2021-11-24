@@ -29,7 +29,7 @@ jobs:
       working-directory: samples/1_SimpleSPWebApp/SPID.AspNetCore.WebApp
       run: |
         dotnet bin/Debug/net5.0/SPID.AspNetCore.WebApp.dll &
-        spid_sp_test --metadata-url https://localhost:5001/spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-ag-public-full -tr -nsr
+        spid_sp_test --metadata-url https://localhost:5001/spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-ag-public-full -tr
         spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata.xml --extra --debug ERROR --profile spid-sp-public
         spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata1.xml --extra --debug ERROR --profile spid-sp-private 
         spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata2.xml --extra --debug ERROR --profile spid-sp-ag-public-full
