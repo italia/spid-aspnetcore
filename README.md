@@ -398,13 +398,14 @@ private List<Authentication.Models.ServiceProviders.ServiceProvider> GetServiceP
 	    {
 		FileName = "metadata.xml",
 		Certificate = o.Certificate,
-		Id = Guid.NewGuid(),
+		Id = Guid.NewGuid(), // Questa impostazione è solo di esempio, per i metadata reali è necessario mantenere sempre lo stesso Id
 		EntityId = "https://spid.asfweb.it/",
 		SingleLogoutServiceLocations = new List<SingleLogoutService>() {
 		    new SingleLogoutService() {
 			Location = "https://localhost:5001/signout-spid",
 			ProtocolBinding = ProtocolBinding.POST
 		    }
+		    ..... // 1 o più
 		},
 		AssertionConsumerServices = new System.Collections.Generic.List<AssertionConsumerService>() {
 		    new AssertionConsumerService() {
@@ -412,13 +413,8 @@ private List<Authentication.Models.ServiceProviders.ServiceProvider> GetServiceP
 			IsDefault = true,
 			Location = "https://localhost:5001/signin-spid",
 			ProtocolBinding = ProtocolBinding.POST
-		    },
-		    new AssertionConsumerService() {
-			Index = 1,
-			IsDefault = false,
-			Location = "https://localhost:5001/signin-spid",
-			ProtocolBinding = ProtocolBinding.Redirect
 		    }
+		    ..... // 1 o più
 		},
 		AttributeConsumingServices = new System.Collections.Generic.List<AttributeConsumingService>() {
 		    new AttributeConsumingService() {
@@ -430,20 +426,10 @@ private List<Authentication.Models.ServiceProviders.ServiceProvider> GetServiceP
 			    SpidClaimTypes.FamilyName,
 			    SpidClaimTypes.FiscalNumber,
 			    SpidClaimTypes.Email
-
+			    ..........
 			}
 		    },
-		    new AttributeConsumingService() {
-			Index = 1,
-			ServiceName = "Service 2",
-			ServiceDescription = "Service 2",
-			ClaimTypes = new SpidClaimTypes[] {
-			    SpidClaimTypes.Name,
-			    SpidClaimTypes.FamilyName,
-			    SpidClaimTypes.FiscalNumber,
-			    SpidClaimTypes.Email
-			}
-		    }
+		    ..... // 1 o più
 		},
 		OrganizationName = "Organizzazione fittizia per il collaudo",
 		OrganizationDisplayName = "Organizzazione fittizia per il collaudo",
