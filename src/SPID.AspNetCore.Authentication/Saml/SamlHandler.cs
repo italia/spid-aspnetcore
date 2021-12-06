@@ -31,6 +31,8 @@ namespace SPID.AspNetCore.Authentication.Saml
             SamlConst.SpidL + "3"
         };
 
+        private const int ClockSkewInMinutes = 10;
+
         /// <summary>
         /// Build a signed SAML authentication request.
         /// </summary>
@@ -97,9 +99,9 @@ namespace SPID.AspNetCore.Authentication.Saml
                 },
                 Conditions = new ConditionsType
                 {
-                    NotBefore = now.ToString(dateTimeFormat),
+                    NotBefore = now.AddMinutes(-ClockSkewInMinutes).ToString(dateTimeFormat),
                     NotBeforeSpecified = true,
-                    NotOnOrAfter = now.AddMinutes(10).ToString(dateTimeFormat),
+                    NotOnOrAfter = now.AddMinutes(ClockSkewInMinutes).ToString(dateTimeFormat),
                     NotOnOrAfterSpecified = true
                 },
                 RequestedAuthnContext = new RequestedAuthnContextType

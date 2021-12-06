@@ -24,6 +24,12 @@ jobs:
         dotnet-version: 5.0.x
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: src
+    - name: Build
+      run: dotnet build --no-restore
+      working-directory: src
+    - name: Restore dependencies
+      run: dotnet restore
       working-directory: samples/1_SimpleSPWebApp
     - name: Build
       run: dotnet build --no-restore

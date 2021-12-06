@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="5.0.10" />
-    <PackageReference Include="SPID.AspNetCore.Authentication" Version="1.3.8" />
+    <PackageReference Include="SPID.AspNetCore.Authentication" Version="1.3.9" />
   </ItemGroup>
 
 </Project>
