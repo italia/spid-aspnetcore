@@ -1,12 +1,15 @@
 name: .NET
 
 on:
-  push:
-    branches:
-    - master
   pull_request:
-    branches:
-    - master
+    branches: [ main ]
+    types: [ opened, synchronize, closed ]
+  push:
+    paths-ignore:
+      - README.md
+      - CHANGELOG.md  # Should never be edited anyway
+      - .gitignore
+      - .github/**
 
 jobs:
   build:
