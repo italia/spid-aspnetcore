@@ -7,7 +7,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="5.0.10" />
-    <PackageReference Include="SPID.AspNetCore.Authentication" Version="1.3.8" />
+    <!--<PackageReference Include="SPID.AspNetCore.Authentication" Version="1.3.8" />-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SPID.AspNetCore.Authentication">
+      <HintPath>..\..\..\src\SPID.AspNetCore.Authentication\bin\Debug\netstandard2.0\SPID.AspNetCore.Authentication.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -20,8 +20,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
             BusinessValidation.ValidationNotNullNotWhitespace(certFilePath, ErrorLocalization.CertificatePathNullOrEmpty);
             BusinessValidation.ValidationNotNullNotWhitespace(certPassword, ErrorLocalization.CertificatePasswordNullOrEmpty);
 
-            return new X509Certificate2(certFilePath, 
-                certPassword, 
+            return new X509Certificate2(certFilePath,
+                certPassword,
                 X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
         }
 
@@ -81,5 +81,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
             var hash = shaHash.ComputeHash(Encoding.UTF8.GetBytes(payload));
             return Convert.ToBase64String(rsa.SignHash(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1), Base64FormattingOptions.None);
         }
+
+        public static byte[] ExportPublicKey(this X509Certificate2 cert) 
+            => cert.Export(X509ContentType.Cert);
     }
 }

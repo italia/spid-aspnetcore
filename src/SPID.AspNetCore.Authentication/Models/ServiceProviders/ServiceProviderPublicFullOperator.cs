@@ -39,7 +39,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
                                     Items = new Saml.Aggregated.X509DataType[]{
                                         new Saml.Aggregated.X509DataType{
                                             ItemsElementName = new Saml.Aggregated.ItemsChoiceType[]{ Saml.Aggregated.ItemsChoiceType.X509Certificate },
-                                            Items = new object[]{ Certificate.GetPublicKey() }
+                                            Items = new object[]{ Certificate.ExportPublicKey() }
                                         }
                                     }
                                 }
@@ -53,7 +53,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
                                     Items = new Saml.Aggregated.X509DataType[]{
                                         new Saml.Aggregated.X509DataType{
                                             ItemsElementName = new Saml.Aggregated.ItemsChoiceType[]{ Saml.Aggregated.ItemsChoiceType.X509Certificate },
-                                            Items = new object[]{ Certificate.GetPublicKey() }
+                                            Items = new object[]{ Certificate.ExportPublicKey() }
                                         }
                                     }
                                 }
