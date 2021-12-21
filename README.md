@@ -30,7 +30,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-In questo modo vengono aggiunti i middleware necessari per la gestione delle richieste/risposte di login/logout da/verso SPID. Tali middleware aggiungono alla webapp gli endpoint `/signin-spid` e `/signout-spid` sui quali la libreria è in ascolto per interpretare le risposte rispettivamente di Login e Logout provenienti dagli IdentityProvider di spid. Tali endpoint, nella loro URL assoluta, e quindi comprensivi di schema e hostname (ad esempio `https://webapp.customdomain.it/signin-spid` e `https://webapp.customdomain.it/signin-spid`), devono essere indicati rispettivamente nei tag `AssertionConsumerService` e `SingleLogoutService` del metadata del SP.
+In questo modo vengono aggiunti i middleware necessari per la gestione delle richieste/risposte di login/logout da/verso SPID. Tali middleware aggiungono alla webapp gli endpoint `/signin-spid` e `/signout-spid` sui quali la libreria è in ascolto per interpretare le risposte rispettivamente di Login e Logout provenienti dagli IdentityProvider di spid. Tali endpoint, nella loro URL assoluta, e quindi comprensivi di schema e hostname (ad esempio `https://webapp.customdomain.it/signin-spid` e `https://webapp.customdomain.it/signout-spid`), devono essere indicati rispettivamente nei tag `AssertionConsumerService` e `SingleLogoutService` del metadata del SP.
 
 Nella libreria è inclusa anche l'implementazione di un TagHelper per la renderizzazione (conforme alle specifiche) del pulsante "Entra con SPID".
 Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla View Razor dove lo si desidera posizionare:
