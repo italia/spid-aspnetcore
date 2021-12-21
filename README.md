@@ -582,8 +582,9 @@ Se la WebApp utilizza Bootstrap, è necessario aggiungere la seguente classe al 
 # Esempi
 All'interno della cartella `samples` è possibile trovare alcune implementazioni esemplificative di webapp che fanno uso della libreria:
 
-- 1_SimpleSPWebApp: semplice webapp AspNetCore MVC che utilizza Spid come sistema di login
+- 1_SimpleSPWebApp: semplice webapp AspNetCore MVC che utilizza Spid come sistema di login esterno
 - 2_IdentityServer: implementazione di una istanza di IdentityServer4 (che fa da IAM proxy OIDC verso Spid) che utilizza Spid come sistema di login esterna, e una webapp MVC federata con l'istanza di IdentityServer4
+- 3_RazorPages: semplice webapp AspNetCore con RazorPages che utilizza Spid come sistema di login esterno
 
 Questi esempi sono solo esemplificativi dell'integrazione con la libreria, non devono essere utilizzati "as-is" in ambienti di produzione.
 
