@@ -28,7 +28,7 @@ namespace SPID.AspNetCore.Authentication
     internal class SpidHandler : RemoteAuthenticationHandler<SpidOptions>, IAuthenticationSignOutHandler
     {
         EventsHandler _eventsHandler;
-        RequestGenerator _requestGenerator;
+        RequestHandler _requestGenerator;
 
         public SpidHandler(IOptionsMonitor<SpidOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
             : base(options, logger, encoder, clock)
@@ -64,7 +64,7 @@ namespace SPID.AspNetCore.Authentication
         public override Task<bool> HandleRequestAsync()
         {
             _eventsHandler = new EventsHandler(Events);
-            _requestGenerator = new RequestGenerator(Response, Logger);
+            _requestGenerator = new RequestHandler(Response, Logger);
 
             // RemoteSignOutPath and CallbackPath may be the same, fall through if the message doesn't match.
             if (Options.RemoteSignOutPath.HasValue && Options.RemoteSignOutPath == Request.Path)
@@ -141,10 +141,6 @@ namespace SPID.AspNetCore.Authentication
                 var idpName = properties.GetIdentityProviderName();
                 var request = properties.GetAuthenticationRequest();
 
-                var validationMessageResult = await ValidateAuthenticationResponse(message, request, properties, idpName, serializedResponse);
-                if (validationMessageResult != null)
-                    return validationMessageResult;
-
                 var responseMessageReceivedResult = await _eventsHandler.HandleAuthenticationResponseMessageReceived(Context, Scheme, Options, properties, message);
                 if (responseMessageReceivedResult.Result != null)
                 {
@@ -152,6 +148,10 @@ namespace SPID.AspNetCore.Authentication
                 }
                 message = responseMessageReceivedResult.ProtocolMessage;
                 properties = responseMessageReceivedResult.Properties;
+
+                var validationMessageResult = await ValidateAuthenticationResponse(message, request, properties, idpName, serializedResponse);
+                if (validationMessageResult != null)
+                    return validationMessageResult;
 
                 var correlationValidationResult = ValidateCorrelation(properties);
                 if (correlationValidationResult != null)
@@ -293,9 +293,9 @@ namespace SPID.AspNetCore.Authentication
             return null;
         }
 
-        private static readonly XmlSerializer entityDescriptorSerializer = new(typeof(EntityDescriptor));
+        private static readonly XmlSerializer entityDescriptorSerializer = new(typeof(Saml.IdP.EntityDescriptorType));
         private static readonly ConcurrentDictionary<string, string> metadataCache = new ConcurrentDictionary<string, string>();
-        private async Task<EntityDescriptor> DownloadMetadataIDP(string urlMetadataIdp)
+        private async Task<Saml.IdP.EntityDescriptorType> DownloadMetadataIDP(string urlMetadataIdp)
         {
             string xml = null;
             if (Options.CacheIdpMetadata
@@ -316,7 +316,7 @@ namespace SPID.AspNetCore.Authentication
                 metadataCache.AddOrUpdate(urlMetadataIdp, xml, (x, y) => xml);
             }
             using var reader = new StringReader(xml);
-            return (EntityDescriptor)entityDescriptorSerializer.Deserialize(reader);
+            return (Saml.IdP.EntityDescriptorType)entityDescriptorSerializer.Deserialize(reader);
         }
 
         private HandleRequestResult ValidateCorrelation(AuthenticationProperties properties)
@@ -556,12 +556,12 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
-        private class RequestGenerator
+        private class RequestHandler
         {
-            HttpResponse _response;
-            ILogger _logger;
+            readonly HttpResponse _response;
+            readonly ILogger _logger;
 
-            public RequestGenerator(HttpResponse response, ILogger logger)
+            public RequestHandler(HttpResponse response, ILogger logger)
             {
                 _response = response;
                 _logger = logger;
@@ -576,14 +576,15 @@ namespace SPID.AspNetCore.Authentication
             {
                 var messageGuid = messageId.Replace("_", string.Empty);
 
+                var unsignedSerializedMessage = SamlHandler.SerializeMessage(message);
+
                 if (method == RequestMethod.Post)
                 {
-                    var signedSerializedMessage = SamlHandler.ConvertToBase64(SamlHandler.SignSerializedDocument(SamlHandler.SerializeMessage(message), certificate, messageId));
+                    var signedSerializedMessage = SamlHandler.ConvertToBase64(SamlHandler.SignSerializedDocument(unsignedSerializedMessage, certificate, messageId));
                     await HandlePostRequest(signedSerializedMessage, signOnUrl, messageGuid);
                 }
                 else
                 {
-                    var unsignedSerializedMessage = SamlHandler.SerializeMessage(message);
                     HandleRedirectRequest(unsignedSerializedMessage, certificate, signOnUrl, messageGuid);
                 }
             }
