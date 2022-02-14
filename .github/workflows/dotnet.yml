@@ -43,7 +43,7 @@ jobs:
       run: sudo pip install spid-sp-test --upgrade --no-cache
     - name: Run SPID.AspNetCore.WebApp
       working-directory: samples/1_SimpleSPWebApp/SPID.AspNetCore.WebApp
-      run: dotnet bin/Debug/net5.0/SPID.AspNetCore.WebApp.dll &
+      run: dotnet bin/Debug/net6.0/SPID.AspNetCore.WebApp.dll &
     - name: Test Requests/Responses with spid-sp-test
       run: spid_sp_test --metadata-url https://localhost:5001/spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-ag-public-full -tr
     - name: Test Metadata spid-sp-public with spid-sp-test
