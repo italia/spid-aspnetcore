@@ -131,13 +131,13 @@ namespace SPID.AspNetCore.Authentication
 
         protected override async Task<HandleRequestResult> HandleRemoteAuthenticateAsync()
         {
-            AuthenticationProperties properties = new AuthenticationProperties();
-            properties.Load(Request, Options.StateDataFormat);
-
-            var (id, message, serializedResponse) = await ExtractInfoFromAuthenticationResponse();
-
+            AuthenticationProperties properties = new();
+            ResponseType message = null;
             try
             {
+                properties.Load(Request, Options.StateDataFormat);
+                (string id, message, string serializedResponse) = await ExtractInfoFromAuthenticationResponse();
+
                 var idpName = properties.GetIdentityProviderName();
                 var request = properties.GetAuthenticationRequest();
 
@@ -288,7 +288,7 @@ namespace SPID.AspNetCore.Authentication
             var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
 
             var metadataIdp = await DownloadMetadataIDP(idp.OrganizationUrlMetadata);
-            
+
             response.ValidateAuthnResponse(request, metadataIdp, serializedResponse);
             return null;
         }
@@ -483,7 +483,7 @@ namespace SPID.AspNetCore.Authentication
 
         private class EventsHandler
         {
-            private SpidEvents _events;
+            private readonly SpidEvents _events;
 
             public EventsHandler(SpidEvents events)
             {
