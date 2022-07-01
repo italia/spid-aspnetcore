@@ -17,6 +17,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
         public string OrganizationURL { get; set; }
         public string OperatorVatNumber { get; set; }
         public string OperatorIPACode { get; set; }
+        public string OperatorFiscalCode { get; set; }
         public string OperatorCompany { get; set; }
         public string OperatorEmailAddress { get; set; }
         public string OperatorTelephoneNumber { get; set; }
@@ -115,9 +116,10 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
             var result = new List<System.Xml.XmlElement>();
 
             if (string.IsNullOrWhiteSpace(OperatorVatNumber)
-                || string.IsNullOrWhiteSpace(OperatorIPACode))
+                || string.IsNullOrWhiteSpace(OperatorIPACode)
+                || string.IsNullOrWhiteSpace(OperatorFiscalCode))
             {
-                throw new Exception($"No {nameof(OperatorVatNumber)} and {nameof(OperatorIPACode)} were specified");
+                throw new Exception($"No {nameof(OperatorVatNumber)}, {nameof(OperatorIPACode)} or {nameof(OperatorFiscalCode)} were specified");
             }
 
             result.Add(XmlHelpers.SerializeInternalExtensionToXmlElement(new Saml.Aggregated.ContactPersonAGExtensionType()
@@ -127,6 +129,10 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
             result.Add(XmlHelpers.SerializeInternalExtensionToXmlElement(new Saml.Aggregated.ContactPersonAGExtensionType()
             {
                 IPACode = OperatorIPACode,
+            }, Saml.SamlConst.spid, Saml.SamlConst.spidExtensions));
+            result.Add(XmlHelpers.SerializeInternalExtensionToXmlElement(new Saml.Aggregated.ContactPersonAGExtensionType()
+            {
+                FiscalCode = OperatorFiscalCode,
             }, Saml.SamlConst.spid, Saml.SamlConst.spidExtensions));
             result.Add(XmlHelpers.SerializeInternalExtensionToXmlElement(new Saml.Aggregated.ContactPersonAGExtensionType()
             {
