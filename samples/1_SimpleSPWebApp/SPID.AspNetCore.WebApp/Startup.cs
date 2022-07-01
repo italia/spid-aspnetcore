@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using SPID.AspNetCore.Authentication;
 using SPID.AspNetCore.Authentication.Events;
 using SPID.AspNetCore.Authentication.Models;
@@ -195,10 +194,10 @@ namespace SPID.AspNetCore.WebApp
                         },
                         OrganizationName = "Organizzazione fittizia per il collaudo",
                         OrganizationDisplayName = "Organizzazione fittizia per il collaudo",
-                        OrganizationURL = "https://www.asfweb.it/",
+                        OrganizationURL = "https://www.test.it/",
                         VatNumber = "IT01261280620",
-                        Company = "A Software Factory Srl",
-                        EmailAddress = "info@asfweb.it",
+                        Company = "Organizzazione fittizia per il collaudo",
+                        EmailAddress = "info@email.com",
                         TelephoneNumber = "+3908241748276",
                         BillingCompany = "Billing company",
                         BillingEmailAddress = "billing@email.com",
