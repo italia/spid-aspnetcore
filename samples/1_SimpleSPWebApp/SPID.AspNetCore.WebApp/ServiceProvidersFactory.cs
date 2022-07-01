@@ -342,7 +342,8 @@ namespace SPID.AspNetCore.WebApp
                     OperatorCompany = "Organizzazione fittizia per il collaudo",
                     OperatorEmailAddress = "info@test.it",
                     OperatorTelephoneNumber = "+3908241748276",
-                    OperatorIPACode = "__aggrsint"
+                    OperatorIPACode = "__aggrsint",
+                    OperatorFiscalCode = "01261280620"
                 },
                 new Authentication.Models.ServiceProviders.ServiceProviderPublicLightOperator()
                 {
@@ -403,6 +404,7 @@ namespace SPID.AspNetCore.WebApp
                     OperatorEmailAddress = "info@test.it",
                     OperatorTelephoneNumber = "+3908241748276",
                     OperatorIPACode = "__aggrsint",
+                    OperatorFiscalCode = "01261280620",
                     AggregatedIPACode = "__aggrsint"
                 }});
     }
