@@ -81,8 +81,9 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOnServiceUrl": "https://validator.spid.gov.it/samlsso",
         "SingleSignOutServiceUrl": "https://validator.spid.gov.it/samlsso",
         "Method": "Post",
-        "Type": "StagingProvider"
-      },
+        "Type": "StagingProvider",
+        "SecurityLevel": 2, // Opzionale. Default = 2
+    },
       {
         "Name": "SpidSpTest",
         "OrganizationName": "SpidSpTest",
@@ -93,7 +94,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOnServiceUrl": "https://localhost:8080/samlsso",
         "SingleSignOutServiceUrl": "https://localhost:8080/samlsso",
         "Method": "Post",
-        "Type": "DevelopmentProvider"
+        "Type": "DevelopmentProvider",
+        "SecurityLevel": 2, // Opzionale. Default = 2
       },
       {
         "Name": "DemoSpid",
@@ -105,7 +107,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOnServiceUrl": "https://demo.spid.gov.it/validator/samlsso",
         "SingleSignOutServiceUrl": "https://demo.spid.gov.it/validator/samlsso",
         "Method": "Post",
-        "Type": "DevelopmentProvider"
+        "Type": "DevelopmentProvider",
+        "SecurityLevel": 2, // Opzionale. Default = 2
       },
       {
         "Name": "Aruba",
@@ -117,7 +120,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOnServiceUrl": "https://loginspid.aruba.it/ServiceLoginWelcome",
         "SingleSignOutServiceUrl": "https://loginspid.aruba.it/ServiceLogoutRequest",
         "Method": "Post",
-        "Type": "IdentityProvider"
+        "Type": "IdentityProvider",
+        "SecurityLevel": 2, // Opzionale. Default = 2
       },
       {
         "Name": "Poste",
@@ -129,7 +133,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOnServiceUrl": "https://posteid.poste.it/jod-fs/ssoservicepost",
         "SingleSignOutServiceUrl": "https://posteid.poste.it/jod-fs/sloservicepost",
         "Method": "Post",
-        "Type": "IdentityProvider"
+        "Type": "IdentityProvider",
+        "SecurityLevel": 2, // Opzionale. Default = 2
       },
       {
         "Name": "Intesa",
@@ -141,7 +146,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOnServiceUrl": "https://spid.intesa.it/Time4UserServices/services/idp/AuthnRequest/",
         "SingleSignOutServiceUrl": "https://spid.intesa.it/Time4UserServices/services/idp/SingleLogout",
         "Method": "Post",
-        "Type": "IdentityProvider"
+        "Type": "IdentityProvider",
+        "SecurityLevel": 2, // Opzionale. Default = 2
       },
       {
         "Name": "Infocert",
@@ -153,7 +159,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOnServiceUrl": "https://identity.infocert.it/spid/samlsso",
         "SingleSignOutServiceUrl": "https://identity.infocert.it/spid/samlslo",
         "Method": "Post",
-        "Type": "IdentityProvider"
+        "Type": "IdentityProvider",
+        "SecurityLevel": 2, // Opzionale. Default = 2
       },
       {
         "Name": "Lepida",
@@ -165,7 +172,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOnServiceUrl": "https://id.lepida.it/idp/profile/SAML2/POST/SSO",
         "SingleSignOutServiceUrl": "https://id.lepida.it/idp/profile/SAML2/POST/SLO",
         "Method": "Post",
-        "Type": "IdentityProvider"
+        "Type": "IdentityProvider",
+        "SecurityLevel": 2, // Opzionale. Default = 2
       },
       {
         "Name": "Namirial",
@@ -177,7 +185,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOnServiceUrl": "https://idp.namirialtsp.com/idp/profile/SAML2/POST/SSO",
         "SingleSignOutServiceUrl": "https://idp.namirialtsp.com/idp/profile/SAML2/POST/SLO",
         "Method": "Post",
-        "Type": "IdentityProvider"
+        "Type": "IdentityProvider",
+        "SecurityLevel": 2, // Opzionale. Default = 2
       },
       {
         "Name": "Register",
@@ -189,7 +198,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOnServiceUrl": "https://spid.register.it/login/sso",
         "SingleSignOutServiceUrl": "https://spid.register.it/login/singleLogout",
         "Method": "Post",
-        "Type": "IdentityProvider"
+        "Type": "IdentityProvider",
+        "SecurityLevel": 2, // Opzionale. Default = 2
       },
       {
         "Name": "Sielte",
@@ -202,7 +212,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOutServiceUrl": "https://identity.sieltecloud.it/simplesaml/saml2/idp/SLO.php",
         "Method": "Post",
         "Type": "IdentityProvider",
-        "NowDelta": -2
+        "NowDelta": -2,
+        "SecurityLevel": 2, // Opzionale. Default = 2
       },
       {
         "Name": "Tim",
@@ -215,7 +226,8 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
         "SingleSignOutServiceUrl": "https://login.id.tim.it/affwebservices/public/saml2slo",
         "Method": "Post",
         "Type": "IdentityProvider",
-        "NowDelta": -2
+        "NowDelta": -2,
+        "SecurityLevel": 2, // Opzionale. Default = 2
       }
     ],
     "Certificate": {
