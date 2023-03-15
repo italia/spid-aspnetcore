@@ -40,6 +40,7 @@ namespace SPID.AspNetCore.WebApp
                     o.ServiceProviders.AddRange(GetServiceProviders(o));
                 })
                 .AddServiceProvidersFactory<ServiceProvidersFactory>()
+                .AddLogHandler<LogHandler>()
                 .AddCookie();
             services.AddScoped<CustomSpidEvents>();
         }

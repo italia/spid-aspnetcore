@@ -106,6 +106,23 @@ namespace SPID.AspNetCore.Authentication.Models
         ///   <c>true</c> if [cache idp metadata]; otherwise, <c>false</c>.
         /// </value>
         public bool CacheIdpMetadata { get; set; }
+
+        /// <summary>
+        /// Gets or sets the IdentityProviders Registry URL.
+        /// </summary>
+        /// <value>
+        /// The identifier p registry URL.
+        /// </value>
+        public string IdPRegistryURL { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default language.
+        /// </summary>
+        /// <value>
+        /// The default language.
+        /// </value>
+        public string DefaultLanguage { get; set; }
+
         /// <summary>
         /// Gets or sets the security level.
         /// </summary>
@@ -113,6 +130,14 @@ namespace SPID.AspNetCore.Authentication.Models
         /// The security level.
         /// </value>
         public int SecurityLevel { get; set; }
+
+        /// <summary>
+        /// Gets or sets the request method.
+        /// </summary>
+        /// <value>
+        /// The request method.
+        /// </value>
+        public RequestMethod RequestMethod { get; set; }
 
         public void AddIdentityProviders(IEnumerable<IdentityProvider> identityProviders)
         {

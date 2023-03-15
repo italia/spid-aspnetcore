@@ -6,29 +6,33 @@ using SPID.AspNetCore.Authentication.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace SPID.AspNetCore.Authentication
 {
     public class SpidProvidersTagHelper : TagHelper
     {
         private static string _serializedCircleImage;
-        private static object _lockobj = new object();
+        private static readonly object _lockobj = new object();
 
-        private static Dictionary<SpidButtonSize, (string ShortClassName, string LongClassName)> _classNames = new()
+        private static readonly Dictionary<SpidButtonSize, (string ShortClassName, string LongClassName)> _classNames = new()
         {
             { SpidButtonSize.Small, ("s", "small") },
             { SpidButtonSize.Medium, ("m", "medium") },
             { SpidButtonSize.Large, ("l", "large") },
             { SpidButtonSize.ExtraLarge, ("xl", "xlarge") }
         };
+        readonly SpidOptions _options;
+        readonly IUrlHelper _urlHelper;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        SpidOptions _options;
-        IUrlHelper _urlHelper;
-
-        public SpidProvidersTagHelper(IOptionsSnapshot<SpidOptions> options, IUrlHelper urlHelper)
+        public SpidProvidersTagHelper(IOptionsSnapshot<SpidOptions> options, IUrlHelper urlHelper, IHttpClientFactory httpClientFactory)
         {
             _options = options.Value;
             _urlHelper = urlHelper;
+            _httpClientFactory = httpClientFactory;
         }
 
         public SpidButtonSize Size { get; set; } = SpidButtonSize.Medium;
@@ -37,11 +41,11 @@ namespace SPID.AspNetCore.Authentication
 
         public string ChallengeUrl { get; set; }
 
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             output.TagName = "div";
             output.Content.AppendHtml(CreateHeader());
-            output.Content.AppendHtml(CreateButtons());
+            output.Content.AppendHtml(await CreateButtons());
         }
 
         private TagBuilder CreateHeader()
@@ -70,7 +74,7 @@ namespace SPID.AspNetCore.Authentication
             return a;
         }
 
-        private TagBuilder CreateButtons()
+        private async Task<TagBuilder> CreateButtons()
         {
             var container = new TagBuilder("div");
             container.Attributes.Add("id", $"spid-idp-button-{_classNames[Size].LongClassName}-get");
@@ -80,7 +84,8 @@ namespace SPID.AspNetCore.Authentication
             listContainer.Attributes.Add("aria-labelledby", "spid-idp");
             listContainer.AddCssClass("spid-idp-button-menu");
 
-            foreach (var idp in _options.FilteredIdentityProviders)
+            foreach (var idp in (await _options.GetIdentityProviders(_httpClientFactory))
+                .Where(i => !i.Name.Equals("Eidas")))
             {
                 var itemContainer = new TagBuilder("li");
                 itemContainer.AddCssClass("spid-idp-button-link");
