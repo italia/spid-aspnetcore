@@ -43,7 +43,7 @@ jobs:
     - name: Install dependencies
       run: sudo apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3-pip python3-virtualenv
     - name: Run virtualenv
-      run: sudo virtualenv -ppython3 env2
+      run: sudo virtualenv -p python3 env
     - name: Source activate
       run: source env/bin/activate
     - name: Pip list
