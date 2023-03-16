@@ -39,9 +39,9 @@ jobs:
       working-directory: samples/1_SimpleSPWebApp/SPID.AspNetCore.WebApp
       run: dotnet bin/Debug/net6.0/SPID.AspNetCore.WebApp.dll &
     - name: Update apt repo
-      run: apt update
+      run: sudo apt update
     - name: Install dependencies
-      run: apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3-pip python3-virtualenv
+      run: sudo apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3-pip python3-virtualenv
     - name: Run virtualenv
       run: virtualenv -p python3 env
     - name: Source activate
