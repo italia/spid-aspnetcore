@@ -46,6 +46,8 @@ jobs:
       run: sudo virtualenv -p python3 env
     - name: Source activate
       run: source env/bin/activate
+    - name: Pip list
+      run: pip list
     - name: Install spid-sp-test
       run: sudo pip install spid-sp-test --upgrade --no-cache
     - name: Test Requests/Responses with spid-sp-test
