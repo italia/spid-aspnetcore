@@ -55,7 +55,7 @@ Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla V
 }
 ```
 
-Il TagHelper `spid-providers` si occuperà di generare automaticamente il codice HTML necessario per la renderizzazione della lista di IdentityProviders che è stata inizializzata tra le SpidOptions in fase di startup. L'attributo `size` può essere valorizzato con i valori `Small, Medium, Large, ExtraLarge`.
+Il TagHelper `spid-providers` si occuperà di generare automaticamente il codice HTML necessario per la renderizzazione della lista di IdentityProviders che è stata recuperata in automatico dallo SPID Registry in fase di startup. L'attributo `size` può essere valorizzato con i valori `Small, Medium, Large, ExtraLarge`.
 `<style spid></style>` e `<script spid></script>` invece rappresentano i TagHelper per la renderizzazione rispettivamente delle classi CSS e del codice JS necessari all'esecuzione del pulsante.
 Un esempio completo di webapp AspNetCore MVC che fa uso di questa libreria è presente all'interno di questo repository sotto la cartella `SPID.AspNetCore.Authentication/SPID.AspNetCore.WebApp`. Per utilizzarla è sufficiente configurare in `appsettings.json` i parametri `AssertionConsumerServiceIndex`, `AttributeConsumingServiceIndex`, `EntityId` e `Certificate` con quelli relativi al proprio metadata di test, e lanciare la webapp.
 
