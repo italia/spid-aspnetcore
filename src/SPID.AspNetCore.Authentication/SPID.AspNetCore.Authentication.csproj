@@ -12,13 +12,19 @@
     <PackageProjectUrl>https://github.com/italia/spid-aspnetcore</PackageProjectUrl>
     <PackageIcon>spid-nuget.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageVersion>2.0.0-prerelease</PackageVersion>
+    <PackageVersion>2.0.0</PackageVersion>
     <Version>2.0.0</Version>
     <AssemblyVersion>2.0.0</AssemblyVersion>
     <FileVersion>2.0.0</FileVersion>
     <InformationalVersion>2.0.0</InformationalVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/italia/spid-aspnetcore</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="Mvc\Resources\spid-nuget.png" Pack="true" PackagePath="\" />
