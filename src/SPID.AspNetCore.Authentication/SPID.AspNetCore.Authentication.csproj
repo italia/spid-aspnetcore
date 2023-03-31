@@ -12,13 +12,19 @@
     <PackageProjectUrl>https://github.com/italia/spid-aspnetcore</PackageProjectUrl>
     <PackageIcon>spid-nuget.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageVersion>1.3.12</PackageVersion>
-    <Version>1.3.12</Version>
-    <AssemblyVersion>1.3.12</AssemblyVersion>
-    <FileVersion>1.3.12</FileVersion>
-    <InformationalVersion>1.3.12</InformationalVersion>
+    <PackageVersion>2.0.0</PackageVersion>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0</AssemblyVersion>
+    <FileVersion>2.0.0</FileVersion>
+    <InformationalVersion>2.0.0</InformationalVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/italia/spid-aspnetcore</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="Mvc\Resources\spid-nuget.png" Pack="true" PackagePath="\" />
@@ -59,11 +65,11 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Razor" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="6.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="6.0.6" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="6.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="6.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="7.0.4" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="7.0.1" />
   </ItemGroup>
 
   <ItemGroup>

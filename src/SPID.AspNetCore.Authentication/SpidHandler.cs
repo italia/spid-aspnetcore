@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -9,7 +10,6 @@ using SPID.AspNetCore.Authentication.Models;
 using SPID.AspNetCore.Authentication.Resources;
 using SPID.AspNetCore.Authentication.Saml;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -21,7 +21,6 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using System.Web;
-using System.Xml.Serialization;
 
 namespace SPID.AspNetCore.Authentication
 {
@@ -29,10 +28,19 @@ namespace SPID.AspNetCore.Authentication
     {
         EventsHandler _eventsHandler;
         RequestHandler _requestGenerator;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogHandler _logHandler;
 
-        public SpidHandler(IOptionsMonitor<SpidOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
+        public SpidHandler(IOptionsMonitor<SpidOptions> options,
+            ILoggerFactory logger,
+            UrlEncoder encoder,
+            ISystemClock clock,
+            IHttpClientFactory httpClientFactory,
+            ILogHandler logHandler)
             : base(options, logger, encoder, clock)
         {
+            _httpClientFactory = httpClientFactory;
+            _logHandler = logHandler;
         }
 
         protected new SpidEvents Events
@@ -64,7 +72,7 @@ namespace SPID.AspNetCore.Authentication
         public override Task<bool> HandleRequestAsync()
         {
             _eventsHandler = new EventsHandler(Events);
-            _requestGenerator = new RequestHandler(Response, Logger);
+            _requestGenerator = new RequestHandler(Response, Logger, _logHandler);
 
             // RemoteSignOutPath and CallbackPath may be the same, fall through if the message doesn't match.
             if (Options.RemoteSignOutPath.HasValue && Options.RemoteSignOutPath == Request.Path)
@@ -89,7 +97,7 @@ namespace SPID.AspNetCore.Authentication
 
             // Select the Identity Provider
             var idpName = Request.Query["idpName"];
-            var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
+            var idp = (await Options.GetIdentityProviders(_httpClientFactory)).FirstOrDefault(x => x.Name == idpName);
 
 
             var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context,
@@ -107,6 +115,8 @@ namespace SPID.AspNetCore.Authentication
                 securityTokenCreatingContext.TokenOptions.AssertionConsumerServiceIndex,
                 securityTokenCreatingContext.TokenOptions.AttributeConsumingServiceIndex,
                 securityTokenCreatingContext.TokenOptions.Certificate,
+                securityTokenCreatingContext.TokenOptions.SecurityLevel,
+                securityTokenCreatingContext.TokenOptions.RequestMethod,
                 idp);
 
             GenerateCorrelationId(properties);
@@ -125,8 +135,8 @@ namespace SPID.AspNetCore.Authentication
             await _requestGenerator.HandleRequest(message,
                 message.ID,
                 securityTokenCreatingContext.TokenOptions.Certificate,
-                idp.SingleSignOnServiceUrl,
-                idp.Method);
+                idp.GetSingleSignOnServiceUrl(securityTokenCreatingContext.TokenOptions.RequestMethod),
+                securityTokenCreatingContext.TokenOptions.RequestMethod);
         }
 
         protected override async Task<HandleRequestResult> HandleRemoteAuthenticateAsync()
@@ -135,8 +145,9 @@ namespace SPID.AspNetCore.Authentication
             ResponseType message = null;
             try
             {
-                properties.Load(Request, Options.StateDataFormat);
                 (string id, message, string serializedResponse) = await ExtractInfoFromAuthenticationResponse();
+
+                properties.Load(Request, Options.StateDataFormat);
 
                 var idpName = properties.GetIdentityProviderName();
                 var request = properties.GetAuthenticationRequest();
@@ -199,7 +210,7 @@ namespace SPID.AspNetCore.Authentication
             var subjectNameId = requestProperties.GetSubjectNameId();
             var sessionIndex = requestProperties.GetSessionIndex();
 
-            var idp = Options.IdentityProviders.FirstOrDefault(i => i.Name == idpName);
+            var idp = (await Options.GetIdentityProviders(_httpClientFactory)).FirstOrDefault(i => i.Name == idpName);
 
             var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context,
                 Scheme,
@@ -214,7 +225,8 @@ namespace SPID.AspNetCore.Authentication
                 securityTokenCreatingContext.TokenOptions.Certificate,
                 idp,
                 subjectNameId,
-                sessionIndex);
+                sessionIndex,
+                securityTokenCreatingContext.TokenOptions.RequestMethod);
 
             var (redirectHandled, afterRedirectMessage) = await _eventsHandler.HandleRedirectToIdentityProviderForSignOut(Context, Scheme, Options, properties, message);
             if (redirectHandled)
@@ -229,8 +241,8 @@ namespace SPID.AspNetCore.Authentication
             await _requestGenerator.HandleRequest(message,
                 message.ID,
                 securityTokenCreatingContext.TokenOptions.Certificate,
-                idp.SingleSignOutServiceUrl,
-                idp.Method);
+                idp.GetSingleSignOutServiceUrl(securityTokenCreatingContext.TokenOptions.RequestMethod),
+                securityTokenCreatingContext.TokenOptions.RequestMethod);
         }
 
         protected virtual async Task<bool> HandleRemoteSignOutAsync()
@@ -285,38 +297,10 @@ namespace SPID.AspNetCore.Authentication
                 return HandleRequestResult.Fail("Unsolicited logins are not allowed.");
             }
 
-            var idp = Options.IdentityProviders.FirstOrDefault(x => x.Name == idpName);
+            var idp = (await Options.GetIdentityProviders(_httpClientFactory)).FirstOrDefault(x => x.Name == idpName);
 
-            var metadataIdp = await DownloadMetadataIDP(idp.OrganizationUrlMetadata);
-
-            response.ValidateAuthnResponse(request, metadataIdp, serializedResponse);
+            response.ValidateAuthnResponse(request, idp, serializedResponse);
             return null;
-        }
-
-        private static readonly XmlSerializer entityDescriptorSerializer = new(typeof(Saml.IdP.EntityDescriptorType));
-        private static readonly ConcurrentDictionary<string, string> metadataCache = new ConcurrentDictionary<string, string>();
-        private async Task<Saml.IdP.EntityDescriptorType> DownloadMetadataIDP(string urlMetadataIdp)
-        {
-            string xml = null;
-            if (Options.CacheIdpMetadata
-                && metadataCache.ContainsKey(urlMetadataIdp))
-            {
-                xml = metadataCache[urlMetadataIdp];
-            }
-            if (string.IsNullOrWhiteSpace(xml))
-            {
-                using var httpClientHandler = new HttpClientHandler();
-                httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
-                using var client = new HttpClient(httpClientHandler);
-                xml = await client.GetStringAsync(urlMetadataIdp);
-            }
-            if (Options.CacheIdpMetadata
-                && !string.IsNullOrWhiteSpace(xml))
-            {
-                metadataCache.AddOrUpdate(urlMetadataIdp, xml, (x, y) => xml);
-            }
-            using var reader = new StringReader(xml);
-            return (Saml.IdP.EntityDescriptorType)entityDescriptorSerializer.Deserialize(reader);
         }
 
         private HandleRequestResult ValidateCorrelation(AuthenticationProperties properties)
@@ -410,7 +394,19 @@ namespace SPID.AspNetCore.Authentication
             {
                 var form = await Request.ReadFormAsync();
 
-                var serializedResponse = Encoding.UTF8.GetString(Convert.FromBase64String(form["SAMLResponse"][0]));
+                var serializedResponse = Encoding.UTF8.GetString(Convert.FromBase64String(form["SAMLResponse"].FirstOrDefault()));
+
+                await _logHandler.LogPostResponse(new PostResponse()
+                {
+                    SignedMessage = serializedResponse,
+                    SAMLResponse = form["SAMLResponse"].FirstOrDefault(),
+                    RelayState = form["RelayState"].ToString(),
+                    ContentType = Request.ContentType,
+                    Url = Request.GetEncodedUrl(),
+                    Headers = Request.Headers.ToDictionary(t => t.Key, t => t.Value),
+                    Cookies = Request.Cookies.ToDictionary(t => t.Key, t => t.Value)
+                });
+
                 return (
                     form["RelayState"].ToString(),
                     SamlHandler.GetAuthnResponse(serializedResponse),
@@ -422,6 +418,17 @@ namespace SPID.AspNetCore.Authentication
                 && Request.Query.ContainsKey("RelayState"))
             {
                 var serializedResponse = DecompressString(Request.Query["SAMLResponse"].FirstOrDefault());
+
+                await _logHandler.LogRedirectResponse(new RedirectResponse()
+                {
+                    SignedMessage = serializedResponse,
+                    SAMLResponse = Request.Query["SAMLResponse"].FirstOrDefault(),
+                    RelayState = Request.Query["RelayState"].FirstOrDefault(),
+                    Url = Request.GetEncodedUrl(),
+                    Headers = Request.Headers.ToDictionary(t => t.Key, t => t.Value),
+                    Cookies = Request.Cookies.ToDictionary(t => t.Key, t => t.Value)
+                });
+
                 return (
                     Request.Query["RelayState"].FirstOrDefault(),
                     SamlHandler.GetAuthnResponse(serializedResponse),
@@ -441,6 +448,18 @@ namespace SPID.AspNetCore.Authentication
                 var form = await Request.ReadFormAsync();
 
                 var serializedResponse = Encoding.UTF8.GetString(Convert.FromBase64String(form["SAMLResponse"][0]));
+
+                await _logHandler.LogPostResponse(new PostResponse()
+                {
+                    SignedMessage = serializedResponse,
+                    SAMLResponse = form["SAMLResponse"].FirstOrDefault(),
+                    RelayState = form["RelayState"].ToString(),
+                    ContentType = Request.ContentType,
+                    Url = Request.GetEncodedUrl(),
+                    Headers = Request.Headers.ToDictionary(t => t.Key, t => t.Value),
+                    Cookies = Request.Cookies.ToDictionary(t => t.Key, t => t.Value)
+                });
+
                 return (
                     form["RelayState"].ToString(),
                     SamlHandler.GetLogoutResponse(serializedResponse),
@@ -452,6 +471,17 @@ namespace SPID.AspNetCore.Authentication
                 && Request.Query.ContainsKey("RelayState"))
             {
                 var serializedResponse = DecompressString(Request.Query["SAMLResponse"].FirstOrDefault());
+
+                await _logHandler.LogRedirectResponse(new RedirectResponse()
+                {
+                    SignedMessage = serializedResponse,
+                    SAMLResponse = Request.Query["SAMLResponse"].FirstOrDefault(),
+                    RelayState = Request.Query["RelayState"].FirstOrDefault(),
+                    Url = Request.GetEncodedUrl(),
+                    Headers = Request.Headers.ToDictionary(t => t.Key, t => t.Value),
+                    Cookies = Request.Cookies.ToDictionary(t => t.Key, t => t.Value)
+                });
+
                 return (
                     Request.Query["RelayState"].FirstOrDefault(),
                     SamlHandler.GetLogoutResponse(serializedResponse),
@@ -506,7 +536,9 @@ namespace SPID.AspNetCore.Authentication
                         Certificate = options.Certificate,
                         AssertionConsumerServiceURL = options.AssertionConsumerServiceURL,
                         AssertionConsumerServiceIndex = options.AssertionConsumerServiceIndex,
-                        AttributeConsumingServiceIndex = idp.AttributeConsumingServiceIndex
+                        AttributeConsumingServiceIndex = idp.AttributeConsumingServiceIndex,
+                        SecurityLevel = options.SecurityLevel,
+                        RequestMethod = options.RequestMethod
                     }
                 };
                 await _events.TokenCreating(securityTokenCreatingContext);
@@ -560,11 +592,13 @@ namespace SPID.AspNetCore.Authentication
         {
             readonly HttpResponse _response;
             readonly ILogger _logger;
+            private readonly ILogHandler _logHandler;
 
-            public RequestHandler(HttpResponse response, ILogger logger)
+            public RequestHandler(HttpResponse response, ILogger logger, ILogHandler logHandler)
             {
                 _response = response;
                 _logger = logger;
+                _logHandler = logHandler;
             }
 
             public async Task HandleRequest<T>(T message,
@@ -580,36 +614,45 @@ namespace SPID.AspNetCore.Authentication
 
                 if (method == RequestMethod.Post)
                 {
-                    var signedSerializedMessage = SamlHandler.ConvertToBase64(SamlHandler.SignSerializedDocument(unsignedSerializedMessage, certificate, messageId));
-                    await HandlePostRequest(signedSerializedMessage, signOnUrl, messageGuid);
+                    var signedSerializedMessage = SamlHandler.SignSerializedDocument(unsignedSerializedMessage, certificate, messageId);
+                    var base64SignedSerializedMessage = SamlHandler.ConvertToBase64(signedSerializedMessage);
+                    await HandlePostRequest(signedSerializedMessage, base64SignedSerializedMessage, signOnUrl, messageGuid);
                 }
                 else
                 {
-                    HandleRedirectRequest(unsignedSerializedMessage, certificate, signOnUrl, messageGuid);
+                    await HandleRedirectRequest(unsignedSerializedMessage, certificate, signOnUrl, messageGuid);
                 }
             }
 
-            private async Task HandlePostRequest(string signedSerializedMessage, string url, string messageGuid)
+            private async Task HandlePostRequest(string signedSerializedMessage, string base64SignedSerializedMessage, string url, string messageGuid)
             {
+                await _logHandler.LogPostRequest(new PostRequest()
+                {
+                    SignedMessage = signedSerializedMessage,
+                    SAMLRequest = base64SignedSerializedMessage,
+                    RelayState = messageGuid,
+                    Url = url
+                });
                 await _response.WriteAsync($"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{url}\" method=\"post\">" +
-                                          $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{signedSerializedMessage}\" />" +
+                                          $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{base64SignedSerializedMessage}\" />" +
                                           $"<input type=\"hidden\" name=\"RelayState\" value=\"{messageGuid}\" />" +
                                           $"<button id=\"btnLogin\" style=\"display: none;\">Login</button>" +
                                           "<script>document.getElementById('btnLogin').click()</script>" +
                                           "</form></body></html>");
             }
 
-            private void HandleRedirectRequest(string unsignedSerializedMessage, X509Certificate2 certificate, string url, string messageGuid)
+            private async Task HandleRedirectRequest(string unsignedSerializedMessage, X509Certificate2 certificate, string url, string messageGuid)
             {
-                string redirectUri = GetRedirectUrl(url, messageGuid, unsignedSerializedMessage, certificate);
+                string redirectUri = await GetRedirectUrl(url, messageGuid, unsignedSerializedMessage, certificate);
                 if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
                 {
                     _logger.MalformedRedirectUri(redirectUri);
                 }
+
                 _response.Redirect(redirectUri);
             }
 
-            private string GetRedirectUrl(string signOnSignOutUrl, string samlAuthnRequestId, string unsignedSerializedMessage, X509Certificate2 certificate)
+            private async Task<string> GetRedirectUrl(string signOnSignOutUrl, string samlAuthnRequestId, string unsignedSerializedMessage, X509Certificate2 certificate)
             {
                 var samlEndpoint = signOnSignOutUrl;
 
@@ -619,7 +662,7 @@ namespace SPID.AspNetCore.Authentication
                 {
                     { "SAMLRequest", CompressString(unsignedSerializedMessage) },
                     { "RelayState", samlAuthnRequestId },
-                    { "SigAlg", SamlConst.SignatureMethod}
+                    { "SigAlg", SamlConst.SignatureMethod }
                 };
 
                 var queryStringNoSignature = BuildURLParametersString(dict).Substring(1);
@@ -628,7 +671,20 @@ namespace SPID.AspNetCore.Authentication
 
                 dict.Add("Signature", signatureQuery);
 
-                return samlEndpoint + queryStringSeparator + BuildURLParametersString(dict).Substring(1);
+                var redirectUri = samlEndpoint + queryStringSeparator + BuildURLParametersString(dict).Substring(1);
+
+                await _logHandler.LogRedirectRequest(new RedirectRequest()
+                {
+                    SignOnSignOutEndpoint = signOnSignOutUrl,
+                    RedirectUri = redirectUri,
+                    UncompressedMessage = unsignedSerializedMessage,
+                    SAMLRequest = dict["SAMLRequest"],
+                    RelayState = dict["RelayState"],
+                    SigAlg = dict["SigAlg"],
+                    Signature = signatureQuery
+                });
+
+                return redirectUri;
             }
 
             private string CompressString(string value)

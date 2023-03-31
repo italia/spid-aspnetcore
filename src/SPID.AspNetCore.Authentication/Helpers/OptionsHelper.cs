@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using SPID.AspNetCore.Authentication.Models;
+using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
@@ -19,6 +20,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             options.AssertionConsumerServiceIndex = section.GetValue<ushort?>("AssertionConsumerServiceIndex");
             options.AttributeConsumingServiceIndex = section.GetValue<ushort?>("AttributeConsumingServiceIndex") ?? 0;
             options.CallbackPath = section.GetValue<string>("CallbackPath");
+            options.IdPRegistryURL = section.GetValue<string>("IdPRegistryURL");
             options.EntityId = section.GetValue<string>("EntityId");
             options.RemoteSignOutPath = section.GetValue<string>("RemoteSignOutPath");
             options.SignOutScheme = section.GetValue<string>("SignOutScheme");
@@ -27,6 +29,9 @@ namespace SPID.AspNetCore.Authentication.Helpers
             options.CacheIdpMetadata = section.GetValue<bool?>("CacheIdpMetadata") ?? false;
             options.RandomIdentityProvidersOrder = section.GetValue<bool?>("RandomIdentityProvidersOrder") ?? false;
             options.SecurityLevel = section.GetValue<int?>("SecurityLevel") ?? 2;
+            var requestMethodParsed = Enum.TryParse<RequestMethod>(section.GetValue<string?>("RequestMethod"), out var requestMethod);
+            options.RequestMethod = requestMethodParsed ? requestMethod : RequestMethod.Post;
+            options.DefaultLanguage = section.GetValue<string?>("DefaultLanguage") ?? "it";
 
             var identityProviders = section
                 .GetSection("Providers")
@@ -34,40 +39,40 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 .ToList()
                 .Select(x => new IdentityProvider
                 {
-                    Method = x.GetValue<RequestMethod>("Method"),
+                    EntityId = x.GetValue<string>("EntityId"),
                     Name = x.GetValue<string>("Name"),
                     OrganizationDisplayName = x.GetValue<string>("OrganizationDisplayName"),
                     OrganizationLogoUrl = x.GetValue<string>("OrganizationLogoUrl"),
                     OrganizationName = x.GetValue<string>("OrganizationName"),
-                    OrganizationUrl = x.GetValue<string>("OrganizationUrl"),
-                    OrganizationUrlMetadata = x.GetValue<string>("OrganizationUrlMetadata"),
                     ProviderType = x.GetValue<ProviderType>("Type"),
-                    SingleSignOnServiceUrl = x.GetValue<string>("SingleSignOnServiceUrl"),
-                    SingleSignOutServiceUrl = x.GetValue<string>("SingleSignOutServiceUrl"),
+                    SingleSignOnServiceUrlPost = x.GetValue<string>("SingleSignOnServiceUrlPost"),
+                    SingleSignOutServiceUrlPost = x.GetValue<string>("SingleSignOutServiceUrlPost"),
+                    SingleSignOnServiceUrlRedirect = x.GetValue<string>("SingleSignOnServiceUrlRedirect"),
+                    SingleSignOutServiceUrlRedirect = x.GetValue<string>("SingleSignOutServiceUrlRedirect"),
                     SubjectNameIdRemoveText = x.GetValue<string>("SubjectNameIdRemoveText"),
-                    SecurityLevel = x.GetValue<int?>("SecurityLevel") ?? 2,
                     AttributeConsumingServiceIndex = x.GetValue<ushort?>("AttributeConsumingServiceIndex")
-                        ?? options.AttributeConsumingServiceIndex
+                        ?? options.AttributeConsumingServiceIndex,
+                    X509SigningCertificates = new System.Collections.Generic.List<string>() { x.GetValue<string>("X509SigningCertificate") }
                 }).ToList();
             var eidasSection = configuration.GetSection("Eidas");
             if (eidasSection.Exists())
             {
                 identityProviders.Add(new IdentityProvider
                 {
-                    Method = eidasSection.GetValue<RequestMethod>("Method"),
+                    EntityId = eidasSection.GetValue<string>("EntityId"),
                     Name = eidasSection.GetValue<string>("Name"),
                     OrganizationDisplayName = eidasSection.GetValue<string>("OrganizationDisplayName"),
                     OrganizationLogoUrl = eidasSection.GetValue<string>("OrganizationLogoUrl"),
                     OrganizationName = eidasSection.GetValue<string>("OrganizationName"),
-                    OrganizationUrl = eidasSection.GetValue<string>("OrganizationUrl"),
-                    OrganizationUrlMetadata = eidasSection.GetValue<string>("OrganizationUrlMetadata"),
                     ProviderType = ProviderType.StandaloneProvider,
-                    SingleSignOnServiceUrl = eidasSection.GetValue<string>("SingleSignOnServiceUrl"),
-                    SingleSignOutServiceUrl = eidasSection.GetValue<string>("SingleSignOutServiceUrl"),
+                    SingleSignOnServiceUrlPost = eidasSection.GetValue<string>("SingleSignOnServiceUrlPost"),
+                    SingleSignOutServiceUrlPost = eidasSection.GetValue<string>("SingleSignOutServiceUrlPost"),
+                    SingleSignOnServiceUrlRedirect = eidasSection.GetValue<string>("SingleSignOnServiceUrlRedirect"),
+                    SingleSignOutServiceUrlRedirect = eidasSection.GetValue<string>("SingleSignOutServiceUrlRedirect"),
                     SubjectNameIdRemoveText = eidasSection.GetValue<string>("SubjectNameIdRemoveText"),
-                    SecurityLevel = eidasSection.GetValue<int?>("SecurityLevel") ?? 2,
                     AttributeConsumingServiceIndex = eidasSection.GetValue<ushort?>("AttributeConsumingServiceIndex")
-                        ?? options.AttributeConsumingServiceIndex
+                        ?? options.AttributeConsumingServiceIndex,
+                    X509SigningCertificates = new System.Collections.Generic.List<string>() { eidasSection.GetValue<string>("X509SigningCertificate") }
                 });
             }
             options.AddIdentityProviders(identityProviders);
@@ -127,6 +132,9 @@ namespace SPID.AspNetCore.Authentication.Helpers
             options.SkipUnrecognizedRequests = createdOptions.SkipUnrecognizedRequests;
             options.UseTokenLifetime = createdOptions.UseTokenLifetime;
             options.RandomIdentityProvidersOrder = createdOptions.RandomIdentityProvidersOrder;
+            options.IdPRegistryURL = createdOptions.IdPRegistryURL;
+            options.RequestMethod = createdOptions.RequestMethod;
+            options.DefaultLanguage = createdOptions.DefaultLanguage;
         }
     }
 }

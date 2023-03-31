@@ -7,19 +7,19 @@ namespace SPID.AspNetCore.Authentication.Saml
 {
     internal static class SamlTypesExtensions
     {
-        public static AssertionType GetAssertion(this ResponseType input) 
+        public static AssertionType GetAssertion(this ResponseType input)
             => input.Items?.FirstOrDefault() as AssertionType;
 
-        public static AttributeStatementType GetAttributeStatement(this AssertionType input) 
+        public static AttributeStatementType GetAttributeStatement(this AssertionType input)
             => input.Items?.FirstOrDefault(s => s is AttributeStatementType) as AttributeStatementType;
 
-        public static IEnumerable<AttributeType> GetAttributes(this AttributeStatementType input) 
+        public static IEnumerable<AttributeType> GetAttributes(this AttributeStatementType input)
             => input.Items?.Cast<AttributeType>();
 
-        public static AuthnStatementType GetAuthnStatement(this AssertionType input) 
+        public static AuthnStatementType GetAuthnStatement(this AssertionType input)
             => input.Items?.FirstOrDefault(s => s is AuthnStatementType) as AuthnStatementType;
 
-        public static SubjectConfirmationType GetSubjectConfirmation(this SubjectType input) 
+        public static SubjectConfirmationType GetSubjectConfirmation(this SubjectType input)
             => input.Items?.FirstOrDefault(s => s is SubjectConfirmationType) as SubjectConfirmationType;
 
         public static string GetAttributeValue(this AttributeType input)
@@ -31,22 +31,22 @@ namespace SPID.AspNetCore.Authentication.Saml
                 _ => null,
             };
 
-        public static X509DataType GetX509Data(this KeyInfoType input) 
+        public static X509DataType GetX509Data(this KeyInfoType input)
             => input.Items?.FirstOrDefault(s => s is X509DataType) as X509DataType;
 
         public static byte[] GetRawX509Certificate(this X509DataType input)
             => input.Items?.FirstOrDefault() as byte[];
 
-        public static string GetBase64X509Certificate(this X509DataType input) 
+        public static string GetBase64X509Certificate(this X509DataType input)
             => Convert.ToBase64String(input.Items?.FirstOrDefault() as byte[]);
 
-        public static NameIDType GetNameID(this SubjectType input) 
+        public static NameIDType GetNameID(this SubjectType input)
             => input.Items?.FirstOrDefault(s => s is NameIDType) as NameIDType;
 
-        public static AudienceRestrictionType GetAudienceRestriction(this ConditionsType input) 
+        public static AudienceRestrictionType GetAudienceRestriction(this ConditionsType input)
             => input.Items?.FirstOrDefault(s => s is AudienceRestrictionType) as AudienceRestrictionType;
 
-        public static string GetAuthnContextClassRef(this AuthnContextType input) 
+        public static string GetAuthnContextClassRef(this AuthnContextType input)
             => input.ItemsElementName?.Contains(ItemsChoiceType5.AuthnContextClassRef) ?? false
                 ? input.Items[Array.IndexOf(input.ItemsElementName, ItemsChoiceType5.AuthnContextClassRef)] as string
                 : null;

@@ -1,13 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using SPID.AspNetCore.Authentication.Events;
 using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Models.ServiceProviders;
+using SPID.AspNetCore.Authentication.Saml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SPID.AspNetCore.Authentication.Models
 {
@@ -24,6 +29,7 @@ namespace SPID.AspNetCore.Authentication.Models
             //  If you manage to get it configured, then you can set RemoteSignOutPath accordingly.
             RemoteSignOutPath = "/signout-spid";
             ServiceProvidersMetadataEndpointsBasePath = "/metadata-spid";
+            IdPRegistryURL = "https://registry.spid.gov.it/entities-idp?&output=json";
             Events = new SpidEvents();
         }
 
@@ -114,25 +120,74 @@ namespace SPID.AspNetCore.Authentication.Models
         /// </value>
         public ushort AttributeConsumingServiceIndex { get; set; }
 
+        private static List<IdentityProvider> cachedIdentityProviders = new List<IdentityProvider>();
+        static readonly SemaphoreSlim cachedIdentityProvidersSemaphore = new SemaphoreSlim(1, 1);
+        private static DateTime cachedIdentityProvidersLastCheck = DateTime.MinValue;
+
         /// <summary>
         /// Gets the identity providers.
         /// </summary>
         /// <value>
         /// The identity providers.
         /// </value>
-        public IEnumerable<IdentityProvider> IdentityProviders
+        public async Task<IEnumerable<IdentityProvider>> GetIdentityProviders(IHttpClientFactory httpClientFactory)
         {
-            get
+            List<IdentityProvider> result = _identityProviders;
+            if (cachedIdentityProvidersLastCheck < DateTime.UtcNow.AddMinutes(-10))
             {
-                var result = _identityProviders.AsEnumerable();
-                if (!IsLocalValidatorEnabled)
-                    result = result.Where(c => c.ProviderType != ProviderType.DevelopmentProvider);
-
-                if (!IsStagingValidatorEnabled)
-                    result = result.Where(c => c.ProviderType != ProviderType.StagingProvider);
-
-                return result;
+                await cachedIdentityProvidersSemaphore.WaitAsync();
+                try
+                {
+                    if (cachedIdentityProvidersLastCheck < DateTime.UtcNow.AddMinutes(-10))
+                    {
+                        var client = httpClientFactory.CreateClient(nameof(SpidOptions));
+                        cachedIdentityProviders = await FetchIdentityProvidersFromRegistry(client);
+                        cachedIdentityProvidersLastCheck = DateTime.UtcNow;
+                    }
+                }
+                finally
+                {
+                    cachedIdentityProvidersSemaphore.Release();
+                }
             }
+            result.AddRange(RandomIdentityProvidersOrder
+                    ? cachedIdentityProviders.OrderBy(x => Guid.NewGuid())
+                    : cachedIdentityProviders);
+
+            if (!IsLocalValidatorEnabled)
+                result = result.Where(c => c.ProviderType != ProviderType.DevelopmentProvider).ToList();
+
+            if (!IsStagingValidatorEnabled)
+                result = result.Where(c => c.ProviderType != ProviderType.StagingProvider).ToList();
+            return result;
+        }
+
+        private async Task<List<IdentityProvider>> FetchIdentityProvidersFromRegistry(HttpClient client)
+        {
+            var json = await client.GetStringAsync(IdPRegistryURL);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var registryItems = JsonConvert.DeserializeObject<List<IdPRegistryName>>(json);
+                return registryItems
+                    .Select(s => new IdentityProvider()
+                    {
+                        EntityId = s.entity_id,
+                        OrganizationName = s.organization_name,
+                        OrganizationDisplayName = s.organization_display_name,
+                        OrganizationLogoUrl = s.logo_uri,
+                        DateTimeFormat = SamlDefaultSettings.DateTimeFormat,
+                        NowDelta = SamlDefaultSettings.NowDelta,
+                        Name = s.code,
+                        ProviderType = ProviderType.IdentityProvider,
+                        SingleSignOnServiceUrlPost = s.single_sign_on_service.FirstOrDefault(ss => ss.Binding == SamlConst.ProtocolBindingPOST)?.Location,
+                        SingleSignOutServiceUrlPost = s.single_logout_service.FirstOrDefault(ss => ss.Binding == SamlConst.ProtocolBindingPOST)?.Location,
+                        SingleSignOnServiceUrlRedirect = s.single_sign_on_service.FirstOrDefault(ss => ss.Binding == SamlConst.ProtocolBindingRedirect)?.Location,
+                        SingleSignOutServiceUrlRedirect = s.single_logout_service.FirstOrDefault(ss => ss.Binding == SamlConst.ProtocolBindingRedirect)?.Location,
+                        X509SigningCertificates = s.signing_certificate_x509
+                    })
+                    .ToList();
+            }
+            return new List<IdentityProvider>();
         }
 
         /// <summary>
@@ -192,31 +247,31 @@ namespace SPID.AspNetCore.Authentication.Models
         public PathString ServiceProvidersMetadataEndpointsBasePath { get; set; }
 
         /// <summary>
+        /// Gets or sets the IdentityProviders Registry URL.
+        /// </summary>
+        /// <value>
+        /// The identifier p registry URL.
+        /// </value>
+        public string IdPRegistryURL { get; set; }
+
+        public string DefaultLanguage { get; set; } = "it";
+
+        /// <summary>
+        /// Gets or sets the security level.
+        /// </summary>
+        /// <value>
+        /// The security level.
+        /// </value>
+        public int SecurityLevel { get; set; }
+        public RequestMethod RequestMethod { get; set; }
+
+        /// <summary>
         /// Gets or sets the collection of the exposed SP metadata.
         /// </summary>
         /// <value>
         /// The collection of the exposed SP metadata.
         /// </value>
         public List<ServiceProvider> ServiceProviders { get { return _spMetadata; } }
-
-        public IEnumerable<IdentityProvider> FilteredIdentityProviders
-        {
-            get
-            {
-                var result = _identityProviders.AsEnumerable();
-                if (!IsLocalValidatorEnabled)
-                    result = result.Where(c => c.ProviderType != ProviderType.DevelopmentProvider
-                        && c.ProviderType != ProviderType.StandaloneProvider);
-
-                if (!IsStagingValidatorEnabled)
-                    result = result.Where(c => c.ProviderType != ProviderType.StagingProvider
-                        && c.ProviderType != ProviderType.StandaloneProvider);
-
-                return RandomIdentityProvidersOrder
-                    ? result.OrderBy(x => Guid.NewGuid())
-                    : result;
-            }
-        }
 
         /// <summary>
         /// Adds the identity providers.
@@ -252,6 +307,10 @@ namespace SPID.AspNetCore.Authentication.Models
             Certificate = conf.Certificate;
             CacheIdpMetadata = conf.CacheIdpMetadata;
             RandomIdentityProvidersOrder = conf.RandomIdentityProvidersOrder;
+            IdPRegistryURL = !string.IsNullOrWhiteSpace(conf.IdPRegistryURL) ? conf.IdPRegistryURL : IdPRegistryURL;
+            DefaultLanguage = !string.IsNullOrWhiteSpace(conf.DefaultLanguage) ? conf.DefaultLanguage : DefaultLanguage;
+            RequestMethod = conf.RequestMethod;
+            SecurityLevel = conf.SecurityLevel;
         }
     }
 }

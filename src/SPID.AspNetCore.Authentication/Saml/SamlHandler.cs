@@ -49,13 +49,15 @@ namespace SPID.AspNetCore.Authentication.Saml
             ushort? assertionConsumerServiceIndex,
             ushort attributeConsumingServiceIndex,
             X509Certificate2 certificate,
+            int securityLevel,
+            RequestMethod requestMethod,
             IdentityProvider identityProvider)
         {
 
             BusinessValidation.Argument(requestId, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(requestId)));
             BusinessValidation.Argument(certificate, string.Format(ErrorLocalization.ParameterCantNull, nameof(certificate)));
             BusinessValidation.Argument(identityProvider, string.Format(ErrorLocalization.ParameterCantNull, nameof(identityProvider)));
-            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(identityProvider.SingleSignOnServiceUrl), ErrorLocalization.SingleSignOnUrlRequired);
+            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(identityProvider.GetSingleSignOnServiceUrl(requestMethod)), ErrorLocalization.SingleSignOnUrlRequired);
 
             if (string.IsNullOrWhiteSpace(identityProvider.DateTimeFormat))
             {
@@ -77,7 +79,7 @@ namespace SPID.AspNetCore.Authentication.Saml
                 ID = "_" + requestId,
                 Version = SamlConst.Version,
                 IssueInstant = now.AddMinutes(nowDelta).ToString(dateTimeFormat),
-                Destination = identityProvider.SingleSignOnServiceUrl,
+                Destination = identityProvider.GetSingleSignOnServiceUrl(requestMethod),
                 ForceAuthn = true,
                 ForceAuthnSpecified = true,
                 Issuer = new NameIDType
@@ -86,7 +88,7 @@ namespace SPID.AspNetCore.Authentication.Saml
                     Format = SamlConst.IssuerFormat,
                     NameQualifier = entityId
                 },
-                AssertionConsumerServiceURL= assertionConsumerServiceURL,
+                AssertionConsumerServiceURL = assertionConsumerServiceURL,
                 AssertionConsumerServiceIndex = assertionConsumerServiceIndex ?? SamlDefaultSettings.AssertionConsumerServiceIndex,
                 AssertionConsumerServiceIndexSpecified = assertionConsumerServiceIndex.HasValue,
                 AttributeConsumingServiceIndex = attributeConsumingServiceIndex,
@@ -110,7 +112,7 @@ namespace SPID.AspNetCore.Authentication.Saml
                     ComparisonSpecified = true,
                     Items = new string[1]
                     {
-                        SamlConst.SpidL + identityProvider.SecurityLevel
+                        SamlConst.SpidL + securityLevel
                     },
                     ItemsElementName = new ItemsChoiceType7[1]
                     {
@@ -128,7 +130,7 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <param name="certificate">The certificate.</param>
         /// <param name="uuid">The UUID.</param>
         /// <returns></returns>
-        public static string SignSerializedDocument(string serializedDocument, X509Certificate2 certificate, string uuid) 
+        public static string SignSerializedDocument(string serializedDocument, X509Certificate2 certificate, string uuid)
         {
             return SignDocumentInternal(serializedDocument, certificate, uuid, 1);
         }
@@ -149,7 +151,8 @@ namespace SPID.AspNetCore.Authentication.Saml
             return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + doc.OuterXml;
         }
 
-        public static string ConvertToBase64(string message) {
+        public static string ConvertToBase64(string message)
+        {
             return Convert.ToBase64String(
                    Encoding.UTF8.GetBytes(message),
                    Base64FormattingOptions.None);
@@ -183,10 +186,10 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// </summary>
         /// <param name="response">The response.</param>
         /// <param name="request">The request.</param>
-        /// <param name="metadataIdp">The metadata idp.</param>
+        /// <param name="identityProvider">The IdentityProvider.</param>
         /// <exception cref="Exception">
         /// </exception>
-        public static void ValidateAuthnResponse(this ResponseType response, AuthnRequestType request, Saml.IdP.EntityDescriptorType metadataIdp, string serializedResponse)
+        public static void ValidateAuthnResponse(this ResponseType response, AuthnRequestType request, IdentityProvider identityProvider, string serializedResponse)
         {
             // Verify signature
             var xmlDoc = new XmlDocument() { PreserveWhitespace = true };
@@ -247,7 +250,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature == null, ErrorLocalization.AssertionSignatureNotFound);
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo?.GetX509Data()?.GetBase64X509Certificate() != response.Signature.KeyInfo?.GetX509Data()?.GetBase64X509Certificate(), ErrorLocalization.AssertionSignatureDifferent);
             //var metadataXmlDoc = metadataIdp.SerializeToXmlDoc();
-            BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc, metadataIdp), ErrorLocalization.InvalidSignature);
+            BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc, identityProvider), ErrorLocalization.InvalidSignature);
 
             BusinessValidation.ValidationCondition(() => response.Version != SamlConst.Version, ErrorLocalization.VersionNotValid);
             BusinessValidation.ValidationNotNullNotWhitespace(response.ID, nameof(response.ID));
@@ -322,7 +325,7 @@ namespace SPID.AspNetCore.Authentication.Saml
 
             BusinessValidation.ValidationCondition(() => response.Issuer == null, ErrorLocalization.IssuerNotSpecified);
             BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.Issuer?.Value), ErrorLocalization.IssuerMissing);
-            BusinessValidation.ValidationCondition(() => !response.Issuer.Value.Equals(metadataIdp.entityID, StringComparison.InvariantCultureIgnoreCase), ErrorLocalization.IssuerDifferentFromEntityId);
+            BusinessValidation.ValidationCondition(() => !response.Issuer.Value.Equals(identityProvider.EntityId, StringComparison.InvariantCultureIgnoreCase), ErrorLocalization.IssuerDifferentFromEntityId);
 
             BusinessValidation.ValidationCondition(() => !string.IsNullOrWhiteSpace(response.Issuer.Format) && !response.Issuer.Format.Equals(SamlConst.IssuerFormat), ErrorLocalization.IssuerFormatDifferent);
 
@@ -366,7 +369,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationCondition(() => notOnOrAfter < DateTimeOffset.UtcNow, ErrorLocalization.NotOnOrAfterLessThenRequest);
 
             BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Issuer?.Value, ErrorFields.Issuer);
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Value.Equals(metadataIdp.entityID), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Issuer));
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Value.Equals(identityProvider.EntityId), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Issuer));
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Issuer.Format == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.Issuer.Format"));
             BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().Issuer.Format), string.Format(ErrorLocalization.Missing, "Assertion.Issuer.Format"));
             BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Format.Equals(request.Issuer.Format), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Format));
@@ -415,8 +418,13 @@ namespace SPID.AspNetCore.Authentication.Saml
         /// <param name="subjectNameId"></param>
         /// <param name="authnStatementSessionIndex"></param>
         /// <returns></returns>
-        public static LogoutRequestType GetLogoutRequest(string requestId, string consumerServiceURL, X509Certificate2 certificate,
-           IdentityProvider identityProvider, string subjectNameId, string authnStatementSessionIndex)
+        public static LogoutRequestType GetLogoutRequest(string requestId,
+            string consumerServiceURL,
+            X509Certificate2 certificate,
+            IdentityProvider identityProvider,
+            string subjectNameId,
+            string authnStatementSessionIndex,
+            RequestMethod requestMethod)
         {
 
             BusinessValidation.Argument(requestId, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(requestId)));
@@ -435,14 +443,14 @@ namespace SPID.AspNetCore.Authentication.Saml
                 identityProvider.NowDelta = SamlDefaultSettings.NowDelta;
             }
 
-            if (string.IsNullOrWhiteSpace(identityProvider.SingleSignOutServiceUrl))
+            if (string.IsNullOrWhiteSpace(identityProvider.GetSingleSignOutServiceUrl(requestMethod)))
             {
                 throw new ArgumentNullException("The LogoutServiceUrl of the identity provider is null or empty.");
             }
 
             string dateTimeFormat = identityProvider.DateTimeFormat;
             string subjectNameIdRemoveText = identityProvider.SubjectNameIdRemoveText;
-            string singleLogoutServiceUrl = identityProvider.SingleSignOutServiceUrl;
+            string singleLogoutServiceUrl = identityProvider.GetSingleSignOutServiceUrl(requestMethod);
 
             DateTime now = DateTime.UtcNow;
 
@@ -518,7 +526,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             ns.Add(SamlConst.md, SamlConst.Saml2pMetadata);
             ns.Add(SamlConst.ds, SamlConst.xmlnsds);
             ns.Add(SamlConst.spid, SamlConst.spidExtensions);
-            if(addBillingNamespace)
+            if (addBillingNamespace)
                 ns.Add(SamlConst.fpa, SamlConst.fpaNamespace);
 
             var settings = new XmlWriterSettings

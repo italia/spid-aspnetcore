@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using SPID.AspNetCore.Authentication.Events;
 using SPID.AspNetCore.Authentication.Extensions;
 using SPID.AspNetCore.Authentication.Models;
 using SPID.AspNetCore.Authentication.Models.ServiceProviders;
@@ -64,6 +65,7 @@ namespace SPID.AspNetCore.Authentication
             });
             builder.Services.AddOptions<SpidOptions>().Configure(configureOptions);
             builder.Services.TryAddScoped<IServiceProvidersFactory, DefaultServiceProvidersFactory>();
+            builder.Services.TryAddScoped<ILogHandler, DefaultLogHandler>();
             return builder.AddRemoteScheme<SpidOptions, SpidHandler>(authenticationScheme, displayName, configureOptions);
         }
 
@@ -71,6 +73,19 @@ namespace SPID.AspNetCore.Authentication
             where T : class, IServiceProvidersFactory
         {
             builder.Services.AddScoped<IServiceProvidersFactory, T>();
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds the custom log handler.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="builder">The builder.</param>
+        /// <returns></returns>
+        public static AuthenticationBuilder AddLogHandler<T>(this AuthenticationBuilder builder)
+            where T : class, ILogHandler
+        {
+            builder.Services.AddScoped<ILogHandler, T>();
             return builder;
         }
 

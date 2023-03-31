@@ -55,7 +55,7 @@ Per renderizzare il pulsante è sufficiente aggiungere il seguente codice alla V
 }
 ```
 
-Il TagHelper `spid-providers` si occuperà di generare automaticamente il codice HTML necessario per la renderizzazione della lista di IdentityProviders che è stata inizializzata tra le SpidOptions in fase di startup. L'attributo `size` può essere valorizzato con i valori `Small, Medium, Large, ExtraLarge`.
+Il TagHelper `spid-providers` si occuperà di generare automaticamente il codice HTML necessario per la renderizzazione della lista di IdentityProviders che è stata recuperata in automatico dallo SPID Registry in fase di startup. L'attributo `size` può essere valorizzato con i valori `Small, Medium, Large, ExtraLarge`.
 `<style spid></style>` e `<script spid></script>` invece rappresentano i TagHelper per la renderizzazione rispettivamente delle classi CSS e del codice JS necessari all'esecuzione del pulsante.
 Un esempio completo di webapp AspNetCore MVC che fa uso di questa libreria è presente all'interno di questo repository sotto la cartella `SPID.AspNetCore.Authentication/SPID.AspNetCore.WebApp`. Per utilizzarla è sufficiente configurare in `appsettings.json` i parametri `AssertionConsumerServiceIndex`, `AttributeConsumingServiceIndex`, `EntityId` e `Certificate` con quelli relativi al proprio metadata di test, e lanciare la webapp.
 
@@ -72,162 +72,43 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
   "Spid": {
     "Providers": [
       {
+        "EntityId": "https://validator.spid.gov.it",
         "Name": "Validator",
         "OrganizationName": "Validator SPID",
         "OrganizationDisplayName": "Validator SPID",
-        "OrganizationUrlMetadata": "https://validator.spid.gov.it/metadata.xml",
-        "OrganizationUrl": "https://validator.spid.gov.it",
+        "X509SigningCertificate": "MIIEfzCCA2egAwIBAgIUVSeD58C3IyG/SwADsok3KChutAAwDQYJKoZIhvcNAQELBQAwgc4xCzAJBgNVBAYTAklUMQ0wCwYDVQQIDARSb21lMQ0wCwYDVQQHDARSb21lMS0wKwYDVQQKDCRBZ0lEIC0gQWdlbnppYSBwZXIgbCdJdGFsaWEgRGlnaXRhbGUxLDAqBgNVBAsMI0FnSUQgLSBTZXJ2aXppbyBhY2NyZWRpdGFtZW50byBTUElEMR4wHAYDVQQDDBV2YWxpZGF0b3Iuc3BpZC5nb3YuaXQxJDAiBgkqhkiG9w0BCQEWFXNwaWQudGVjaEBhZ2lkLmdvdi5pdDAeFw0yMTA5MjgwNzM5MTFaFw0yMzA5MjgwNzM5MTFaMIHOMQswCQYDVQQGEwJJVDENMAsGA1UECAwEUm9tZTENMAsGA1UEBwwEUm9tZTEtMCsGA1UECgwkQWdJRCAtIEFnZW56aWEgcGVyIGwnSXRhbGlhIERpZ2l0YWxlMSwwKgYDVQQLDCNBZ0lEIC0gU2Vydml6aW8gYWNjcmVkaXRhbWVudG8gU1BJRDEeMBwGA1UEAwwVdmFsaWRhdG9yLnNwaWQuZ292Lml0MSQwIgYJKoZIhvcNAQkBFhVzcGlkLnRlY2hAYWdpZC5nb3YuaXQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCjbuxHXdLPZZc/b9YaSqxdUsdDLYNdpBjdEmPoNf2LrXlBv8IODStRkNyQsAnOdy+R7Ud+kdtJi+tblx8e29RHRSsvl6HL3O0/3aS9XsyUGhbUE45SLxNWTMubU7UyS1mRhSdEUIbtVxYgSu1uH6zeIN2DhxQZIb0APZ7aLbJewu25qECz2dnV54R45pBwst/6MrnBa15VfKDRA2zdgfGjIgGWgxWtf7CqzfXnhush0IyaL4RVn/7tUurxj//LY6f37yMP1EAIbn9thc37ZhyfM9grAH3Cc4kdEB+HaiQ83fTH6LshPgTHww0w88TxK1jrV/vEG3T6ZhCqXt7qRvKtAgMBAAGjUzBRMB0GA1UdDgQWBBT0HytnpUbkZxLa0N+lfD08WrQX2TAfBgNVHSMEGDAWgBT0HytnpUbkZxLa0N+lfD08WrQX2TAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQCYcghyQ6zhRmLDzliNgJxPUOTJa/9UmZRgWYFcYHMumXTTTT/fmy00hTRFIKWpB0AibyEJhODIjCqNJN3RsCDbkwEDR0thhMQ51vK8oB9X1JVMDQ8v+eRTQTa8bZv8W8IPn7fgQFoX5IkiXEQtgf+hi/ErX/L4O6qbYxE/lIZneXXxlZUVM4YN9aS25nmuCumg9MbrmCCwplliKgKSZ77IERmcFm1tzpEFMJNI8LIaDL8VLSOosIMdLwel3oP3mosTw2hkSfyVUwHp/0y4rJ+zIel/4vBoySsyrJCCi8wBe9WNpIlUV/gGSayPkJMe0qc8m0GzncZDkqF/Bd7xsUHc",
         "OrganizationLogoUrl": "https://validator.spid.gov.it/img/idp-logo.png",
-        "SingleSignOnServiceUrl": "https://validator.spid.gov.it/samlsso",
-        "SingleSignOutServiceUrl": "https://validator.spid.gov.it/samlsso",
-        "Method": "Post",
-        "Type": "StagingProvider",
-        "SecurityLevel": 2, // Opzionale. Default = 2
-    },
+        "SingleSignOnServiceUrlPost": "https://validator.spid.gov.it/samlsso",
+        "SingleSignOutServiceUrlPost": "https://validator.spid.gov.it/samlsso",
+        "SingleSignOnServiceUrlRedirect": "https://validator.spid.gov.it/samlsso",
+        "SingleSignOutServiceUrlRedirect": "https://validator.spid.gov.it/samlsso",
+        "Type": "StagingProvider"
+      },
       {
+        "EntityId": "https://localhost:8080",
         "Name": "SpidSpTest",
         "OrganizationName": "SpidSpTest",
         "OrganizationDisplayName": "SpidSpTest",
-        "OrganizationUrlMetadata": "https://localhost:5001/spid/idp_metadata.xml",
-        "OrganizationUrl": "https://github.com/italia/spid-testenv-docker",
+        "X509SigningCertificate": "MIIEGDCCAwCgAwIBAgIJAOrYj9oLEJCwMA0GCSqGSIb3DQEBCwUAMGUxCzAJBgNVBAYTAklUMQ4wDAYDVQQIEwVJdGFseTENMAsGA1UEBxMEUm9tZTENMAsGA1UEChMEQWdJRDESMBAGA1UECxMJQWdJRCBURVNUMRQwEgYDVQQDEwthZ2lkLmdvdi5pdDAeFw0xOTA0MTExMDAyMDhaFw0yNTAzMDgxMDAyMDhaMGUxCzAJBgNVBAYTAklUMQ4wDAYDVQQIEwVJdGFseTENMAsGA1UEBxMEUm9tZTENMAsGA1UEChMEQWdJRDESMBAGA1UECxMJQWdJRCBURVNUMRQwEgYDVQQDEwthZ2lkLmdvdi5pdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK8kJVo+ugRrbbv9xhXCuVrqi4B7/MQzQc62ocwlFFujJNd4m1mXkUHFbgvwhRkQqo2DAmFeHiwCkJT3K1eeXIFhNFFroEzGPzONyekLpjNvmYIs1CFvirGOj0bkEiGaKEs+/umzGjxIhy5JQlqXE96y1+Izp2QhJimDK0/KNij8I1bzxseP0Ygc4SFveKS+7QO+PrLzWklEWGMs4DM5Zc3VRK7g4LWPWZhKdImC1rnS+/lEmHSvHisdVp/DJtbSrZwSYTRvTTz5IZDSq4kAzrDfpj16h7b3t3nFGc8UoY2Ro4tRZ3ahJ2r3b79yK6C5phY7CAANuW3gDdhVjiBNYs0CAwEAAaOByjCBxzAdBgNVHQ4EFgQU3/7kV2tbdFtphbSA4LH7+w8SkcwwgZcGA1UdIwSBjzCBjIAU3/7kV2tbdFtphbSA4LH7+w8SkcyhaaRnMGUxCzAJBgNVBAYTAklUMQ4wDAYDVQQIEwVJdGFseTENMAsGA1UEBxMEUm9tZTENMAsGA1UEChMEQWdJRDESMBAGA1UECxMJQWdJRCBURVNUMRQwEgYDVQQDEwthZ2lkLmdvdi5pdIIJAOrYj9oLEJCwMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAJNFqXg/V3aimJKUmUaqmQEEoSc3qvXFITvT5f5bKw9yk/NVhR6wndL+z/24h1OdRqs76blgH8k116qWNkkDtt0AlSjQOx5qvFYh1UviOjNdRI4WkYONSw+vuavcx+fB6O5JDHNmMhMySKTnmRqTkyhjrch7zaFIWUSV7hsBuxpqmrWDoLWdXbV3eFH3mINA5AoIY/m0bZtzZ7YNgiFWzxQgekpxd0vcTseMnCcXnsAlctdir0FoCZztxMuZjlBjwLTtM6Ry3/48LMM8Z+lw7NMciKLLTGQyU8XmKKSSOh0dGh5Lrlt5GxIIJkH81C0YimWebz8464QPL3RbLnTKg+c=",
         "OrganizationLogoUrl": "https://validator.spid.gov.it/img/idp-logo.png",
-        "SingleSignOnServiceUrl": "https://localhost:8080/samlsso",
-        "SingleSignOutServiceUrl": "https://localhost:8080/samlsso",
-        "Method": "Post",
-        "Type": "DevelopmentProvider",
-        "SecurityLevel": 2, // Opzionale. Default = 2
+        "SingleSignOnServiceUrlPost": "https://localhost:8080/samlsso",
+        "SingleSignOutServiceUrlPost": "https://localhost:8080/samlsso",
+        "SingleSignOnServiceUrlRedirect": "https://localhost:8080/samlsso",
+        "SingleSignOutServiceUrlRedirect": "https://localhost:8080/samlsso",
+        "Type": "DevelopmentProvider"
       },
       {
+        "EntityId": "https://demo.spid.gov.it/validator",
         "Name": "DemoSpid",
         "OrganizationName": "DemoSpid",
         "OrganizationDisplayName": "DemoSpid",
-        "OrganizationUrlMetadata": "https://demo.spid.gov.it/validator/metadata.xml",
-        "OrganizationUrl": "https://demo.spid.gov.it",
+        "X509SigningCertificate": "MIIEGDCCAwCgAwIBAgIJAOrYj9oLEJCwMA0GCSqGSIb3DQEBCwUAMGUxCzAJBgNVBAYTAklUMQ4wDAYDVQQIEwVJdGFseTENMAsGA1UEBxMEUm9tZTENMAsGA1UEChMEQWdJRDESMBAGA1UECxMJQWdJRCBURVNUMRQwEgYDVQQDEwthZ2lkLmdvdi5pdDAeFw0xOTA0MTExMDAyMDhaFw0yNTAzMDgxMDAyMDhaMGUxCzAJBgNVBAYTAklUMQ4wDAYDVQQIEwVJdGFseTENMAsGA1UEBxMEUm9tZTENMAsGA1UEChMEQWdJRDESMBAGA1UECxMJQWdJRCBURVNUMRQwEgYDVQQDEwthZ2lkLmdvdi5pdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK8kJVo+ugRrbbv9xhXCuVrqi4B7/MQzQc62ocwlFFujJNd4m1mXkUHFbgvwhRkQqo2DAmFeHiwCkJT3K1eeXIFhNFFroEzGPzONyekLpjNvmYIs1CFvirGOj0bkEiGaKEs+/umzGjxIhy5JQlqXE96y1+Izp2QhJimDK0/KNij8I1bzxseP0Ygc4SFveKS+7QO+PrLzWklEWGMs4DM5Zc3VRK7g4LWPWZhKdImC1rnS+/lEmHSvHisdVp/DJtbSrZwSYTRvTTz5IZDSq4kAzrDfpj16h7b3t3nFGc8UoY2Ro4tRZ3ahJ2r3b79yK6C5phY7CAANuW3gDdhVjiBNYs0CAwEAAaOByjCBxzAdBgNVHQ4EFgQU3/7kV2tbdFtphbSA4LH7+w8SkcwwgZcGA1UdIwSBjzCBjIAU3/7kV2tbdFtphbSA4LH7+w8SkcyhaaRnMGUxCzAJBgNVBAYTAklUMQ4wDAYDVQQIEwVJdGFseTENMAsGA1UEBxMEUm9tZTENMAsGA1UEChMEQWdJRDESMBAGA1UECxMJQWdJRCBURVNUMRQwEgYDVQQDEwthZ2lkLmdvdi5pdIIJAOrYj9oLEJCwMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAJNFqXg/V3aimJKUmUaqmQEEoSc3qvXFITvT5f5bKw9yk/NVhR6wndL+z/24h1OdRqs76blgH8k116qWNkkDtt0AlSjQOx5qvFYh1UviOjNdRI4WkYONSw+vuavcx+fB6O5JDHNmMhMySKTnmRqTkyhjrch7zaFIWUSV7hsBuxpqmrWDoLWdXbV3eFH3mINA5AoIY/m0bZtzZ7YNgiFWzxQgekpxd0vcTseMnCcXnsAlctdir0FoCZztxMuZjlBjwLTtM6Ry3/48LMM8Z+lw7NMciKLLTGQyU8XmKKSSOh0dGh5Lrlt5GxIIJkH81C0YimWebz8464QPL3RbLnTKg+c=",
         "OrganizationLogoUrl": "https://validator.spid.gov.it/img/idp-logo.png",
-        "SingleSignOnServiceUrl": "https://demo.spid.gov.it/validator/samlsso",
-        "SingleSignOutServiceUrl": "https://demo.spid.gov.it/validator/samlsso",
-        "Method": "Post",
-        "Type": "DevelopmentProvider",
-        "SecurityLevel": 2, // Opzionale. Default = 2
-      },
-      {
-        "Name": "Aruba",
-        "OrganizationName": "ArubaPEC S.p.A.",
-        "OrganizationDisplayName": "ArubaPEC S.p.A.",
-        "OrganizationUrlMetadata": "https://loginspid.aruba.it/metadata",
-        "OrganizationUrl": "https://www.pec.it/",
-        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-arubaid.png",
-        "SingleSignOnServiceUrl": "https://loginspid.aruba.it/ServiceLoginWelcome",
-        "SingleSignOutServiceUrl": "https://loginspid.aruba.it/ServiceLogoutRequest",
-        "Method": "Post",
-        "Type": "IdentityProvider",
-        "SecurityLevel": 2, // Opzionale. Default = 2
-      },
-      {
-        "Name": "Poste",
-        "OrganizationName": "Poste Italiane SpA",
-        "OrganizationDisplayName": "Poste Italiane SpA",
-        "OrganizationUrlMetadata": "https://posteid.poste.it/jod-fs/metadata/metadata.xml",
-        "OrganizationUrl": "https://www.poste.it/",
-        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-posteid.png",
-        "SingleSignOnServiceUrl": "https://posteid.poste.it/jod-fs/ssoservicepost",
-        "SingleSignOutServiceUrl": "https://posteid.poste.it/jod-fs/sloservicepost",
-        "Method": "Post",
-        "Type": "IdentityProvider",
-        "SecurityLevel": 2, // Opzionale. Default = 2
-      },
-      {
-        "Name": "Intesa",
-        "OrganizationName": "IN.TE.S.A. S.p.A.",
-        "OrganizationDisplayName": "IN.TE.S.A. S.p.A.",
-        "OrganizationUrlMetadata": "https://spid.intesa.it/metadata/metadata.xml",
-        "OrganizationUrl": "https://www.intesa.it/",
-        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-intesaid.png",
-        "SingleSignOnServiceUrl": "https://spid.intesa.it/Time4UserServices/services/idp/AuthnRequest/",
-        "SingleSignOutServiceUrl": "https://spid.intesa.it/Time4UserServices/services/idp/SingleLogout",
-        "Method": "Post",
-        "Type": "IdentityProvider",
-        "SecurityLevel": 2, // Opzionale. Default = 2
-      },
-      {
-        "Name": "Infocert",
-        "OrganizationName": "InfoCert S.p.A.",
-        "OrganizationDisplayName": "InfoCert S.p.A.",
-        "OrganizationUrlMetadata": "https://identity.infocert.it/metadata/metadata.xml",
-        "OrganizationUrl": "https://www.infocert.it",
-        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-infocertid.png",
-        "SingleSignOnServiceUrl": "https://identity.infocert.it/spid/samlsso",
-        "SingleSignOutServiceUrl": "https://identity.infocert.it/spid/samlslo",
-        "Method": "Post",
-        "Type": "IdentityProvider",
-        "SecurityLevel": 2, // Opzionale. Default = 2
-      },
-      {
-        "Name": "Lepida",
-        "OrganizationName": "Lepida S.p.A.",
-        "OrganizationDisplayName": "Lepida S.p.A.",
-        "OrganizationUrlMetadata": "https://id.lepida.it/idp/shibboleth",
-        "OrganizationUrl": "https://www.lepida.it",
-        "OrganizationLogoUrl": "https://id.lepida.it/idm/app/pubblica/lepida_spid.png",
-        "SingleSignOnServiceUrl": "https://id.lepida.it/idp/profile/SAML2/POST/SSO",
-        "SingleSignOutServiceUrl": "https://id.lepida.it/idp/profile/SAML2/POST/SLO",
-        "Method": "Post",
-        "Type": "IdentityProvider",
-        "SecurityLevel": 2, // Opzionale. Default = 2
-      },
-      {
-        "Name": "Namirial",
-        "OrganizationName": "Namirial S.p.a.",
-        "OrganizationDisplayName": "Namirial S.p.a.",
-        "OrganizationUrlMetadata": "https://idp.namirialtsp.com/idp/metadata",
-        "OrganizationUrl": "https://www.namirialtsp.com",
-        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-namirialid.png",
-        "SingleSignOnServiceUrl": "https://idp.namirialtsp.com/idp/profile/SAML2/POST/SSO",
-        "SingleSignOutServiceUrl": "https://idp.namirialtsp.com/idp/profile/SAML2/POST/SLO",
-        "Method": "Post",
-        "Type": "IdentityProvider",
-        "SecurityLevel": 2, // Opzionale. Default = 2
-      },
-      {
-        "Name": "Register",
-        "OrganizationName": "Register.it S.p.A.",
-        "OrganizationDisplayName": "Register.it S.p.A.",
-        "OrganizationUrlMetadata": "https://spid.register.it/login/metadata",
-        "OrganizationUrl": "https//www.register.it",
-        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-spiditalia.png",
-        "SingleSignOnServiceUrl": "https://spid.register.it/login/sso",
-        "SingleSignOutServiceUrl": "https://spid.register.it/login/singleLogout",
-        "Method": "Post",
-        "Type": "IdentityProvider",
-        "SecurityLevel": 2, // Opzionale. Default = 2
-      },
-      {
-        "Name": "Sielte",
-        "OrganizationName": "Sielte S.p.A.",
-        "OrganizationDisplayName": "Sielte S.p.A.",
-        "OrganizationUrlMetadata": "https://identity.sieltecloud.it/simplesaml/metadata.xml",
-        "OrganizationUrl": "http://www.sielte.it",
-        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-sielteid.png",
-        "SingleSignOnServiceUrl": "https://identity.sieltecloud.it/simplesaml/saml2/idp/SSO.php",
-        "SingleSignOutServiceUrl": "https://identity.sieltecloud.it/simplesaml/saml2/idp/SLO.php",
-        "Method": "Post",
-        "Type": "IdentityProvider",
-        "NowDelta": -2,
-        "SecurityLevel": 2, // Opzionale. Default = 2
-      },
-      {
-        "Name": "Tim",
-        "OrganizationName": "Trust Technologies srl",
-        "OrganizationDisplayName": "Trust Technologies srl",
-        "OrganizationUrlMetadata": "https://login.id.tim.it/spid-services/MetadataBrowser/idp",
-        "OrganizationUrl": "https://www.trusttechnologies.it",
-        "OrganizationLogoUrl": "https://raw.githubusercontent.com/italia/spid-graphics/master/idp-logos/spid-idp-timid.png",
-        "SingleSignOnServiceUrl": "https://login.id.tim.it/affwebservices/public/saml2sso",
-        "SingleSignOutServiceUrl": "https://login.id.tim.it/affwebservices/public/saml2slo",
-        "Method": "Post",
-        "Type": "IdentityProvider",
-        "NowDelta": -2,
-        "SecurityLevel": 2, // Opzionale. Default = 2
+        "SingleSignOnServiceUrlPost": "https://demo.spid.gov.it/validator/samlsso",
+        "SingleSignOutServiceUrlPost": "https://demo.spid.gov.it/validator/samlsso",
+        "SingleSignOnServiceUrlRedirect": "https://demo.spid.gov.it/validator/samlsso",
+        "SingleSignOutServiceUrlRedirect": "https://demo.spid.gov.it/validator/samlsso",
+        "Type": "DevelopmentProvider"
       }
     ],
     "Certificate": {
@@ -254,7 +135,9 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
     "AssertionConsumerServiceURL": "https://localhost:5001/signin-spid",
     "AssertionConsumerServiceIndex": 0,
     "AttributeConsumingServiceIndex": 0,
-    "RandomIdentityProvidersOrder": false
+    "RandomIdentityProvidersOrder": false,
+    "SecurityLevel": 2,
+    "RequestMethod": "Post"
   }
 ```
 La configurazione del certificato del SP avviene specificando nel campo `Source` uno tra i valori `Store/File/Raw/None` (nel caso di `None` non verrà caricato un certificato durante lo startup, ma sarà necessario fornirne uno a runtime, tramite l'uso dei `CustomSpidEvents`, che verranno presentati più nel dettaglio nella sezione successiva) e compilando opportunamente la sezione corrispondente al valore specificato. Le sezioni non usate (quelle cioè corrispondenti agli altri valori) potranno essere tranquillamente eliminate dal file di configurazione, dal momento che non verranno lette.
@@ -303,6 +186,8 @@ public class CustomSpidEvents : SpidEvents
         context.TokenOptions.AssertionConsumerServiceIndex = customConfig.AssertionConsumerServiceIndex;
         context.TokenOptions.AttributeConsumingServiceIndex = customConfig.AttributeConsumingServiceIndex;
         context.TokenOptions.Certificate = customConfig.Certificate;
+        context.TokenOptions.SecurityLevel = customConfig.SecurityLevel;
+        context.TokenOptions.RequestMethod = customConfig.RequestMethod;
 
         return base.TokenCreating(context);
     }
@@ -482,6 +367,44 @@ Tutti i metadata generati vengono automaticamente esposti su endpoint diversi, c
 
 All'interno dell'esempio `1_SimpleSPWebApp` è presente un ServiceProvider di esempio per ogni tipologia di profilo, sia configurato in maniera procedurale, sia tramite `IServiceProvidersFactory`.
 
+# Log Handling
+Dalla versione 2.0.0 è possibile specificare un custom LogHandler al fine di implementare la strategia di salvataggio dei Log di Request/Response che si preferisce.
+E' sufficiente implementare la seguente classe:
+
+```csharp
+public class LogHandler : ILogHandler
+{
+    public Task LogPostRequest(PostRequest request)
+    {
+        // Persist your request
+    }
+
+    public Task LogPostResponse(PostResponse response)
+    {
+        // Persist your response
+    }
+
+    public Task LogRedirectRequest(RedirectRequest request)
+    {
+        // Persist your request
+    }
+
+    public Task LogRedirectResponse(RedirectResponse response)
+    {
+        // Persist your response
+    }
+}
+```
+
+ed effettuare l'opportuna registrazione nello Startup come segue:
+
+```csharp
+services.AddAuthentication(/* ... */)
+                .AddSpid(/* ... */)
+                .AddLogHandler<LogHandler>()
+                /* add other Spid-related services.... */;
+```
+
 # Error Handling
 La libreria può, in qualunque fase (sia in fase di creazione della Request sia in fase di gestione della Response), sollevare eccezioni. 
 Un tipico scenario è quello in cui vengono ricevuti i codici di errore previsti dal protocollo SPID (n.19, n.20, ecc....), in tal caso la libreria solleva un'eccezione contenente il corrispondente messaggio d'errore localizzato, richiesto dalle specifiche SPID, che è possibile gestire (ad esempio per la visualizzazione) utilizzando il normale flusso previsto per AspNetCore. L'esempio seguente fa uso del middleware di ExceptionHandling di AspNetCore.
@@ -546,16 +469,16 @@ Dalla versione 1.3.0 in poi la libreria supporta anche la login con eIDAS. Per u
   ......
   },
   "Eidas": {
+    "EntityId": "https://sp-proxy.pre.eid.gov.it/spproxy/idpit",
     "Name": "Eidas",
     "OrganizationName": "eIDAS Test/PreProduzione",
     "OrganizationDisplayName": "eIDAS Test/PreProduzione",
-    "OrganizationUrlMetadata": "https://sp-proxy.pre.eid.gov.it/spproxy/idpitmetadata",
-    "OrganizationUrl": "https://www.eid.gov.it/",
+    "X509SigningCertificate": "MIIE9DCCA1ygAwIBAgIJALwGssYCzsxcMA0GCSqGSIb3DQEBCwUAMIGpMQswCQYDVQQGEwJJVDEtMCsGA1UECgwkQWdlbnppYSBwZXIgbCdJdGFsaWEgRGlnaXRhbGUgLSBBZ0lEMSwwKgYDVQQLDCNGSUNFUCBQcmUtcHJvZHVjdGlvbiBJbmZyYXN0cnVjdHVyZTE9MDsGA1UEAww0UHVibGljIEFkbWluaXN0cmF0aW9uIFNQIFBST1hZIElEUC1JVCBTQU1MIFNpZ25hdHVyZTAeFw0yMjExMTQxNjEyNDJaFw0yNDExMTMxNjEyNDJaMIGpMQswCQYDVQQGEwJJVDEtMCsGA1UECgwkQWdlbnppYSBwZXIgbCdJdGFsaWEgRGlnaXRhbGUgLSBBZ0lEMSwwKgYDVQQLDCNGSUNFUCBQcmUtcHJvZHVjdGlvbiBJbmZyYXN0cnVjdHVyZTE9MDsGA1UEAww0UHVibGljIEFkbWluaXN0cmF0aW9uIFNQIFBST1hZIElEUC1JVCBTQU1MIFNpZ25hdHVyZTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAL+1tL5BHYhUVg5XlUYN95ZL4G+c76u6I1GzqO6io3F+bNhkJ8cU+6s2TuRccskKFaYQX5HYusvKgh/CpgaHWUKtAdHHfLDuAtsM9JR5rh3UelsfFpEc39bQVIuC0mFVoVHrYKLqVyNad8CnuEloJg54aEiWdpirLSYowfKVlUy5exMbaTtqNo7qzVaZf922dxwRrUZz8MHSqbyKfvZPt9Sxfea8GsnEcnKp8aHxge6x8Q3ot8GTPtoebdgXCA4rP6N5kwwVFJ8glpEsST9VahCNcxyEVbKLVfWzELvWn6huPjwG4LPpSC2rSYshFbDTH3VppAlxs75tRM+r0ekv2i8KIp05sgdYkXEGRy6F79SPcsoYVySI1QAyGncrusOAhpFm5ilkPRHlTnmWmXBw/eowSd6uOLg3nLWqDQlRAGVNokKJzgbDN80OHCQiryYUmeu7Hcm2QDjnn4aZD6vO0fL1IWdKC7egsFjEDpN0+WrnXXoFFZDhp4FbVgFPDdwzCwIDAQABox0wGzAMBgNVHRMBAf8EAjAAMAsGA1UdDwQEAwIGwDANBgkqhkiG9w0BAQsFAAOCAYEAUNVv9U/bUwmn+qLrnN+eWAVtXsRBMfPdnbv7tvr8HsTJlvIK65CCHIxSMWs8Efs34DvgR6ZuOcTRvT3cXTfS5plKHI+EWLBFTTm0WloEr2MSI9Lb/Ss7A+MGRzA5HQb8vY7xKel20fHtSqcGLV0qnKc3VRhM0Yh9CBTdOJfpryexMDynlqRf9jxNJD73Rifo7XmIHQcw01D7TVSe/q58V71XuzX4WzAD+bNtDXcjPTCKOJeLHJhuAC9jGfEHwZsuMXYZphXVUa6QbyccRqZDFZagUk6esstexC9m/s3OnmF9nWqDKrQawi1AKGIZhr7mI0s/CzUEXgFvkPdEMvdzaIUF9sG6FNrK8D/NAQVztMduoEwY2p+GbyQysOd9eZgQspQ5S3de5GBsUQpqTuv3nzqKscjMCeKmSFMoJsC5DaRK4fVEXGmZqOniJbeS/C0SmKjtSnIQ5xo8Gy5ZhcRl+FCTCPClABXT6EwMC7Dco6uAA17XNEWRjZK4lnmUNJiq",
     "OrganizationLogoUrl": "https://www.eid.gov.it/assets/img/logo-eIDAS-login.svg",
-    "SingleSignOnServiceUrl": "https://sp-proxy.pre.eid.gov.it/spproxy/samlsso",
-    "SingleSignOutServiceUrl": "https://sp-proxy.pre.eid.gov.it/spproxy/samlslo",
-    "Method": "Post",
-    "SecurityLevel": 2,
+    "SingleSignOnServiceUrlPost": "https://sp-proxy.pre.eid.gov.it/spproxy/samlsso",
+    "SingleSignOutServiceUrlPost": "https://sp-proxy.pre.eid.gov.it/spproxy/samlslo",
+    "SingleSignOnServiceUrlRedirect": "https://sp-proxy.pre.eid.gov.it/spproxy/samlsso",
+    "SingleSignOutServiceUrlRedirect": "https://sp-proxy.pre.eid.gov.it/spproxy/samlslo",
     "AttributeConsumingServiceIndex": 99 // Or 100
   }
 ```
@@ -602,6 +525,23 @@ Questi esempi sono solo esemplificativi dell'integrazione con la libreria, non d
 
 # Compliance
 La libreria è stata oggetto di collaudo da parte di AGID, sia per soluzioni come ServiceProvider che come Aggregatore, ha superato tutti i test di [spid-sp-test](https://github.com/italia/spid-sp-test) (che è integrata in CI, è possibile vedere i log nelle actions), ed è compliant con le direttive specificate negli avvisi SPID.
+
+
+# Upgrade dalla versione 1.x alla 2.x
+A partire dalla versione 2.0.0 è stato introdotto il discovery automatizzato degli IdentityProvider di produzione, non è più necessario quindi includerli nelle settings, ma verrà utilizzato l'endpoint dello SPID Registry per il discovery.
+Inoltre è stata migliorata la gestione dei Log e degli SpidEvents.
+
+Di seguito le modifiche agli appsettings:
+- Sezione Eidas e "IdentityProvider" di Sviluppo/Collaudo
+  - Aggiunte le property "EntityId", "X509SigningCertificate", "SingleSignOnServiceUrlPost", "SingleSignOutServiceUrlPost", "SingleSignOnServiceUrlRedirect", "SingleSignOutServiceUrlRedirect"
+  - Eliminate le property "OrganizationUrlMetadata", "OrganizationUrl", "SingleSignOnServiceUrl", "SingleSignOutServiceUrl", "Method", "SecurityLevel"
+- Eliminati gli IdentityProvider di produzione, il discovery verrà effettuato in automatico dalla libreria
+- Sezione root, aggiunte le property "SecurityLevel" (default "2"), "RequestMethod" (default "POST"), "IdPRegistryURL" (default "https://registry.spid.gov.it/entities-idp?&output=json")
+
+Di seguito le modifiche agli SpidEvents:
+- Aggiunte le property "SecurityLevel" e "RequestMethod" all'oggetto "SecurityTokenCreatingOptions", che viene iniettato nello SpidEvent "OnTokenCreating". Effettuando l'override di queste nuove property è possibile specificare, per request, il SecurityLevel e il RequestMethod desiderati. In caso contrario verranno utilizzati i valori di default o quelli specificati nella root della sezione di settings riportati sopra.
+
+E' stata aggiunta la possibilità di specificare un custom LogHandler, come riportato nella sezione dedicata.
 
 # Authors
 * [Daniele Giallonardo](https://github.com/danielegiallonardo) (maintainer) - [Stefano Mostarda](https://github.com/sm15455)
