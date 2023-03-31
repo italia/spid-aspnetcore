@@ -37,7 +37,7 @@ jobs:
       working-directory: samples/1_SimpleSPWebApp
     - name: Run SPID.AspNetCore.WebApp
       working-directory: samples/1_SimpleSPWebApp/SPID.AspNetCore.WebApp
-      run: dotnet bin/Debug/net6.0/SPID.AspNetCore.WebApp.dll &
+      run: dotnet bin/Debug/net7.0/SPID.AspNetCore.WebApp.dll &
     - name: Update apt repo
       run: sudo apt update
     - name: Install dependencies
