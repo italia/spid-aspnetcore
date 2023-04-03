@@ -80,6 +80,8 @@
                         {
                             <spid-providers challenge-url="@Url.Action("Challenge", "External", new { scheme = SpidDefaults.AuthenticationScheme, returnUrl = Model.ReturnUrl })"
                                     size="Medium" class="text-left"></spid-providers>
+                            <eidas-button challenge-url="@Url.Action("Challenge", "External", new { scheme = SpidDefaults.AuthenticationScheme, returnUrl = Model.ReturnUrl })"
+                                    size="Medium" circle-image-type="ywb" class="text-left"></eidas-button>
                         }
 
                     </div>

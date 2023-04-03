@@ -5,6 +5,7 @@
 }
 @section styles {
     <style spid></style>
+    <style eidas></style>
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -76,6 +77,7 @@
                                     if (provider.Name == "Spid")
                                     {
                                         <spid-providers challenge-url="./ExternalLogin?provider=Spid&returnUrl=@Model.ReturnUrl" size="Medium" class="text-left"></spid-providers>
+                                        <eidas-button challenge-url="./ExternalLogin?provider=Spid&returnUrl=@Model.ReturnUrl" size="Medium" circle-image-type="ywb" class="text-left"></eidas-button>
                                     }
                                     else
                                     {
