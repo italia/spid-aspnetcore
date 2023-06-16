@@ -84,7 +84,18 @@ namespace SPID.AspNetCore.Authentication
             listContainer.Attributes.Add("aria-labelledby", "spid-idp");
             listContainer.AddCssClass("spid-idp-button-menu");
 
-            foreach (var idp in (await _options.GetIdentityProviders(_httpClientFactory))
+
+            IEnumerable<IdentityProvider> idps = new List<IdentityProvider>();
+            try
+            {
+                idps = await _options.GetIdentityProviders(_httpClientFactory);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            foreach (var idp in idps
                 .Where(i => !i.Name.Equals("Eidas")))
             {
                 var itemContainer = new TagBuilder("li");
