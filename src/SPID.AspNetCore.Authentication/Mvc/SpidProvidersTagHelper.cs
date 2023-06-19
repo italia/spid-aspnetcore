@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SPID.AspNetCore.Authentication.Models;
 using System;
@@ -27,12 +28,14 @@ namespace SPID.AspNetCore.Authentication
         readonly SpidOptions _options;
         readonly IUrlHelper _urlHelper;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger _logger;
 
-        public SpidProvidersTagHelper(IOptionsSnapshot<SpidOptions> options, IUrlHelper urlHelper, IHttpClientFactory httpClientFactory)
+        public SpidProvidersTagHelper(IOptionsSnapshot<SpidOptions> options, IUrlHelper urlHelper, IHttpClientFactory httpClientFactory, ILogger logger)
         {
             _options = options.Value;
             _urlHelper = urlHelper;
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
         }
 
         public SpidButtonSize Size { get; set; } = SpidButtonSize.Medium;
@@ -92,7 +95,7 @@ namespace SPID.AspNetCore.Authentication
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogCritical(ex.Message);
             }
 
             foreach (var idp in idps
