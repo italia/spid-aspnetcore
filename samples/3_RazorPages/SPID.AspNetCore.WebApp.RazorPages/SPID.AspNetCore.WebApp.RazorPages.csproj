@@ -17,7 +17,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="7.0.5" />
-    <PackageReference Include="SPID.AspNetCore.Authentication" Version="2.0.0" />
+    <PackageReference Include="SPID.AspNetCore.Authentication" Version="2.0.1" />
   </ItemGroup>
 
 </Project>
