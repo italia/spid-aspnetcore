@@ -536,7 +536,7 @@ namespace SPID.AspNetCore.Authentication
                         Certificate = options.Certificate,
                         AssertionConsumerServiceURL = options.AssertionConsumerServiceURL,
                         AssertionConsumerServiceIndex = options.AssertionConsumerServiceIndex,
-                        AttributeConsumingServiceIndex = idp.AttributeConsumingServiceIndex,
+                        AttributeConsumingServiceIndex = options.AttributeConsumingServiceIndex,
                         SecurityLevel = options.SecurityLevel,
                         RequestMethod = options.RequestMethod
                     }
