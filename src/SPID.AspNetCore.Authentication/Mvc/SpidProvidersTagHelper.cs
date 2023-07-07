@@ -28,9 +28,9 @@ namespace SPID.AspNetCore.Authentication
         readonly SpidOptions _options;
         readonly IUrlHelper _urlHelper;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger _logger;
+        private readonly ILogger<SpidProvidersTagHelper> _logger;
 
-        public SpidProvidersTagHelper(IOptionsSnapshot<SpidOptions> options, IUrlHelper urlHelper, IHttpClientFactory httpClientFactory, ILogger logger)
+        public SpidProvidersTagHelper(IOptionsSnapshot<SpidOptions> options, IUrlHelper urlHelper, IHttpClientFactory httpClientFactory, ILogger<SpidProvidersTagHelper> logger)
         {
             _options = options.Value;
             _urlHelper = urlHelper;
@@ -95,7 +95,7 @@ namespace SPID.AspNetCore.Authentication
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex.Message);
+                _logger.LogError(ex.Message);
             }
 
             foreach (var idp in idps
