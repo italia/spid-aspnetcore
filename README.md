@@ -210,62 +210,6 @@ public class CustomSpidEvents : SpidEvents
 }
 ```
 
-Inoltre è possibile usare gli SpidEvents per implementare il log obbligatorio delle request e delle response SAML, come previsto dalle regole tecniche e dalla convenzione.
-Di seguito un esempio che fa uso di uno storage esterno per conservare i log serializzati xml delle request e delle response SAML:
-
-```csharp
-private static XmlSerializer loginRequestSerializer = new XmlSerializer(typeof(AuthnRequestType));
-private static XmlSerializer logoutRequestSerializer = new XmlSerializer(typeof(LogoutRequestType));
-public override async Task RedirectToIdentityProvider(RedirectContext context)
-{
-    using MemoryStream stream = new MemoryStream();
-    string id = string.Empty;
-    if (context.SignedProtocolMessage is AuthnRequestType loginRequest)
-    {
-        id = loginRequest.ID;
-        loginRequestSerializer.Serialize(stream, loginRequest);
-    }
-    else if (context.SignedProtocolMessage is LogoutRequestType logoutRequest)
-    {
-        id = logoutRequest.ID;
-        logoutRequestSerializer.Serialize(stream, logoutRequest);
-    }
-
-    stream.Position = 0;
-
-    await _fileStorage.UploadFileAsync("spid", $"{id}_Request", stream, "application/xml", $"{id}_Request");
-
-    await base.RedirectToIdentityProvider(context);
-}
-
-private static XmlSerializer loginResponseSerializer = new XmlSerializer(typeof(ResponseType));
-public override async Task MessageReceived(MessageReceivedContext context)
-{
-    var id = context.ProtocolMessage.InResponseTo;
-    using MemoryStream stream = new MemoryStream();
-    loginResponseSerializer.Serialize(stream, context.ProtocolMessage);
-
-    stream.Position = 0;
-
-    await _fileStorage.UploadFileAsync("spid", $"{id}_Response", stream, "application/xml", $"{id}_Response");
-
-    await base.MessageReceived(context);
-}
-
-private static XmlSerializer logoutResponseSerializer = new XmlSerializer(typeof(LogoutResponseType));
-public override async Task RemoteSignOut(RemoteSignOutContext context)
-{
-    var id = context.ProtocolMessage.InResponseTo;
-    using MemoryStream stream = new MemoryStream();
-    logoutResponseSerializer.Serialize(stream, context.ProtocolMessage);
-
-    stream.Position = 0;
-
-    await _fileStorage.UploadFileAsync("spid", $"{id}_Response", stream, "application/xml", $"{id}_Response");
-
-    await base.RemoteSignOut(context);
-}
-```
 
 # Generazione Metadata Service Provider
 La libreria è dotata della possibilità di generare dinamicamente dei metadata per Service Provider conformi con i seguenti profili:
