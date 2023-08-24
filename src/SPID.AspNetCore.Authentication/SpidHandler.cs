@@ -86,6 +86,8 @@ namespace SPID.AspNetCore.Authentication
 
         protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
         {
+            properties ??= new();
+
             // Save the original challenge URI so we can redirect back to it when we're done.
             if (string.IsNullOrEmpty(properties.RedirectUri))
             {
@@ -202,6 +204,7 @@ namespace SPID.AspNetCore.Authentication
 
             string authenticationRequestId = Guid.NewGuid().ToString();
 
+            properties ??= new();
             properties.Load(Request, Options.StateDataFormat);
 
             // Extract the user state from properties and reset.
