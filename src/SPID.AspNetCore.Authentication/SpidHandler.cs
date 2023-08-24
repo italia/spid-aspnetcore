@@ -754,11 +754,11 @@ namespace SPID.AspNetCore.Authentication
             properties.ExpiresUtc = cookieProperties.ExpiresUtc;
             properties.IsPersistent = cookieProperties.IsPersistent;
             properties.IssuedUtc = cookieProperties.IssuedUtc;
-            foreach (var item in cookieProperties.Items.Where(i => !properties.Items.Contains(i)))
+            foreach (var item in cookieProperties.Items.Where(i => !properties.Items.ContainsKey(i.Key)))
             {
                 properties.Items.Add(item);
             }
-            foreach (var item in cookieProperties.Parameters.Where(i => !properties.Parameters.Contains(i)))
+            foreach (var item in cookieProperties.Parameters.Where(i => !properties.Parameters.ContainsKey(i.Key)))
             {
                 properties.Parameters.Add(item);
             }
