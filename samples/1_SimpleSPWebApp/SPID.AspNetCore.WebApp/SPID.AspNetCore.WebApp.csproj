@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.10" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="SPID.AspNetCore.Authentication" Version="2.0.3" />
+    <PackageReference Include="SPID.AspNetCore.Authentication" Version="2.0.4" />
   </ItemGroup>
 
 </Project>
