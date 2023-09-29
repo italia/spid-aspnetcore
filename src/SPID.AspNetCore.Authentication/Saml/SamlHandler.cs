@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Helpers;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Models;
 using SPID.AspNetCore.Authentication.Resources;
 using System;
@@ -195,8 +196,8 @@ namespace SPID.AspNetCore.Authentication.Saml
             var xmlDoc = new XmlDocument() { PreserveWhitespace = true };
             xmlDoc.LoadXml(serializedResponse);
 
-            BusinessValidation.ValidationCondition(() => response.Status == null, ErrorLocalization.StatusNotValid);
-            BusinessValidation.ValidationCondition(() => response.Status.StatusCode == null, ErrorLocalization.StatusCodeNotValid);
+            BusinessValidation.ValidationCondition(() => response.Status == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.StatusNotValid, SpidErrorCode.ResponseStatusMancante));
+            BusinessValidation.ValidationCondition(() => response.Status.StatusCode == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.StatusCodeNotValid, SpidErrorCode.ResponseStatusCodeMancante));
 
             if (!response.Status.StatusCode.Value.Equals(SamlConst.Success, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -205,49 +206,49 @@ namespace SPID.AspNetCore.Authentication.Saml
                     switch (errorCode)
                     {
                         case 8:
-                            throw new Exception(ErrorLocalization._08);
+                            throw new SpidException(ErrorLocalization._08, SpidErrorCode.SAMLInvalid);
                         case 9:
-                            throw new Exception(ErrorLocalization._09);
+                            throw new SpidException(ErrorLocalization._09, SpidErrorCode.ResponseVersionNoDue);
                         case 11:
-                            throw new Exception(ErrorLocalization._11);
+                            throw new SpidException(ErrorLocalization._11, SpidErrorCode.ResponseIdMancante);
                         case 12:
-                            throw new Exception(ErrorLocalization._12);
+                            throw new SpidException(ErrorLocalization._12, SpidErrorCode.AssertionAuthStatementAuthnContextNonSpec);
                         case 13:
-                            throw new Exception(ErrorLocalization._13);
+                            throw new SpidException(ErrorLocalization._13, SpidErrorCode.ResponseIssueInstantNonSpec);
                         case 14:
-                            throw new Exception(ErrorLocalization._14);
+                            throw new SpidException(ErrorLocalization._14, SpidErrorCode.ResponseDestinationNonSpec);
                         case 15:
-                            throw new Exception(ErrorLocalization._15);
+                            throw new SpidException(ErrorLocalization._15, SpidErrorCode.IsPassiveTrue);
                         case 16:
-                            throw new Exception(ErrorLocalization._16);
+                            throw new SpidException(ErrorLocalization._16, SpidErrorCode.ResponseDestinationDiversoDaAssertionConsumerServiceURL);
                         case 17:
-                            throw new Exception(ErrorLocalization._17);
+                            throw new SpidException(ErrorLocalization._17, SpidErrorCode.AssertionNameIdFormatNonSpec);
                         case 18:
-                            throw new Exception(ErrorLocalization._18);
+                            throw new SpidException(ErrorLocalization._18, SpidErrorCode.AttributeConsumerServiceIndexNonCorretto);
                         case 19:
-                            throw new Exception(ErrorLocalization._19);
+                            throw new SpidException(ErrorLocalization._19, SpidErrorCode.Anomalia19);
                         case 20:
-                            throw new Exception(ErrorLocalization._20);
+                            throw new SpidException(ErrorLocalization._20, SpidErrorCode.Anomalia20);
                         case 21:
-                            throw new Exception(ErrorLocalization._21);
+                            throw new SpidException(ErrorLocalization._21, SpidErrorCode.Anomalia21);
                         case 22:
-                            throw new Exception(ErrorLocalization._22);
+                            throw new SpidException(ErrorLocalization._22, SpidErrorCode.Anomalia22);
                         case 23:
-                            throw new Exception(ErrorLocalization._23);
+                            throw new SpidException(ErrorLocalization._23, SpidErrorCode.Anomalia23);
                         case 25:
-                            throw new Exception(ErrorLocalization._25);
+                            throw new SpidException(ErrorLocalization._25, SpidErrorCode.Anomalia25);
                         case 30:
-                            throw new Exception(ErrorLocalization._30);
+                            throw new SpidException(ErrorLocalization._30, SpidErrorCode.Anomalia30);
                         default:
                             break;
                     }
                 }
-                throw new Exception(ErrorLocalization.StatusCodeNotValid);
+                throw new SpidException(ErrorLocalization.StatusCodeNotValid, SpidErrorCode.ResponseStatusCodeNonSpec);
             }
 
-            BusinessValidation.ValidationCondition(() => response.Signature == null, ErrorLocalization.ResponseSignatureNotFound);
-            BusinessValidation.ValidationCondition(() => response?.GetAssertion() == null, ErrorLocalization.ResponseAssertionNotFound);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature == null, ErrorLocalization.AssertionSignatureNotFound);
+            BusinessValidation.ValidationCondition(() => response.Signature == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.ResponseSignatureNotFound, SpidErrorCode.ResponseNonFirmata));
+            BusinessValidation.ValidationCondition(() => response?.GetAssertion() == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.ResponseAssertionNotFound, SpidErrorCode.ResponseAssertionMancante));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.AssertionSignatureNotFound, SpidErrorCode.ResponseAssertionNonFirmata));
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo?.GetX509Data()?.GetBase64X509Certificate() != response.Signature.KeyInfo?.GetX509Data()?.GetBase64X509Certificate(), ErrorLocalization.AssertionSignatureDifferent);
             //var metadataXmlDoc = metadataIdp.SerializeToXmlDoc();
             BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc, identityProvider), ErrorLocalization.InvalidSignature);

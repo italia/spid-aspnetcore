@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Resources;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Resources;
 using System;
 
 namespace SPID.AspNetCore.Authentication.Helpers
@@ -10,11 +11,11 @@ namespace SPID.AspNetCore.Authentication.Helpers
             if (input is string && string.IsNullOrWhiteSpace(input.ToString()) || input == default(T)) throw new ArgumentNullException(error);
         }
 
-        public static void ValidationCondition(Func<bool> condition, string error)
+        public static void ValidationCondition(Func<bool> condition, SpidException error)
         {
             if (condition())
             {
-                throw new Exception(error);
+                throw error;
             }
         }
 
