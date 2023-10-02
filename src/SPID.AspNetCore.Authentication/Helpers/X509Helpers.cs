@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Resources;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Resources;
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -17,8 +18,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <returns></returns>
         public static X509Certificate2 GetCertificateFromFile(string certFilePath, string certPassword)
         {
-            BusinessValidation.ValidationNotNullNotWhitespace(certFilePath, ErrorLocalization.CertificatePathNullOrEmpty);
-            BusinessValidation.ValidationNotNullNotWhitespace(certPassword, ErrorLocalization.CertificatePasswordNullOrEmpty);
+            BusinessValidation.ValidationNotNullNotWhitespace(certFilePath, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.CertificatePathNullOrEmpty, SpidErrorCode.CertificatePathNullOrEmpty));
+            BusinessValidation.ValidationNotNullNotWhitespace(certPassword, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.CertificatePasswordNullOrEmpty, SpidErrorCode.CertificatePasswordNullOrEmpty));
 
             return new X509Certificate2(certFilePath,
                 certPassword,
@@ -33,8 +34,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <returns></returns>
         public static X509Certificate2 GetCertificateFromStrings(string certificateString64, string certPassword)
         {
-            BusinessValidation.ValidationNotNullNotWhitespace(certificateString64, ErrorLocalization.CertificateRawStringNullOrEmpty);
-            BusinessValidation.ValidationNotNullNotWhitespace(certPassword, ErrorLocalization.CertificatePasswordNullOrEmpty);
+            BusinessValidation.ValidationNotNullNotWhitespace(certificateString64, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.CertificateRawStringNullOrEmpty, SpidErrorCode.CertificateRawStringNullOrEmpty));
+            BusinessValidation.ValidationNotNullNotWhitespace(certPassword, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.CertificatePasswordNullOrEmpty, SpidErrorCode.CertificatePasswordNullOrEmpty));
             var certificateBytes = Convert.FromBase64String(certificateString64);
             return new X509Certificate2(certificateBytes, certPassword,
                 X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
@@ -52,7 +53,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
         /// <returns></returns>
         public static X509Certificate2 GetCertificateFromStore(StoreLocation storeLocation, StoreName storeName, X509FindType findType, object findValue, bool validOnly)
         {
-            BusinessValidation.ValidationNotNullNotWhitespace(findValue.ToString(), ErrorLocalization.CertificateFindValueNullOrEmpty);
+            BusinessValidation.ValidationNotNullNotWhitespace(findValue.ToString(), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.CertificateFindValueNullOrEmpty, SpidErrorCode.CertificateFindValueNullOrEmpty));
             using X509Store store = new X509Store(storeName, storeLocation);
             store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
             X509Certificate2Collection coll = store.Certificates.Find(findType, findValue.ToString(), validOnly);
@@ -63,7 +64,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
                 certificate = coll[0];
             }
 
-            BusinessValidation.ValidationNotNull(certificate, ErrorLocalization.CertificateNotFound);
+            BusinessValidation.ValidationNotNull(certificate, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.CertificateNotFound, SpidErrorCode.CertificateNull));
 
             return certificate;
         }

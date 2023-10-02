@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Models;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Models;
 using SPID.AspNetCore.Authentication.Resources;
 using System;
 using System.Collections.Concurrent;
@@ -28,9 +29,9 @@ namespace SPID.AspNetCore.Authentication.Helpers
             string signatureMethod,
             string digestMethod)
         {
-            BusinessValidation.ValidationNotNull(doc, ErrorLocalization.XmlDocNull);
-            BusinessValidation.ValidationNotNull(certificate, ErrorLocalization.CertificateNull);
-            BusinessValidation.ValidationNotNullNotWhitespace(referenceUri, ErrorLocalization.ReferenceUriNullOrWhitespace);
+            BusinessValidation.ValidationNotNull(doc, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.XmlDocNull, SpidErrorCode.XmlDocNull));
+            BusinessValidation.ValidationNotNull(certificate, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.CertificateNull, SpidErrorCode.CertificateNull));
+            BusinessValidation.ValidationNotNullNotWhitespace(referenceUri, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.ReferenceUriNullOrWhitespace, SpidErrorCode.ReferenceUriNullOrWhitespace));
 
             AsymmetricAlgorithm privateKey;
 

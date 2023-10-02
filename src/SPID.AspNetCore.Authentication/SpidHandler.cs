@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using SPID.AspNetCore.Authentication.Events;
+using SPID.AspNetCore.Authentication.Exceptions;
 using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Models;
 using SPID.AspNetCore.Authentication.Resources;
@@ -748,11 +749,11 @@ namespace SPID.AspNetCore.Authentication
 
         public static void Load(this AuthenticationProperties properties, HttpRequest request, ISecureDataFormat<AuthenticationProperties> encryptor)
         {
-            BusinessValidation.ValidationCondition(() => !request.Cookies.ContainsKey(SpidDefaults.CookieName), ErrorLocalization.SpidPropertiesNotFound);
+            BusinessValidation.ValidationCondition(() => !request.Cookies.ContainsKey(SpidDefaults.CookieName), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.SpidPropertiesNotFound, SpidErrorCode.SpidPropertiesNotFound));
             var cookie = request.Cookies[SpidDefaults.CookieName];
-            BusinessValidation.ValidationNotNull(cookie, ErrorLocalization.SpidPropertiesNotFound);
+            BusinessValidation.ValidationNotNull(cookie, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.SpidPropertiesNotFound, SpidErrorCode.SpidPropertiesNotFound));
             AuthenticationProperties cookieProperties = encryptor.Unprotect(cookie);
-            BusinessValidation.ValidationNotNull(cookieProperties, ErrorLocalization.SpidPropertiesNotFound);
+            BusinessValidation.ValidationNotNull(cookieProperties, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.SpidPropertiesNotFound, SpidErrorCode.SpidPropertiesNotFound));
             properties.AllowRefresh = cookieProperties.AllowRefresh;
             properties.ExpiresUtc = cookieProperties.ExpiresUtc;
             properties.IsPersistent = cookieProperties.IsPersistent;
