@@ -19,39 +19,39 @@ namespace SPID.AspNetCore.Authentication.Helpers
             }
         }
 
-        public static void ValidationTry(Action action, string error)
+        public static void ValidationTry(Action action, string error, SpidErrorCode spidErrorCode)
         {
             try
             {
                 action();
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new Exception(error);
+                throw new SpidException(ErrorLocalization.GenericMessage, error, spidErrorCode, e);
             }
         }
 
-        public static void ValidationNotNull(object input, string nameVariable)
+        public static void ValidationNotNull(object input, SpidException error)
         {
             if (input == null)
             {
-                throw new Exception(string.Format(ErrorLocalization.NotSpecified, nameVariable));
+                throw error;
             }
         }
 
-        public static void ValidationNotNullNotWhitespace(string input, string nameVariable)
+        public static void ValidationNotNullNotWhitespace(string input, SpidException error)
         {
             if (string.IsNullOrWhiteSpace(input))
             {
-                throw new Exception(string.Format(ErrorLocalization.NotSpecified, nameVariable));
+                throw error;
             }
         }
 
-        public static T ValidationNotNullNotEmpty<T>(T input, string nameVariable) where T : class, new()
+        public static T ValidationNotNullNotEmpty<T>(T input, SpidException error) where T : class, new()
         {
             var instance = new T();
-            if (input == default(T)) throw new Exception(string.Format(ErrorLocalization.NotDefined, nameVariable));
+            if (input == default(T)) throw error;
             return input;
         }
     }

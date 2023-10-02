@@ -21,6 +21,12 @@ namespace SPID.AspNetCore.Authentication.Exceptions
       _errorCode = errorCode;
     }
 
+    public SpidException(string message, string reason, SpidErrorCode errorCode, Exception innerException) : base(message, innerException)
+    {
+      _reason = reason ?? string.Empty;
+      _errorCode = errorCode;
+    }
+
     public SpidException(string message, SpidErrorCode errorCode) : base(message)
     {
       _reason = message ?? string.Empty;
@@ -134,9 +140,15 @@ namespace SPID.AspNetCore.Authentication.Exceptions
     AttribNoNameFormat = 109,
     ResponseIssueInstantNoMs = 110,
     Anomalia25 = 111,
+    //utilizzato il 1000 per non "occupare" valori che potrebbero essere relativi a nuovi test AgID
+    SSOUrlRequired = 1001,
+    ResponseMancante = 1002,
+    AttributiRichiestiMancanti = 1003,
+    AssertionAuthnStatementNonSpec = 1004,
     SAMLInvalid = 1111,
     IsPassiveTrue = 1115,
     AttributeConsumerServiceIndexNonCorretto = 1118,
-    Anomalia30 = 1130
+    Anomalia30 = 1130,
+    
   }
 }
