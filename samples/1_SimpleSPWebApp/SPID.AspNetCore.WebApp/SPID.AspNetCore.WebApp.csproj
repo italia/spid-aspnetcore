@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Reference Include="SPID.AspNetCore.Authentication">
-      <HintPath>..\..\..\src\SPID.AspNetCore.Authentication\bin\Debug\netstandard2.0\SPID.AspNetCore.Authentication.dll</HintPath>
+      <HintPath>..\..\..\src\SPID.AspNetCore.Authentication\bin\Debug\net7.0\SPID.AspNetCore.Authentication.dll</HintPath>
     </Reference>
   </ItemGroup>
 
