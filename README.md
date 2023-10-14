@@ -351,7 +351,16 @@ services.AddAuthentication(/* ... */)
 
 # Error Handling
 La libreria può, in qualunque fase (sia in fase di creazione della Request sia in fase di gestione della Response), sollevare eccezioni. 
-Un tipico scenario è quello in cui vengono ricevuti i codici di errore previsti dal protocollo SPID (n.19, n.20, ecc....), in tal caso la libreria solleva un'eccezione contenente il corrispondente messaggio d'errore localizzato, richiesto dalle specifiche SPID, che è possibile gestire (ad esempio per la visualizzazione) utilizzando il normale flusso previsto per AspNetCore. L'esempio seguente fa uso del middleware di ExceptionHandling di AspNetCore.
+
+Le eccezioni sollevate sono tutte del tipo `SpidException` la quale contiene 3 proprietà: 
+
+- **Message** : proprietà che contiene il messaggio di errore localizzato di cui, alcuni di questi, sono formulati in accordo con quanto richiesto dalle specifiche SPID: può essere utilizzato per mostrare un messaggio di errore agli utenti finali.
+- **SpidErrorCode** : proprietà che contiene i tipi di errore rilevati dalla libreria. I codici da 0 a 111 riguardano le segnalazioni di errori che vengono verificati durante la procedura di onboarding. I codici dal 1000 in poi sono relativi a possibili segnalazioni di errore fatte dalla libreria durante la fase di configurazione o la verifica delle informazioni scambiate nella procedura di autenticazione. Questa proprietà è utile nel caso in cui si volessero creare dei messaggi di errore personalizzati per determinate casistiche che non sono soggette a verifica puntuale durante il processo di onboarding. ESEMPIO: 
+
+  I codici di errore *Anomalia19, Anomalia20, Anomalia21, Anomalia22, Anomalia23 e Anomalia25* viene restituito un messaggio di errore specifico mentre per i restanti codici viene restituito un messaggio generico. Se si vuole personalizzare questo messaggio generico, è necessario fare in modo che risulti chiaro all'utente finale.  
+- **Reason** : proprietà che contiene un messaggio di errore localizzato il quale specifica meglio l'origine dell'errore. Questo messaggio fornisce informazioni allo sviluppatore per cui può risultare utile per operazioni di logging.
+
+ É possibile gestire le eccezioni (ad esempio per la visualizzazione) utilizzando il normale flusso previsto per AspNetCore. L'esempio seguente fa uso del middleware di ExceptionHandling di AspNetCore.
 
 ```csharp
 public void Configure(IApplicationBuilder app, IHostEnvironment env)

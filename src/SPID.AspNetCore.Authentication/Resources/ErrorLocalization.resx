@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
+    <!-- 
     Microsoft ResX Schema 
     
     Version 2.0
@@ -59,257 +59,260 @@
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
-    <xsd:element name="root" msdata:IsDataSet="true">
-      <xsd:complexType>
-        <xsd:choice maxOccurs="unbounded">
-          <xsd:element name="metadata">
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+        <xsd:element name="root" msdata:IsDataSet="true">
             <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" />
-              </xsd:sequence>
-              <xsd:attribute name="name" use="required" type="xsd:string" />
-              <xsd:attribute name="type" type="xsd:string" />
-              <xsd:attribute name="mimetype" type="xsd:string" />
-              <xsd:attribute ref="xml:space" />
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="metadata">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" use="required" type="xsd:string"/>
+                            <xsd:attribute name="type" type="xsd:string"/>
+                            <xsd:attribute name="mimetype" type="xsd:string"/>
+                            <xsd:attribute ref="xml:space"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="assembly">
+                        <xsd:complexType>
+                            <xsd:attribute name="alias" type="xsd:string"/>
+                            <xsd:attribute name="name" type="xsd:string"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
+                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+                            <xsd:attribute ref="xml:space"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="resheader">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
             </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="assembly">
-            <xsd:complexType>
-              <xsd:attribute name="alias" type="xsd:string" />
-              <xsd:attribute name="name" type="xsd:string" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="data">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
-              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-              <xsd:attribute ref="xml:space" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="resheader">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" />
-            </xsd:complexType>
-          </xsd:element>
-        </xsd:choice>
-      </xsd:complexType>
-    </xsd:element>
-  </xsd:schema>
-  <resheader name="resmimetype">
-    <value>text/microsoft-resx</value>
-  </resheader>
-  <resheader name="version">
-    <value>2.0</value>
-  </resheader>
-  <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <data name="08" xml:space="preserve">
-    <value>Formato della richiesta non conforme alle specifiche SAML</value>
-  </data>
-  <data name="09" xml:space="preserve">
-    <value>Parametro Version non presente, malformato o diverso da 2.0</value>
-  </data>
-  <data name="11" xml:space="preserve">
-    <value>ID non presente, malformato o non conforme</value>
-  </data>
-  <data name="12" xml:space="preserve">
-    <value>RequestAuthnContext non presente, malformato o non previsto da Spid</value>
-  </data>
-  <data name="13" xml:space="preserve">
-    <value>IssueInstant non presente, malformato o non coerente con l'orario di arrivo della richiesta</value>
-  </data>
-  <data name="14" xml:space="preserve">
-    <value>Destination non presente, malformata o non coincidente con il gestore delle identità ricevente la richiesta</value>
-  </data>
-  <data name="15" xml:space="preserve">
-    <value>Attributo IsPassive presente e attualizzato al valore True</value>
-  </data>
-  <data name="16" xml:space="preserve">
-    <value>AssertionConsumerService non correttamente valorizzato</value>
-  </data>
-  <data name="17" xml:space="preserve">
-    <value>Attributo Format dell'elemento NameIdPolicy assente o non valorizzato secondo specifica</value>
-  </data>
-  <data name="18" xml:space="preserve">
-    <value>AttributeConsumerServiceIndex malformato o che riferisce a un valore non registrato nei metadati di SP</value>
-  </data>
-  <data name="19" xml:space="preserve">
-    <value>Autenticazione fallita per ripetuta sottomissione di credenziali errate (superato numero  tentativi secondo le policy adottate)</value>
-  </data>
-  <data name="20" xml:space="preserve">
-    <value>Utente privo di credenziali compatibili con il livello richiesto dal fornitore del servizio</value>
-  </data>
-  <data name="21" xml:space="preserve">
-    <value>Timeout durante l’autenticazione utente</value>
-  </data>
-  <data name="22" xml:space="preserve">
-    <value>Utente nega il consenso all’invio di dati al SP in caso di sessione vigente</value>
-  </data>
-  <data name="23" xml:space="preserve">
-    <value>Utente con identità sospesa/revocata o con credenziali bloccate</value>
-  </data>
-  <data name="25" xml:space="preserve">
-    <value>Processo di autenticazione annullato dall’utente</value>
-  </data>
-  <data name="30" xml:space="preserve">
-    <value>Tentativo dell'utente di utilizzare una tipologia di identità digitale diversa da quanto richiesto dal SP</value>
-  </data>
-  <data name="AssertionIdMissing" xml:space="preserve">
-    <value>Attributo Assertion.ID non specificato</value>
-  </data>
-  <data name="AssertionSignatureDifferent" xml:space="preserve">
-    <value>Signature differenti</value>
-  </data>
-  <data name="AssertionSignatureNotFound" xml:space="preserve">
-    <value>Signature Assertion non trovata</value>
-  </data>
-  <data name="AssertionSignatureNotValid" xml:space="preserve">
-    <value>Signature Assertion non valida</value>
-  </data>
-  <data name="AttributeNotFound" xml:space="preserve">
-    <value>Attributi non trovati</value>
-  </data>
-  <data name="AttributeRequiredNotFound" xml:space="preserve">
-    <value>Non sono presenti tutti gli attributi richiesti</value>
-  </data>
-  <data name="CertificateFindValueNullOrEmpty" xml:space="preserve">
-    <value>Il FindValue del certificato non può essere nè vuota nè null</value>
-  </data>
-  <data name="CertificateNotFound" xml:space="preserve">
-    <value>Certificato non trovato</value>
-  </data>
-  <data name="CertificateNull" xml:space="preserve">
-    <value>Il certificato non può essere null</value>
-  </data>
-  <data name="CertificatePasswordNullOrEmpty" xml:space="preserve">
-    <value>La password del certificato non può essere nè vuota nè null</value>
-  </data>
-  <data name="CertificatePathNullOrEmpty" xml:space="preserve">
-    <value>Il path del certificato non può essere nè vuoto nè null</value>
-  </data>
-  <data name="CertificateRawStringNullOrEmpty" xml:space="preserve">
-    <value>La stringa base64 del certificato non può essere nè vuota nè null</value>
-  </data>
-  <data name="ConversionBase64Errror" xml:space="preserve">
-    <value>Impossibile convertire la stringa base64 in ascii</value>
-  </data>
-  <data name="DifferentFrom" xml:space="preserve">
-    <value>{0} diverso da {1}</value>
-  </data>
-  <data name="FormatNotValid" xml:space="preserve">
-    <value>{0} in un formato non valido</value>
-  </data>
-  <data name="InResponseToNotValid" xml:space="preserve">
-    <value>Valore InResponseTo non valido</value>
-  </data>
-  <data name="InvalidDestination" xml:space="preserve">
-    <value>Attributo Destination della risposta diverso da quello della richiesta</value>
-  </data>
-  <data name="InvalidSignature" xml:space="preserve">
-    <value>Signature non valida</value>
-  </data>
-  <data name="IssueInstantMissing" xml:space="preserve">
-    <value>IssueInstant mancante</value>
-  </data>
-  <data name="IssueIstantAssertionGreaterThanRequest" xml:space="preserve">
-    <value>Attributo Assertion IssueIstant successivo a IssueInstant della richiesta</value>
-  </data>
-  <data name="IssueIstantAssertionLessThanRequest" xml:space="preserve">
-    <value>Attributo Assertion IssueIstant precedente a IssueInstant della richiesta</value>
-  </data>
-  <data name="IssueIstantDifferentFromRequest" xml:space="preserve">
-    <value>IssueIstant diverso da quello di richiesta</value>
-  </data>
-  <data name="IssuerDifferentFromEntityId" xml:space="preserve">
-    <value>Elemento Issuer diverso da EntityID IdP</value>
-  </data>
-  <data name="IssuerFormatDifferent" xml:space="preserve">
-    <value>Attributo Format di Issuer diverso</value>
-  </data>
-  <data name="IssuerMissing" xml:space="preserve">
-    <value>Elemento Issuer mancante</value>
-  </data>
-  <data name="IssuerNotSpecified" xml:space="preserve">
-    <value>Elemento Issuer non specificato</value>
-  </data>
-  <data name="Missing" xml:space="preserve">
-    <value>{0} mancante</value>
-  </data>
-  <data name="NotBeforeGreaterThenRequest" xml:space="preserve">
-    <value>NotBefore maggiore della data di ricezione della response</value>
-  </data>
-  <data name="NotDefined" xml:space="preserve">
-    <value>{0} non definito</value>
-  </data>
-  <data name="NotOnOrAfterLessThenRequest" xml:space="preserve">
-    <value>NotOnOrAfter precedente alla ricezione della response</value>
-  </data>
-  <data name="NotSpecified" xml:space="preserve">
-    <value>{0} non specificato</value>
-  </data>
-  <data name="NotValid" xml:space="preserve">
-    <value>Non valido</value>
-  </data>
-  <data name="ParameterCantNull" xml:space="preserve">
-    <value>Il parametro {0} non può essere null</value>
-  </data>
-  <data name="ParameterCantNullOrEmpty" xml:space="preserve">
-    <value>Il parametro {0} non può essere ne null ne vuoto</value>
-  </data>
-  <data name="ParameterNotValid" xml:space="preserve">
-    <value>{0} non valido</value>
-  </data>
-  <data name="PrivateKeyNotFound" xml:space="preserve">
-    <value>La chiave privata del certificato non è presente</value>
-  </data>
-  <data name="ReferenceUriNullOrWhitespace" xml:space="preserve">
-    <value>La referenceUri non può essere nè vuota nè null</value>
-  </data>
-  <data name="ResponseAssertionNotFound" xml:space="preserve">
-    <value>Assertion non trovata nella risposta</value>
-  </data>
-  <data name="ResponseNotValid" xml:space="preserve">
-    <value>AuthnResponse non valida</value>
-  </data>
-  <data name="ResponseSignatureNotFound" xml:space="preserve">
-    <value>Signature Response non trovata</value>
-  </data>
-  <data name="ResponseSignatureNotValid" xml:space="preserve">
-    <value>Signature Response non valida</value>
-  </data>
-  <data name="SingleSignOnUrlRequired" xml:space="preserve">
-    <value>L'url del single signon deve essere valorizzato</value>
-  </data>
-  <data name="SpidPropertiesNotFound" xml:space="preserve">
-    <value>Cookie relativo alla sessione di login mancante, e' necessario effettuare una nuova login</value>
-  </data>
-  <data name="StatusCodeNotValid" xml:space="preserve">
-    <value>StatusCode non valido</value>
-  </data>
-  <data name="StatusNotValid" xml:space="preserve">
-    <value>Status non valido</value>
-  </data>
-  <data name="UrlMetadataIDPNull" xml:space="preserve">
-    <value>Url metadata identity provider non configurato</value>
-  </data>
-  <data name="VersionNotValid" xml:space="preserve">
-    <value>Version non valida</value>
-  </data>
-  <data name="XmlDocNull" xml:space="preserve">
-    <value>Il documento XML non può essere null</value>
-  </data>
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="08" xml:space="preserve">
+        <value>Formato della richiesta non conforme alle specifiche SAML</value>
+    </data>
+    <data name="09" xml:space="preserve">
+        <value>Parametro Version non presente, malformato o diverso da 2.0</value>
+    </data>
+    <data name="11" xml:space="preserve">
+        <value>ID non presente, malformato o non conforme</value>
+    </data>
+    <data name="12" xml:space="preserve">
+        <value>RequestAuthnContext non presente, malformato o non previsto da Spid</value>
+    </data>
+    <data name="13" xml:space="preserve">
+        <value>IssueInstant non presente, malformato o non coerente con l'orario di arrivo della richiesta</value>
+    </data>
+    <data name="14" xml:space="preserve">
+        <value>Destination non presente, malformata o non coincidente con il gestore delle identità ricevente la richiesta</value>
+    </data>
+    <data name="15" xml:space="preserve">
+        <value>Attributo IsPassive presente e attualizzato al valore True</value>
+    </data>
+    <data name="16" xml:space="preserve">
+        <value>AssertionConsumerService non correttamente valorizzato</value>
+    </data>
+    <data name="17" xml:space="preserve">
+        <value>Attributo Format dell'elemento NameIdPolicy assente o non valorizzato secondo specifica</value>
+    </data>
+    <data name="18" xml:space="preserve">
+        <value>AttributeConsumerServiceIndex malformato o che riferisce a un valore non registrato nei metadati di SP</value>
+    </data>
+    <data name="19" xml:space="preserve">
+        <value>Autenticazione fallita per ripetuta sottomissione di credenziali errate.</value>
+    </data>
+    <data name="20" xml:space="preserve">
+        <value>Utente privo di credenziali compatibili con il livello richiesto dal fornitore del servizio.</value>
+    </data>
+    <data name="21" xml:space="preserve">
+        <value>Timeout durante l'autenticazione utente.</value>
+    </data>
+    <data name="22" xml:space="preserve">
+        <value>Utente nega il consenso all'invio di dati al SP in caso di sessione vigente.</value>
+    </data>
+    <data name="23" xml:space="preserve">
+        <value>Utente con identità sospesa/revocata o con credenziali bloccate.</value>
+    </data>
+    <data name="25" xml:space="preserve">
+        <value>Processo di autenticazione annullato dall’utente</value>
+    </data>
+    <data name="30" xml:space="preserve">
+        <value>Tentativo dell'utente di utilizzare una tipologia di identità digitale diversa da quanto richiesto dal SP</value>
+    </data>
+    <data name="AssertionIdMissing" xml:space="preserve">
+        <value>Attributo Assertion.ID non specificato</value>
+    </data>
+    <data name="AssertionSignatureDifferent" xml:space="preserve">
+        <value>Signature differenti</value>
+    </data>
+    <data name="AssertionSignatureNotFound" xml:space="preserve">
+        <value>Signature Assertion non trovata</value>
+    </data>
+    <data name="AssertionSignatureNotValid" xml:space="preserve">
+        <value>Signature Assertion non valida</value>
+    </data>
+    <data name="AttributeNotFound" xml:space="preserve">
+        <value>Attributi non trovati</value>
+    </data>
+    <data name="AttributeRequiredNotFound" xml:space="preserve">
+        <value>Non sono presenti tutti gli attributi richiesti</value>
+    </data>
+    <data name="CertificateFindValueNullOrEmpty" xml:space="preserve">
+        <value>Il FindValue del certificato non può essere nè vuota nè null</value>
+    </data>
+    <data name="CertificateNotFound" xml:space="preserve">
+        <value>Certificato non trovato</value>
+    </data>
+    <data name="CertificateNull" xml:space="preserve">
+        <value>Il certificato non può essere null</value>
+    </data>
+    <data name="CertificatePasswordNullOrEmpty" xml:space="preserve">
+        <value>La password del certificato non può essere nè vuota nè null</value>
+    </data>
+    <data name="CertificatePathNullOrEmpty" xml:space="preserve">
+        <value>Il path del certificato non può essere nè vuoto nè null</value>
+    </data>
+    <data name="CertificateRawStringNullOrEmpty" xml:space="preserve">
+        <value>La stringa base64 del certificato non può essere nè vuota nè null</value>
+    </data>
+    <data name="ConversionBase64Errror" xml:space="preserve">
+        <value>Impossibile convertire la stringa base64 in ascii</value>
+    </data>
+    <data name="DifferentFrom" xml:space="preserve">
+        <value>{0} diverso da {1}</value>
+    </data>
+    <data name="FormatNotValid" xml:space="preserve">
+        <value>{0} in un formato non valido</value>
+    </data>
+    <data name="InResponseToNotValid" xml:space="preserve">
+        <value>Valore InResponseTo non valido</value>
+    </data>
+    <data name="InvalidDestination" xml:space="preserve">
+        <value>Attributo Destination della risposta diverso da quello della richiesta</value>
+    </data>
+    <data name="InvalidSignature" xml:space="preserve">
+        <value>Signature non valida</value>
+    </data>
+    <data name="IssueInstantMissing" xml:space="preserve">
+        <value>IssueInstant mancante</value>
+    </data>
+    <data name="IssueIstantAssertionGreaterThanRequest" xml:space="preserve">
+        <value>Attributo Assertion IssueIstant successivo a IssueInstant della richiesta</value>
+    </data>
+    <data name="IssueIstantAssertionLessThanRequest" xml:space="preserve">
+        <value>Attributo Assertion IssueIstant precedente a IssueInstant della richiesta</value>
+    </data>
+    <data name="IssueIstantDifferentFromRequest" xml:space="preserve">
+        <value>IssueIstant diverso da quello di richiesta</value>
+    </data>
+    <data name="IssuerDifferentFromEntityId" xml:space="preserve">
+        <value>Elemento Issuer diverso da EntityID IdP</value>
+    </data>
+    <data name="IssuerFormatDifferent" xml:space="preserve">
+        <value>Attributo Format di Issuer diverso</value>
+    </data>
+    <data name="IssuerMissing" xml:space="preserve">
+        <value>Elemento Issuer mancante</value>
+    </data>
+    <data name="IssuerNotSpecified" xml:space="preserve">
+        <value>Elemento Issuer non specificato</value>
+    </data>
+    <data name="Missing" xml:space="preserve">
+        <value>{0} mancante</value>
+    </data>
+    <data name="NotBeforeGreaterThenRequest" xml:space="preserve">
+        <value>NotBefore maggiore della data di ricezione della response</value>
+    </data>
+    <data name="NotDefined" xml:space="preserve">
+        <value>{0} non definito</value>
+    </data>
+    <data name="NotOnOrAfterLessThenRequest" xml:space="preserve">
+        <value>NotOnOrAfter precedente alla ricezione della response</value>
+    </data>
+    <data name="NotSpecified" xml:space="preserve">
+        <value>{0} non specificato</value>
+    </data>
+    <data name="NotValid" xml:space="preserve">
+        <value>Non valido</value>
+    </data>
+    <data name="ParameterCantNull" xml:space="preserve">
+        <value>Il parametro {0} non può essere null</value>
+    </data>
+    <data name="ParameterCantNullOrEmpty" xml:space="preserve">
+        <value>Il parametro {0} non può essere ne null ne vuoto</value>
+    </data>
+    <data name="ParameterNotValid" xml:space="preserve">
+        <value>{0} non valido</value>
+    </data>
+    <data name="PrivateKeyNotFound" xml:space="preserve">
+        <value>La chiave privata del certificato non è presente</value>
+    </data>
+    <data name="ReferenceUriNullOrWhitespace" xml:space="preserve">
+        <value>La referenceUri non può essere nè vuota nè null</value>
+    </data>
+    <data name="ResponseAssertionNotFound" xml:space="preserve">
+        <value>Assertion non trovata nella risposta</value>
+    </data>
+    <data name="ResponseNotValid" xml:space="preserve">
+        <value>AuthnResponse non valida</value>
+    </data>
+    <data name="ResponseSignatureNotFound" xml:space="preserve">
+        <value>Signature Response non trovata</value>
+    </data>
+    <data name="ResponseSignatureNotValid" xml:space="preserve">
+        <value>Signature Response non valida</value>
+    </data>
+    <data name="SingleSignOnUrlRequired" xml:space="preserve">
+        <value>L'url del single signon deve essere valorizzato</value>
+    </data>
+    <data name="SpidPropertiesNotFound" xml:space="preserve">
+        <value>Cookie relativo alla sessione di login mancante, e' necessario effettuare una nuova login</value>
+    </data>
+    <data name="StatusCodeNotValid" xml:space="preserve">
+        <value>StatusCode non valido</value>
+    </data>
+    <data name="StatusNotValid" xml:space="preserve">
+        <value>Status non valido</value>
+    </data>
+    <data name="UrlMetadataIDPNull" xml:space="preserve">
+        <value>Url metadata identity provider non configurato</value>
+    </data>
+    <data name="VersionNotValid" xml:space="preserve">
+        <value>Version non valida</value>
+    </data>
+    <data name="XmlDocNull" xml:space="preserve">
+        <value>Il documento XML non può essere null</value>
+    </data>
+    <data name="GenericMessage" xml:space="preserve">
+        <value>Errore generico. Prova ad autenticarti più tardi.</value>
+    </data>
 </root>

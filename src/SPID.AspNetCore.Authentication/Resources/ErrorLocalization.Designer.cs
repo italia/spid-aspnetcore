@@ -151,7 +151,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Autenticazione fallita per ripetuta sottomissione di credenziali errate (superato numero  tentativi secondo le policy adottate).
+        ///   Looks up a localized string similar to Autenticazione fallita per ripetuta sottomissione di credenziali errate..
         /// </summary>
         internal static string _19 {
             get {
@@ -160,7 +160,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Utente privo di credenziali compatibili con il livello richiesto dal fornitore del servizio.
+        ///   Looks up a localized string similar to Utente privo di credenziali compatibili con il livello richiesto dal fornitore del servizio..
         /// </summary>
         internal static string _20 {
             get {
@@ -169,7 +169,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Timeout durante l’autenticazione utente.
+        ///   Looks up a localized string similar to Timeout durante l&apos;autenticazione utente..
         /// </summary>
         internal static string _21 {
             get {
@@ -178,7 +178,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Utente nega il consenso all’invio di dati al SP in caso di sessione vigente.
+        ///   Looks up a localized string similar to Utente nega il consenso all&apos;invio di dati al SP in caso di sessione vigente..
         /// </summary>
         internal static string _22 {
             get {
@@ -187,7 +187,7 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Utente con identità sospesa/revocata o con credenziali bloccate.
+        ///   Looks up a localized string similar to Utente con identità sospesa/revocata o con credenziali bloccate..
         /// </summary>
         internal static string _23 {
             get {
@@ -345,6 +345,15 @@ namespace SPID.AspNetCore.Authentication.Resources {
         internal static string FormatNotValid {
             get {
                 return ResourceManager.GetString("FormatNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Errore generico. Prova ad autenticarti più tardi..
+        /// </summary>
+        internal static string GenericMessage {
+            get {
+                return ResourceManager.GetString("GenericMessage", resourceCulture);
             }
         }
         

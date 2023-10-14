@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Helpers;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Models;
 using SPID.AspNetCore.Authentication.Resources;
 using System;
@@ -57,7 +58,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.Argument(requestId, string.Format(ErrorLocalization.ParameterCantNullOrEmpty, nameof(requestId)));
             BusinessValidation.Argument(certificate, string.Format(ErrorLocalization.ParameterCantNull, nameof(certificate)));
             BusinessValidation.Argument(identityProvider, string.Format(ErrorLocalization.ParameterCantNull, nameof(identityProvider)));
-            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(identityProvider.GetSingleSignOnServiceUrl(requestMethod)), ErrorLocalization.SingleSignOnUrlRequired);
+            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(identityProvider.GetSingleSignOnServiceUrl(requestMethod)), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.SingleSignOnUrlRequired, SpidErrorCode.SSOUrlRequired));
 
             if (string.IsNullOrWhiteSpace(identityProvider.DateTimeFormat))
             {
@@ -171,7 +172,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             {
                 response = DeserializeMessage<ResponseType>(serializedResponse);
 
-                BusinessValidation.ValidationCondition(() => response == null, ErrorLocalization.ResponseNotValid);
+                BusinessValidation.ValidationCondition(() => response == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.ResponseNotValid, SpidErrorCode.ResponseMancante));
 
                 return response;
             }
@@ -195,8 +196,8 @@ namespace SPID.AspNetCore.Authentication.Saml
             var xmlDoc = new XmlDocument() { PreserveWhitespace = true };
             xmlDoc.LoadXml(serializedResponse);
 
-            BusinessValidation.ValidationCondition(() => response.Status == null, ErrorLocalization.StatusNotValid);
-            BusinessValidation.ValidationCondition(() => response.Status.StatusCode == null, ErrorLocalization.StatusCodeNotValid);
+            BusinessValidation.ValidationCondition(() => response.Status == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.StatusNotValid, SpidErrorCode.ResponseStatusMancante));
+            BusinessValidation.ValidationCondition(() => response.Status.StatusCode == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.StatusCodeNotValid, SpidErrorCode.ResponseStatusCodeMancante));
 
             if (!response.Status.StatusCode.Value.Equals(SamlConst.Success, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -205,59 +206,59 @@ namespace SPID.AspNetCore.Authentication.Saml
                     switch (errorCode)
                     {
                         case 8:
-                            throw new Exception(ErrorLocalization._08);
+                            throw new SpidException(ErrorLocalization._08, SpidErrorCode.SAMLInvalid);
                         case 9:
-                            throw new Exception(ErrorLocalization._09);
+                            throw new SpidException(ErrorLocalization._09, SpidErrorCode.ResponseVersionNoDue);
                         case 11:
-                            throw new Exception(ErrorLocalization._11);
+                            throw new SpidException(ErrorLocalization._11, SpidErrorCode.ResponseIdMancante);
                         case 12:
-                            throw new Exception(ErrorLocalization._12);
+                            throw new SpidException(ErrorLocalization._12, SpidErrorCode.AssertionAuthStatementAuthnContextNonSpec);
                         case 13:
-                            throw new Exception(ErrorLocalization._13);
+                            throw new SpidException(ErrorLocalization._13, SpidErrorCode.ResponseIssueInstantNonSpec);
                         case 14:
-                            throw new Exception(ErrorLocalization._14);
+                            throw new SpidException(ErrorLocalization._14, SpidErrorCode.ResponseDestinationNonSpec);
                         case 15:
-                            throw new Exception(ErrorLocalization._15);
+                            throw new SpidException(ErrorLocalization._15, SpidErrorCode.IsPassiveTrue);
                         case 16:
-                            throw new Exception(ErrorLocalization._16);
+                            throw new SpidException(ErrorLocalization._16, SpidErrorCode.ResponseDestinationDiversoDaAssertionConsumerServiceURL);
                         case 17:
-                            throw new Exception(ErrorLocalization._17);
+                            throw new SpidException(ErrorLocalization._17, SpidErrorCode.AssertionNameIdFormatNonSpec);
                         case 18:
-                            throw new Exception(ErrorLocalization._18);
+                            throw new SpidException(ErrorLocalization._18, SpidErrorCode.AttributeConsumerServiceIndexNonCorretto);
                         case 19:
-                            throw new Exception(ErrorLocalization._19);
+                            throw new SpidException(ErrorLocalization._19, SpidErrorCode.Anomalia19);
                         case 20:
-                            throw new Exception(ErrorLocalization._20);
+                            throw new SpidException(ErrorLocalization._20, SpidErrorCode.Anomalia20);
                         case 21:
-                            throw new Exception(ErrorLocalization._21);
+                            throw new SpidException(ErrorLocalization._21, SpidErrorCode.Anomalia21);
                         case 22:
-                            throw new Exception(ErrorLocalization._22);
+                            throw new SpidException(ErrorLocalization._22, SpidErrorCode.Anomalia22);
                         case 23:
-                            throw new Exception(ErrorLocalization._23);
+                            throw new SpidException(ErrorLocalization._23, SpidErrorCode.Anomalia23);
                         case 25:
-                            throw new Exception(ErrorLocalization._25);
+                            throw new SpidException(ErrorLocalization._25, SpidErrorCode.Anomalia25);
                         case 30:
-                            throw new Exception(ErrorLocalization._30);
+                            throw new SpidException(ErrorLocalization._30, SpidErrorCode.Anomalia30);
                         default:
                             break;
                     }
                 }
-                throw new Exception(ErrorLocalization.StatusCodeNotValid);
+                throw new SpidException(ErrorLocalization.StatusCodeNotValid, SpidErrorCode.ResponseStatusCodeNonSpec);
             }
 
-            BusinessValidation.ValidationCondition(() => response.Signature == null, ErrorLocalization.ResponseSignatureNotFound);
-            BusinessValidation.ValidationCondition(() => response?.GetAssertion() == null, ErrorLocalization.ResponseAssertionNotFound);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature == null, ErrorLocalization.AssertionSignatureNotFound);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo?.GetX509Data()?.GetBase64X509Certificate() != response.Signature.KeyInfo?.GetX509Data()?.GetBase64X509Certificate(), ErrorLocalization.AssertionSignatureDifferent);
+            BusinessValidation.ValidationCondition(() => response.Signature == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.ResponseSignatureNotFound, SpidErrorCode.ResponseNonFirmata));
+            BusinessValidation.ValidationCondition(() => response?.GetAssertion() == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.ResponseAssertionNotFound, SpidErrorCode.ResponseAssertionMancante));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion()?.Signature == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.AssertionSignatureNotFound, SpidErrorCode.ResponseAssertionNonFirmata));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Signature.KeyInfo?.GetX509Data()?.GetBase64X509Certificate() != response.Signature.KeyInfo?.GetX509Data()?.GetBase64X509Certificate(), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.AssertionSignatureDifferent, SpidErrorCode.AssertionFirmaDiversa));
             //var metadataXmlDoc = metadataIdp.SerializeToXmlDoc();
-            BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc, identityProvider), ErrorLocalization.InvalidSignature);
+            BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc, identityProvider), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.InvalidSignature, SpidErrorCode.ResponseFirmaNonValida));
 
-            BusinessValidation.ValidationCondition(() => response.Version != SamlConst.Version, ErrorLocalization.VersionNotValid);
-            BusinessValidation.ValidationNotNullNotWhitespace(response.ID, nameof(response.ID));
+            BusinessValidation.ValidationCondition(() => response.Version != SamlConst.Version, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.VersionNotValid, SpidErrorCode.ResponseVersionNoDue));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.ID, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, nameof(response.ID)), SpidErrorCode.ResponseIdNonSpecificato));
 
-            BusinessValidation.ValidationNotNull(response.GetAssertion()?.GetAttributeStatement(), ErrorFields.Assertion);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAttributeStatement()?.GetAttributes()?.Count() == 0, ErrorLocalization.AttributeNotFound);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAttributeStatement()?.GetAttributes()?.Any(a => a.AttributeValue == null) ?? false, ErrorLocalization.AttributeNotFound);
+            BusinessValidation.ValidationNotNull(response.GetAssertion()?.GetAttributeStatement(), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, ErrorFields.Assertion), SpidErrorCode.ResponseAssertionMancante));//non viene testata questa cosa, la mantengo come errore assetion mancante
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAttributeStatement()?.GetAttributes()?.Count() == 0, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.AttributeNotFound, SpidErrorCode.AssertionAttributeStatementNoAttribute));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAttributeStatement()?.GetAttributes()?.Any(a => a.AttributeValue == null) ?? false, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.AttributeNotFound, SpidErrorCode.AssertionAttributeStatementNoAttribute));
 
             var listAttribute = new List<string>
             {
@@ -290,10 +291,10 @@ namespace SPID.AspNetCore.Authentication.Saml
             var attribute = response.GetAssertion().GetAttributeStatement().GetAttributes();
             List<string> attributeNames = new List<string>();
             attributeNames.AddRange(attribute.Where(x => !string.IsNullOrWhiteSpace(x.Name) && !x.Name.StartsWith("urn")).Select(x => x.Name).ToList());
-            BusinessValidation.ValidationCondition(() => attributeNames.Count() == 0, ErrorLocalization.AttributeRequiredNotFound);
+            BusinessValidation.ValidationCondition(() => attributeNames.Count() == 0, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.AttributeRequiredNotFound, SpidErrorCode.AttributiRichiestiMancanti));
             if (attributeNames.Count() > 0)
             {
-                BusinessValidation.ValidationCondition(() => attributeNames.Any(x => !listAttribute.Contains(x)), ErrorLocalization.AttributeRequiredNotFound);
+                BusinessValidation.ValidationCondition(() => attributeNames.Any(x => !listAttribute.Contains(x)), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.AttributeRequiredNotFound, SpidErrorCode.AttributiRichiestiMancanti));
             }
             else
             {
@@ -301,110 +302,110 @@ namespace SPID.AspNetCore.Authentication.Saml
                 listAttribute.Add(SamlConst.surname);
                 listAttribute.Add(SamlConst.mail);
                 attributeNames.AddRange(attribute.Where(x => !string.IsNullOrWhiteSpace(x.FriendlyName)).Select(x => x.FriendlyName).ToList());
-                BusinessValidation.ValidationCondition(() => attributeNames.Count() == 0, ErrorLocalization.AttributeRequiredNotFound);
+                BusinessValidation.ValidationCondition(() => attributeNames.Count() == 0, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.AttributeRequiredNotFound, SpidErrorCode.AttributiRichiestiMancanti));
                 if (attributeNames.Count() > 0)
                 {
-                    BusinessValidation.ValidationCondition(() => listAttribute.All(x => !attributeNames.Contains(x)), ErrorLocalization.AttributeRequiredNotFound);
+                    BusinessValidation.ValidationCondition(() => listAttribute.All(x => !attributeNames.Contains(x)), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.AttributeRequiredNotFound, SpidErrorCode.AttributiRichiestiMancanti));
                 }
             }
 
-            BusinessValidation.ValidationCondition(() => response.IssueInstant == default, ErrorLocalization.IssueInstantMissing);
+            BusinessValidation.ValidationCondition(() => response.IssueInstant == default, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.IssueInstantMissing, SpidErrorCode.ResponseIssueInstantMancante));
             DateTimeOffset issueIstant = new DateTimeOffset(response.IssueInstant);
             var issueIstantRequest = DateTimeOffset.Parse(request.IssueInstant);
 
-            BusinessValidation.ValidationCondition(() => (issueIstant - issueIstantRequest).Duration() > TimeSpan.FromMinutes(10), ErrorLocalization.IssueIstantDifferentFromRequest);
+            BusinessValidation.ValidationCondition(() => (issueIstant - issueIstantRequest).Duration() > TimeSpan.FromMinutes(10), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.IssueIstantDifferentFromRequest, SpidErrorCode.ResponseIssueInstantNonCorretto));
 
-            BusinessValidation.ValidationNotNullNotWhitespace(response.InResponseTo, nameof(response.InResponseTo));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.InResponseTo, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, nameof(response.InResponseTo)), SpidErrorCode.ResponseInResponseToNonSpec));
 
-            BusinessValidation.ValidationNotNullNotWhitespace(response.Destination, nameof(response.Destination));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.Destination, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, nameof(response.Destination)), SpidErrorCode.ResponseDestinationNonSpec));
 
             if (!string.IsNullOrWhiteSpace(request.AssertionConsumerServiceURL))
-                BusinessValidation.ValidationCondition(() => !response.Destination.Equals(request.AssertionConsumerServiceURL), string.Format(ErrorLocalization.DifferentFrom, nameof(response.Destination), nameof(request.AssertionConsumerServiceURL)));
+                BusinessValidation.ValidationCondition(() => !response.Destination.Equals(request.AssertionConsumerServiceURL), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.DifferentFrom, nameof(response.Destination), nameof(request.AssertionConsumerServiceURL)), SpidErrorCode.ResponseDestinationDiversoDaAssertionConsumerServiceURL));
 
-            BusinessValidation.ValidationNotNullNotEmpty(response.Status, nameof(response.Status));
+            BusinessValidation.ValidationNotNullNotEmpty(response.Status, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, nameof(response.Status)), SpidErrorCode.ResponseStatusMancante));
 
-            BusinessValidation.ValidationCondition(() => response.Issuer == null, ErrorLocalization.IssuerNotSpecified);
-            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.Issuer?.Value), ErrorLocalization.IssuerMissing);
-            BusinessValidation.ValidationCondition(() => !response.Issuer.Value.Equals(identityProvider.EntityId, StringComparison.InvariantCultureIgnoreCase), ErrorLocalization.IssuerDifferentFromEntityId);
+            BusinessValidation.ValidationCondition(() => response.Issuer == null, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.IssuerNotSpecified, SpidErrorCode.ResponseIssuerNonSpec));
+            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.Issuer?.Value), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.IssuerMissing, SpidErrorCode.ResponseIssuerMancante));
+            BusinessValidation.ValidationCondition(() => !response.Issuer.Value.Equals(identityProvider.EntityId, StringComparison.InvariantCultureIgnoreCase), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.IssuerDifferentFromEntityId, SpidErrorCode.ResponseIssuerDiversoDaIdP));
 
-            BusinessValidation.ValidationCondition(() => !string.IsNullOrWhiteSpace(response.Issuer.Format) && !response.Issuer.Format.Equals(SamlConst.IssuerFormat), ErrorLocalization.IssuerFormatDifferent);
+            BusinessValidation.ValidationCondition(() => !string.IsNullOrWhiteSpace(response.Issuer.Format) && !response.Issuer.Format.Equals(SamlConst.IssuerFormat), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.IssuerFormatDifferent, SpidErrorCode.ResponseIssuerFormatDiverso));
 
-            BusinessValidation.ValidationNotNullNotEmpty(response?.GetAssertion(), ErrorFields.Assertion);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().ID == null, string.Format(ErrorLocalization.Missing, ErrorFields.ID));
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().ID, ErrorFields.ID);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Version != SamlConst.Version, string.Format(ErrorLocalization.DifferentFrom, ErrorFields.Version, SamlConst.Version));
+            BusinessValidation.ValidationNotNullNotEmpty(response?.GetAssertion(), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.Assertion), SpidErrorCode.ResponseAssertionMancante));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().ID == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, ErrorFields.ID), SpidErrorCode.AssertionIdNonSpec));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().ID, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.ID), SpidErrorCode.AssertionIdNonSpec));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Version != SamlConst.Version, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.DifferentFrom, ErrorFields.Version, SamlConst.Version), SpidErrorCode.AssertionVersionNoDue));
 
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().IssueInstant == null, string.Format(ErrorLocalization.NotSpecified, ErrorFields.IssueInstant));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().IssueInstant == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, ErrorFields.IssueInstant), SpidErrorCode.AssertionIssueInstantNonSpec));
             DateTimeOffset assertionIssueIstant = response.GetAssertion().IssueInstant;
 
-            BusinessValidation.ValidationCondition(() => assertionIssueIstant > issueIstantRequest.AddMinutes(10), ErrorLocalization.IssueIstantAssertionGreaterThanRequest);
-            BusinessValidation.ValidationCondition(() => assertionIssueIstant < issueIstantRequest, ErrorLocalization.IssueIstantAssertionLessThanRequest);
+            BusinessValidation.ValidationCondition(() => assertionIssueIstant > issueIstantRequest.AddMinutes(10), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.IssueIstantAssertionGreaterThanRequest, SpidErrorCode.AssertionIssueInstantPostRequest));
+            BusinessValidation.ValidationCondition(() => assertionIssueIstant < issueIstantRequest, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.IssueIstantAssertionLessThanRequest, SpidErrorCode.AssertionIssueInstantPreRequest));
 
-            BusinessValidation.ValidationCondition(() => (assertionIssueIstant - issueIstantRequest).Duration() > TimeSpan.FromMinutes(10), assertionIssueIstant > issueIstantRequest ? ErrorLocalization.IssueIstantAssertionGreaterThanRequest : ErrorLocalization.IssueIstantAssertionLessThanRequest);
+            BusinessValidation.ValidationCondition(() => (assertionIssueIstant - issueIstantRequest).Duration() > TimeSpan.FromMinutes(10), new SpidException(ErrorLocalization.GenericMessage, assertionIssueIstant > issueIstantRequest ? ErrorLocalization.IssueIstantAssertionGreaterThanRequest : ErrorLocalization.IssueIstantAssertionLessThanRequest, assertionIssueIstant > issueIstantRequest ? SpidErrorCode.AssertionIssueInstantPostRequest : SpidErrorCode.AssertionIssueInstantPreRequest));
 
-            BusinessValidation.ValidationNotNull(response.GetAssertion().Subject, ErrorFields.Subject);
-            BusinessValidation.ValidationNotNull(response.GetAssertion().Subject?.Items, ErrorFields.Subject);
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject?.GetNameID()?.Value, ErrorFields.NameID);
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject?.GetNameID()?.Format, ErrorFields.Format);
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetNameID().Format.Equals(request.NameIDPolicy.Format), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Format));
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetNameID().NameQualifier == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.NameID.NameQualifier"));
-            BusinessValidation.ValidationCondition(() => String.IsNullOrWhiteSpace(response.GetAssertion().Subject.GetNameID().NameQualifier), string.Format(ErrorLocalization.Missing, "Assertion.NameID.NameQualifier"));
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject.GetSubjectConfirmation(), ErrorFields.SubjectConfirmation);
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject.GetSubjectConfirmation().Method, ErrorFields.Method);
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().Method.Equals(SamlConst.Method), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Method));
-            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData, ErrorFields.SubjectConfirmationData);
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.SubjectConfirmationData.Recipient"));
-            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient), string.Format(ErrorLocalization.Missing, "Assertion.SubjectConfirmationData.Recipient"));
-            BusinessValidation.ValidationCondition(() => !response.Destination.Equals(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient, StringComparison.OrdinalIgnoreCase), ErrorLocalization.InvalidDestination);
+            BusinessValidation.ValidationNotNull(response.GetAssertion().Subject, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, ErrorFields.Subject), SpidErrorCode.AssertionSubjectNonSpec));
+            BusinessValidation.ValidationNotNull(response.GetAssertion().Subject?.Items, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.Subject), SpidErrorCode.AssertionSubjectMancante));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject?.GetNameID()?.Value, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.NameID), SpidErrorCode.AssertionNameIdMancante));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject?.GetNameID()?.Format, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.Format), SpidErrorCode.AssertionNameIdFormatMancante));
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetNameID().Format.Equals(request.NameIDPolicy.Format), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Format), SpidErrorCode.AssertionNameIdFormatDiverso));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetNameID().NameQualifier == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, "Assertion.NameID.NameQualifier"), SpidErrorCode.AssertionNameIdNameQualifierNonSpec));
+            BusinessValidation.ValidationCondition(() => String.IsNullOrWhiteSpace(response.GetAssertion().Subject.GetNameID().NameQualifier), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, "Assertion.NameID.NameQualifier"), SpidErrorCode.AssertionNameIdNameQualifierMancante));
+            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject.GetSubjectConfirmation(), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.SubjectConfirmation), SpidErrorCode.AssertionSubjectConfirmationMancante));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject.GetSubjectConfirmation().Method, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.Method), SpidErrorCode.AssertionSubjectConfirmationMethodMancante));
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().Method.Equals(SamlConst.Method), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Method), SpidErrorCode.AssertionSubjectConfirmationMethodDiverso));
+            BusinessValidation.ValidationNotNullNotEmpty(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.SubjectConfirmationData), SpidErrorCode.AssertionSubjectConfirmationDataMancante));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, "Assertion.SubjectConfirmationData.Recipient"), SpidErrorCode.AssertionSubjectConfirmationDataRecipientNonSpec));
+            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, "Assertion.SubjectConfirmationData.Recipient"), SpidErrorCode.AssertionSubjectConfirmationDataRecipientMancante));
+            BusinessValidation.ValidationCondition(() => !response.Destination.Equals(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient, StringComparison.OrdinalIgnoreCase), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.InvalidDestination, SpidErrorCode.ResponseDestinationDiversoDaAssertionConsumerServiceURL));
 
             if (!string.IsNullOrWhiteSpace(request.AssertionConsumerServiceURL))
-                BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient.Equals(request.AssertionConsumerServiceURL), string.Format(ErrorLocalization.DifferentFrom, "Assertion.SubjectConfirmationData.Recipient", "Request"));
+                BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.Recipient.Equals(request.AssertionConsumerServiceURL), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.DifferentFrom, "Assertion.SubjectConfirmationData.Recipient", "Request"), SpidErrorCode.AssertionSubjectConfirmationDataRecipientDiverso));
 
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.InResponseTo, ErrorFields.InResponseTo);
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.InResponseTo.Equals(request.ID), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.InResponseTo));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.InResponseTo, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.InResponseTo), SpidErrorCode.AssertionSubjectConfDataInResponseToMancante));
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.InResponseTo.Equals(request.ID), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.InResponseTo), SpidErrorCode.AssertionSubjectConfDataInResponseToDiversoIDReq));
 
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.SubjectConfirmationData.NotOnOrAfter"));
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter == DateTime.MinValue, string.Format(ErrorLocalization.Missing, "Assertion.SubjectConfirmationData.NotOnOrAfter"));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, "Assertion.SubjectConfirmationData.NotOnOrAfter"), SpidErrorCode.AssertionSubjectConfDataNotOnOrAfterNonSpec));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter == DateTime.MinValue, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, "Assertion.SubjectConfirmationData.NotOnOrAfter"), SpidErrorCode.AssertionSubjectConfDataNotOnOrAfterMancante));
             DateTimeOffset notOnOrAfter = new DateTimeOffset(response.GetAssertion().Subject.GetSubjectConfirmation().SubjectConfirmationData.NotOnOrAfter);
-            BusinessValidation.ValidationCondition(() => notOnOrAfter < DateTimeOffset.UtcNow, ErrorLocalization.NotOnOrAfterLessThenRequest);
+            BusinessValidation.ValidationCondition(() => notOnOrAfter < DateTimeOffset.UtcNow, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.NotOnOrAfterLessThenRequest, SpidErrorCode.AssertionSubjectConfDataNotOnOrAfterPreResp));
 
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Issuer?.Value, ErrorFields.Issuer);
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Value.Equals(identityProvider.EntityId), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Issuer));
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Issuer.Format == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.Issuer.Format"));
-            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().Issuer.Format), string.Format(ErrorLocalization.Missing, "Assertion.Issuer.Format"));
-            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Format.Equals(request.Issuer.Format), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Format));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Issuer?.Value, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.Issuer), SpidErrorCode.AssertionIssuerMancante));
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Value.Equals(identityProvider.EntityId), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Issuer), SpidErrorCode.AssertionIssuerDiversoIdP));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Issuer.Format == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, "Assertion.Issuer.Format"), SpidErrorCode.AssertionIssuerFormatNonSpec));
+            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().Issuer.Format), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, "Assertion.Issuer.Format"), SpidErrorCode.AssertionIssuerFormatMancante));
+            BusinessValidation.ValidationCondition(() => !response.GetAssertion().Issuer.Format.Equals(request.Issuer.Format), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Format), SpidErrorCode.AssertionIssuerFormatDiverso));
 
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions == null, string.Format(ErrorLocalization.NotSpecified, "Assertion.Conditions"));
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions.GetAudienceRestriction() == null && string.IsNullOrWhiteSpace(response.GetAssertion().Conditions.NotBefore) && string.IsNullOrWhiteSpace(response.GetAssertion().Conditions.NotOnOrAfter), string.Format(ErrorLocalization.Missing, "Assertion.Conditions"));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, "Assertion.Conditions"), SpidErrorCode.AssertionConditionsNonSpec));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions.GetAudienceRestriction() == null && string.IsNullOrWhiteSpace(response.GetAssertion().Conditions.NotBefore) && string.IsNullOrWhiteSpace(response.GetAssertion().Conditions.NotOnOrAfter), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, "Assertion.Conditions"), SpidErrorCode.AssertionConditionsMancante));
 
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotOnOrAfter, ErrorFields.NotOnOrAfter);
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotOnOrAfter, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.NotOnOrAfter), SpidErrorCode.AssertionConditionNotOnOrAfterMancante));
             DateTimeOffset notOnOrAfterCondition = SamlDefaultSettings.ParseExact(response.GetAssertion().Conditions.NotOnOrAfter, "Assertion.Conditions.NotOnOrAfter");
-            BusinessValidation.ValidationCondition(() => notOnOrAfterCondition < DateTimeOffset.UtcNow, ErrorLocalization.NotOnOrAfterLessThenRequest);
+            BusinessValidation.ValidationCondition(() => notOnOrAfterCondition < DateTimeOffset.UtcNow, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.NotOnOrAfterLessThenRequest, SpidErrorCode.AssertionConditionNotOnOrAfterPreResponse));
 
 
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotBefore, ErrorFields.NotBefore);
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotBefore, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.NotBefore), SpidErrorCode.AssertionConditionNotBeforeMancante));
             DateTimeOffset notBefore = SamlDefaultSettings.ParseExact(response.GetAssertion().Conditions.NotBefore, "Assertion.Conditions.NotBefore");
 
-            BusinessValidation.ValidationCondition(() => notBefore > DateTimeOffset.UtcNow, ErrorLocalization.NotBeforeGreaterThenRequest);
+            BusinessValidation.ValidationCondition(() => notBefore > DateTimeOffset.UtcNow, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.NotBeforeGreaterThenRequest, SpidErrorCode.AssertionConditionNotBeforeSuccResponse));
 
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions.GetAudienceRestriction() == null, string.Format(ErrorLocalization.Missing, "Assertion.Conditions.AudienceRestriction"));
-            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.GetAudienceRestriction().Audience?.First(), ErrorFields.Audience);
-            BusinessValidation.ValidationCondition(() => !(response.GetAssertion().Conditions.GetAudienceRestriction().Audience.First()?.Equals(request.Issuer.Value) ?? false), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Audience));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions.GetAudienceRestriction() == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, "Assertion.Conditions.AudienceRestriction"), SpidErrorCode.AssertionConditionAudienceRestrictionMancante));
+            BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.GetAudienceRestriction().Audience?.First(), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.Audience), SpidErrorCode.AssertionAudienceRestrictionAudienceMancante));
+            BusinessValidation.ValidationCondition(() => !(response.GetAssertion().Conditions.GetAudienceRestriction().Audience.First()?.Equals(request.Issuer.Value) ?? false), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.Audience), SpidErrorCode.AssertionAudienceRestrictionAudienceNonSP));
 
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement() == null, string.Format(ErrorLocalization.NotSpecified, ErrorFields.AuthnStatement));
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement().AuthnInstant == DateTime.MinValue && string.IsNullOrWhiteSpace(response.GetAssertion().GetAuthnStatement().SessionIndex) && response.GetAssertion().GetAuthnStatement().AuthnContext == null, string.Format(ErrorLocalization.Missing, ErrorFields.AuthnStatement));
-            BusinessValidation.ValidationNotNull(response.GetAssertion().GetAuthnStatement().AuthnContext, ErrorFields.AuthnContext);
-            BusinessValidation.ValidationNotNull(response.GetAssertion().GetAuthnStatement().AuthnContext.Items, ErrorFields.AuthnContext);
-            BusinessValidation.ValidationNotNull(response.GetAssertion().GetAuthnStatement().AuthnContext.ItemsElementName, ErrorFields.AuthnContext);
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement() == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, ErrorFields.AuthnStatement), SpidErrorCode.AssertionAuthnStatementNonSpec));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement().AuthnInstant == DateTime.MinValue && string.IsNullOrWhiteSpace(response.GetAssertion().GetAuthnStatement().SessionIndex) && response.GetAssertion().GetAuthnStatement().AuthnContext == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.AuthnStatement), SpidErrorCode.AssertionAuthStatementAuthnContextMancante));
+            BusinessValidation.ValidationNotNull(response.GetAssertion().GetAuthnStatement().AuthnContext, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, ErrorFields.AuthnContext), SpidErrorCode.AssertionAuthStatementAuthnContextNonSpec));
+            BusinessValidation.ValidationNotNull(response.GetAssertion().GetAuthnStatement().AuthnContext.Items, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, ErrorFields.AuthnContext), SpidErrorCode.AssertionAuthStatementAuthnContextNonSpec));
+            BusinessValidation.ValidationNotNull(response.GetAssertion().GetAuthnStatement().AuthnContext.ItemsElementName, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, ErrorFields.AuthnContext), SpidErrorCode.AssertionAuthStatementAuthnContextNonSpec));
 
-            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef() == null, string.Format(ErrorLocalization.NotSpecified, "AuthnStatement.AuthnContext.AuthnContextClassRef"));
-            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef()), string.Format(ErrorLocalization.Missing, "AuthnStatement.AuthnContext.AuthnContextClassRef"));
-            BusinessValidation.ValidationCondition(() => !listAuthRefValid.Contains(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef()), string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.AuthnContextClassRef));
+            BusinessValidation.ValidationCondition(() => response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef() == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.NotSpecified, "AuthnStatement.AuthnContext.AuthnContextClassRef"), SpidErrorCode.AssertionAuthnContextAuthContextClassRefNonSpec));
+            BusinessValidation.ValidationCondition(() => string.IsNullOrWhiteSpace(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef()), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, "AuthnStatement.AuthnContext.AuthnContextClassRef"), SpidErrorCode.AssertionAuthnContextAuthContextClassRefMancante));
+            BusinessValidation.ValidationCondition(() => !listAuthRefValid.Contains(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef()), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, "AuthnStatement.AuthnContext.AuthnContextClassRef"), SpidErrorCode.AssertionAuthnContextAuthContextClassRefMancante));
 
             var responseAuthnContextClassRefLevel = int.Parse(response.GetAssertion().GetAuthnStatement().AuthnContext.GetAuthnContextClassRef().Last().ToString());
             var requestAuthnContextClassRefLevel = int.Parse(request.RequestedAuthnContext.Items[0].Last().ToString());
 
-            BusinessValidation.ValidationCondition(() => responseAuthnContextClassRefLevel < requestAuthnContextClassRefLevel, string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.AuthnContextClassRef));
+            BusinessValidation.ValidationCondition(() => responseAuthnContextClassRefLevel < requestAuthnContextClassRefLevel, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.ParameterNotValid, ErrorFields.AuthnContextClassRef), SpidErrorCode.AssertionAuthContextClassRefNonCorretto));
         }
 
         /// <summary>
@@ -514,7 +515,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             var xmlDoc = new XmlDocument() { PreserveWhitespace = true };
             xmlDoc.LoadXml(serializedResponse);
 
-            BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc), ErrorLocalization.InvalidSignature);
+            BusinessValidation.ValidationCondition(() => !XmlHelpers.VerifySignature(xmlDoc), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.InvalidSignature, SpidErrorCode.ResponseFirmaNonValida));
 
             return (response.InResponseTo == request.ID);
         }
