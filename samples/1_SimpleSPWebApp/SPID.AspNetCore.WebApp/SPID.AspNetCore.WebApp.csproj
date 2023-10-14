@@ -8,13 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.10" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <!--<PackageReference Include="SPID.AspNetCore.Authentication" Version="2.0.4" />-->
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="SPID.AspNetCore.Authentication">
-      <HintPath>..\..\..\src\SPID.AspNetCore.Authentication\bin\Debug\net7.0\SPID.AspNetCore.Authentication.dll</HintPath>
-    </Reference>
+    <PackageReference Include="SPID.AspNetCore.Authentication" Version="3.0.0" />
   </ItemGroup>
 
 </Project>
