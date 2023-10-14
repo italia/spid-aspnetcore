@@ -1,12 +1,12 @@
-﻿using SPID.AspNetCore.Authentication.Saml;
-using System;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Saml;
 using System.Collections.Generic;
 
 namespace SPID.AspNetCore.Authentication.Models
 {
     public sealed class SpidClaimTypes
     {
-        private static Dictionary<string, SpidClaimTypes> _types = new Dictionary<string, SpidClaimTypes>() {
+        private static readonly Dictionary<string, SpidClaimTypes> _types = new Dictionary<string, SpidClaimTypes>() {
             { nameof(Name), new SpidClaimTypes(nameof(Name)) },
             { nameof(FamilyName), new SpidClaimTypes(nameof(FamilyName)) },
             { nameof(FiscalNumber), new SpidClaimTypes(nameof(FiscalNumber)) },
@@ -95,7 +95,7 @@ namespace SPID.AspNetCore.Authentication.Models
                 nameof(DomicileMunicipality) => SamlConst.domicileMunicipality,
                 nameof(DomicileProvince) => SamlConst.domicileProvince,
                 nameof(DomicileNation) => SamlConst.domicileNation,
-                _ => throw new Exception("Invalid ClaimType"),
+                _ => throw new SpidException("Invalid ClaimType", SpidErrorCode.InvalidClaimType),
             };
         }
 

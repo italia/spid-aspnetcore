@@ -1,14 +1,16 @@
 ﻿using SPID.AspNetCore.Authentication.Exceptions;
 using SPID.AspNetCore.Authentication.Resources;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace SPID.AspNetCore.Authentication.Helpers
 {
     internal static class BusinessValidation
     {
-        public static void Argument<T>(T input, string error) where T : class
+        public static void Argument<T>(T input, string error, [CallerArgumentExpression("input")] string inputName = "") where T : class
         {
-            if (input is string && string.IsNullOrWhiteSpace(input.ToString()) || input == default(T)) throw new ArgumentNullException(error);
+            if (input is string && string.IsNullOrWhiteSpace(input.ToString()) || input == default(T))
+                throw new SpidException(String.Format(ErrorLocalization.ArgumentNull, inputName), error, SpidErrorCode.ArgumentNull);
         }
 
         public static void ValidationCondition(Func<bool> condition, SpidException error)

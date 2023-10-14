@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Helpers;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Saml;
 using System;
 using System.Collections.Generic;
@@ -148,7 +149,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
             if (string.IsNullOrWhiteSpace(AggregatorVatNumber)
                 && string.IsNullOrWhiteSpace(AggregatorFiscalCode))
             {
-                throw new Exception($"No {nameof(AggregatorVatNumber)} or {nameof(AggregatorFiscalCode)} were specified");
+                throw new SpidException($"No {nameof(AggregatorVatNumber)} or {nameof(AggregatorFiscalCode)} were specified");
             }
 
             if (!string.IsNullOrWhiteSpace(AggregatorVatNumber))
@@ -181,7 +182,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
             if (string.IsNullOrWhiteSpace(AggregatedVatNumber)
                 && string.IsNullOrWhiteSpace(AggregatedFiscalCode))
             {
-                throw new Exception($"No {nameof(AggregatedVatNumber)} or {nameof(AggregatedFiscalCode)} were specified");
+                throw new SpidException($"No {nameof(AggregatedVatNumber)} or {nameof(AggregatedFiscalCode)} were specified");
             }
 
             if (!string.IsNullOrWhiteSpace(AggregatedVatNumber))
@@ -246,7 +247,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
                 || string.IsNullOrWhiteSpace(CessionarioCommittenteIdPaese))
                 && string.IsNullOrWhiteSpace(CessionarioCommittenteCodiceFiscale))
             {
-                throw new Exception($"No {nameof(CessionarioCommittenteIdCodice)}/{nameof(CessionarioCommittenteIdPaese)} or {nameof(CessionarioCommittenteCodiceFiscale)} were specified");
+                throw new SpidException($"No {nameof(CessionarioCommittenteIdCodice)}/{nameof(CessionarioCommittenteIdPaese)} or {nameof(CessionarioCommittenteCodiceFiscale)} were specified");
             }
             if (!string.IsNullOrWhiteSpace(CessionarioCommittenteIdCodice)
                 && !string.IsNullOrWhiteSpace(CessionarioCommittenteIdPaese))

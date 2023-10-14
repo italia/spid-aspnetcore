@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Helpers;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Saml;
 using System;
 using System.Collections.Generic;
@@ -128,7 +129,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
                 && string.IsNullOrWhiteSpace(AggregatorVatNumber)
                 && string.IsNullOrWhiteSpace(AggregatorFiscalCode))
             {
-                throw new Exception($"No {nameof(AggregatorIPACode)} or {nameof(AggregatorVatNumber)} or {nameof(AggregatorFiscalCode)} were specified");
+                throw new SpidException($"No {nameof(AggregatorIPACode)} or {nameof(AggregatorVatNumber)} or {nameof(AggregatorFiscalCode)} were specified");
             }
 
             if (!string.IsNullOrWhiteSpace(AggregatorIPACode))
@@ -167,7 +168,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
 
             if (string.IsNullOrWhiteSpace(AggregatedIPACode))
             {
-                throw new Exception($"No {nameof(AggregatedIPACode)} was specified");
+                throw new SpidException($"No {nameof(AggregatedIPACode)} was specified");
             }
 
             if (!string.IsNullOrWhiteSpace(AggregatedIPACode))

@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Resources;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Resources;
 using System;
 using System.Globalization;
 
@@ -20,7 +21,7 @@ namespace SPID.AspNetCore.Authentication.Saml
                 || DateTime.TryParseExact(s, DateTimeShortFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result)
                 || DateTime.TryParseExact(s, DateTimeMillisecondsFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result)))
             {
-                throw new System.Exception(string.Format(ErrorLocalization.ParameterNotValid, fieldName));
+                throw new SpidException(string.Format(ErrorLocalization.ParameterNotValid, fieldName));
             };
             return result;
         }

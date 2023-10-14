@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Helpers;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Saml;
 using System;
 using System.Collections.Generic;
@@ -134,7 +135,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
             if (string.IsNullOrWhiteSpace(VatNumber)
                 && string.IsNullOrWhiteSpace(FiscalCode))
             {
-                throw new Exception($"No {nameof(VatNumber)} or {nameof(FiscalCode)} were specified");
+                throw new SpidException($"No {nameof(VatNumber)} or {nameof(FiscalCode)} were specified");
             }
 
             if (!string.IsNullOrWhiteSpace(VatNumber))
@@ -199,7 +200,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
                 || string.IsNullOrWhiteSpace(CessionarioCommittenteIdPaese))
                 && string.IsNullOrWhiteSpace(CessionarioCommittenteCodiceFiscale))
             {
-                throw new Exception($"No {nameof(CessionarioCommittenteIdCodice)}/{nameof(CessionarioCommittenteIdPaese)} or {nameof(CessionarioCommittenteCodiceFiscale)} were specified");
+                throw new SpidException($"No {nameof(CessionarioCommittenteIdCodice)}/{nameof(CessionarioCommittenteIdPaese)} or {nameof(CessionarioCommittenteCodiceFiscale)} were specified");
             }
             if (!string.IsNullOrWhiteSpace(CessionarioCommittenteIdCodice)
                 && !string.IsNullOrWhiteSpace(CessionarioCommittenteIdPaese))

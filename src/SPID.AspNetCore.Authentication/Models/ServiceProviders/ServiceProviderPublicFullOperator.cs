@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Helpers;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Saml;
 using System;
 using System.Collections.Generic;
@@ -119,7 +120,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
                 || string.IsNullOrWhiteSpace(OperatorIPACode)
                 || string.IsNullOrWhiteSpace(OperatorFiscalCode))
             {
-                throw new Exception($"No {nameof(OperatorVatNumber)}, {nameof(OperatorIPACode)} or {nameof(OperatorFiscalCode)} were specified");
+                throw new SpidException($"No {nameof(OperatorVatNumber)}, {nameof(OperatorIPACode)} or {nameof(OperatorFiscalCode)} were specified");
             }
 
             result.Add(XmlHelpers.SerializeInternalExtensionToXmlElement(new Saml.Aggregated.ContactPersonAGExtensionType()

@@ -41,7 +41,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             }
             catch (Exception ex)
             {
-                throw new FieldAccessException(ErrorLocalization.PrivateKeyNotFound, ex);
+                throw new SpidException(ErrorLocalization.PrivateKeyNotFound, ex.Message, SpidErrorCode.CertificatePrivateKeyNotFound, ex);
             }
 
             SignedXml signedXml = new SignedXml(doc)

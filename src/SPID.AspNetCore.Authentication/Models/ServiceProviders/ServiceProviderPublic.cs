@@ -1,4 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Helpers;
+﻿using SPID.AspNetCore.Authentication.Exceptions;
+using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Saml;
 using System;
 using System.Collections.Generic;
@@ -115,7 +116,7 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
                 && string.IsNullOrWhiteSpace(VatNumber)
                 && string.IsNullOrWhiteSpace(FiscalCode))
             {
-                throw new Exception($"No {nameof(IPACode)} or {nameof(VatNumber)} or {nameof(FiscalCode)} were specified");
+                throw new SpidException($"No {nameof(IPACode)} or {nameof(VatNumber)} or {nameof(FiscalCode)} were specified");
             }
 
             if (!string.IsNullOrWhiteSpace(IPACode))

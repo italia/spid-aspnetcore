@@ -214,6 +214,15 @@ namespace SPID.AspNetCore.Authentication.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Il parametro {0} è null.
+        /// </summary>
+        internal static string ArgumentNull {
+            get {
+                return ResourceManager.GetString("ArgumentNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attributo Assertion.ID non specificato.
         /// </summary>
         internal static string AssertionIdMissing {

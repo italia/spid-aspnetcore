@@ -178,7 +178,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             }
             catch (Exception ex)
             {
-                throw new Exception(ErrorLocalization.ResponseNotValid, ex);
+                throw new SpidException(ErrorLocalization.ResponseNotValid, ex.Message, SpidErrorCode.ResponseNotValid, ex);
             }
         }
 
@@ -446,7 +446,7 @@ namespace SPID.AspNetCore.Authentication.Saml
 
             if (string.IsNullOrWhiteSpace(identityProvider.GetSingleSignOutServiceUrl(requestMethod)))
             {
-                throw new ArgumentNullException("The LogoutServiceUrl of the identity provider is null or empty.");
+                throw new SpidException(String.Format(ErrorLocalization.ArgumentNull, "LogoutServiceUrl", SpidErrorCode.ArgumentNull));
             }
 
             string dateTimeFormat = identityProvider.DateTimeFormat;
@@ -491,7 +491,7 @@ namespace SPID.AspNetCore.Authentication.Saml
 
             if (String.IsNullOrEmpty(serializedLogoutResponse))
             {
-                throw new ArgumentNullException("The serializedLogoutResponse parameter can't be null or empty.");
+                throw new SpidException(String.Format(ErrorLocalization.ArgumentNull, "serializedLogoutResponse", SpidErrorCode.ArgumentNull));
             }
 
             try
@@ -500,7 +500,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             }
             catch (Exception ex)
             {
-                throw new Exception(ErrorLocalization.ResponseNotValid, ex);
+                throw new SpidException(ErrorLocalization.ResponseNotValid, ex.Message, SpidErrorCode.ResponseNotValid, ex);
             }
         }
 
