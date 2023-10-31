@@ -480,7 +480,7 @@ Questi esempi sono solo esemplificativi dell'integrazione con la libreria, non d
 La libreria è stata oggetto di collaudo da parte di AGID, sia per soluzioni come ServiceProvider che come Aggregatore, ha superato tutti i test di [spid-sp-test](https://github.com/italia/spid-sp-test) (che è integrata in CI, è possibile vedere i log nelle actions), ed è compliant con le direttive specificate negli avvisi SPID.
 
 # Upgrade dalla versione 2.x alla 3.x
-A partire dalla versione 3.0.0 è stato modificato l'insieme di eccezioni lanciate dalla libreria, con l'introduzione del tipo SpidException. Per il suo utilizzo e la sua gestione si rimanda alla relativa sezione della documentazione.
+A partire dalla versione 3.0.0 è stato modificato l'insieme di eccezioni lanciate dalla libreria, con l'introduzione del tipo SpidException. Per il suo utilizzo e la sua gestione si rimanda alla [relativa sezione della documentazione](#error-handling).
 
 # Upgrade dalla versione 1.x alla 2.x
 A partire dalla versione 2.0.0 è stato introdotto il discovery automatizzato degli IdentityProvider di produzione, non è più necessario quindi includerli nelle settings, ma verrà utilizzato l'endpoint dello SPID Registry per il discovery.
