@@ -137,7 +137,10 @@ In particolare è possibile aggiungere alla configurazione una sezione 'Spid' ch
     "AttributeConsumingServiceIndex": 0,
     "RandomIdentityProvidersOrder": false,
     "SecurityLevel": 2,
-    "RequestMethod": "Post"
+    "RequestMethod": "Post",
+    "IdPRegistryURL": "https://registry.spid.gov.it/entities-idp?&output=json", // opzionale, indica l'indirizzo da cui viene fatto il download dei metadata degli IdP, se omesso il default è il valore indicato
+    "CacheIdpMetadata": true, // opzionale, abilita il caching statico del download dei metadata degli IdP dal registry, se omesso il default è true
+    "IdpMetadataCacheDurationInMinutes": 1440 // opzionale, indica la durata della cache statica dei metadata degli IdP, se omesso il default è 1440
   }
 ```
 La configurazione del certificato del SP avviene specificando nel campo `Source` uno tra i valori `Store/File/Raw/None` (nel caso di `None` non verrà caricato un certificato durante lo startup, ma sarà necessario fornirne uno a runtime, tramite l'uso dei `CustomSpidEvents`, che verranno presentati più nel dettaglio nella sezione successiva) e compilando opportunamente la sezione corrispondente al valore specificato. Le sezioni non usate (quelle cioè corrispondenti agli altri valori) potranno essere tranquillamente eliminate dal file di configurazione, dal momento che non verranno lette.
