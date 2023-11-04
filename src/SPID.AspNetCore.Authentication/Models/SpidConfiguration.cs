@@ -108,6 +108,14 @@ namespace SPID.AspNetCore.Authentication.Models
         public bool CacheIdpMetadata { get; set; }
 
         /// <summary>
+        /// Gets or sets the idp metadata cache duration in minutes.
+        /// </summary>
+        /// <value>
+        /// The idp metadata cache duration in minutes.
+        /// </value>
+        public int IdpMetadataCacheDurationInMinutes { get; set; }
+
+        /// <summary>
         /// Gets or sets the IdentityProviders Registry URL.
         /// </summary>
         /// <value>

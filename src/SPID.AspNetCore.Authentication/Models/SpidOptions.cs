@@ -133,26 +133,34 @@ namespace SPID.AspNetCore.Authentication.Models
         public async Task<IEnumerable<IdentityProvider>> GetIdentityProviders(IHttpClientFactory httpClientFactory)
         {
             List<IdentityProvider> result = _identityProviders;
-            if (cachedIdentityProvidersLastCheck < DateTime.UtcNow.AddMinutes(-10))
+            if (CacheIdpMetadata)
             {
-                await cachedIdentityProvidersSemaphore.WaitAsync();
-                try
+                if (cachedIdentityProvidersLastCheck < DateTime.UtcNow.AddMinutes(-IdpMetadataCacheDurationInMinutes))
                 {
-                    if (cachedIdentityProvidersLastCheck < DateTime.UtcNow.AddMinutes(-10))
+                    await cachedIdentityProvidersSemaphore.WaitAsync();
+                    try
                     {
-                        var client = httpClientFactory.CreateClient(nameof(SpidOptions));
-                        cachedIdentityProviders = await FetchIdentityProvidersFromRegistry(client);
-                        cachedIdentityProvidersLastCheck = DateTime.UtcNow;
+                        if (cachedIdentityProvidersLastCheck < DateTime.UtcNow.AddMinutes(-IdpMetadataCacheDurationInMinutes))
+                        {
+                            var client = httpClientFactory.CreateClient(nameof(SpidOptions));
+                            cachedIdentityProviders = await FetchIdentityProvidersFromRegistry(client);
+                            cachedIdentityProvidersLastCheck = DateTime.UtcNow;
+                        }
+                    }
+                    finally
+                    {
+                        cachedIdentityProvidersSemaphore.Release();
                     }
                 }
-                finally
-                {
-                    cachedIdentityProvidersSemaphore.Release();
-                }
+                result.AddRange(RandomIdentityProvidersOrder
+                        ? cachedIdentityProviders.OrderBy(x => Guid.NewGuid())
+                        : cachedIdentityProviders);
             }
-            result.AddRange(RandomIdentityProvidersOrder
-                    ? cachedIdentityProviders.OrderBy(x => Guid.NewGuid())
-                    : cachedIdentityProviders);
+            else
+            {
+                var client = httpClientFactory.CreateClient(nameof(SpidOptions));
+                result.AddRange(await FetchIdentityProvidersFromRegistry(client));
+            }
 
             if (!IsLocalValidatorEnabled)
                 result = result.Where(c => c.ProviderType != ProviderType.DevelopmentProvider).ToList();
@@ -228,7 +236,15 @@ namespace SPID.AspNetCore.Authentication.Models
         /// <value>
         ///   <c>true</c> if [cache idp metadata]; otherwise, <c>false</c>.
         /// </value>
-        public bool CacheIdpMetadata { get; set; }
+        public bool CacheIdpMetadata { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the idp metadata cache duration in minutes.
+        /// </summary>
+        /// <value>
+        /// The idp metadata cache duration in minutes. Defaults to 1440 (24h)
+        /// </value>
+        public int IdpMetadataCacheDurationInMinutes { get; set; } = 1440;
 
         /// <summary>
         /// Gets or sets the type of the principal name claim.
@@ -306,6 +322,7 @@ namespace SPID.AspNetCore.Authentication.Models
             SkipUnrecognizedRequests = conf.SkipUnrecognizedRequests;
             Certificate = conf.Certificate;
             CacheIdpMetadata = conf.CacheIdpMetadata;
+            IdpMetadataCacheDurationInMinutes = conf.IdpMetadataCacheDurationInMinutes;
             RandomIdentityProvidersOrder = conf.RandomIdentityProvidersOrder;
             IdPRegistryURL = !string.IsNullOrWhiteSpace(conf.IdPRegistryURL) ? conf.IdPRegistryURL : IdPRegistryURL;
             DefaultLanguage = !string.IsNullOrWhiteSpace(conf.DefaultLanguage) ? conf.DefaultLanguage : DefaultLanguage;

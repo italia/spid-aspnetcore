@@ -9,7 +9,7 @@
     
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="7.0.10" />
     
-    <PackageReference Include="SPID.AspNetCore.Authentication" Version="3.0.0" />
+    <PackageReference Include="SPID.AspNetCore.Authentication" Version="3.1.0" />
     
   </ItemGroup>
     

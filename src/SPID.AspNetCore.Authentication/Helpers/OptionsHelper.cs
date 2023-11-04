@@ -26,7 +26,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
             options.SignOutScheme = section.GetValue<string>("SignOutScheme");
             options.UseTokenLifetime = section.GetValue<bool?>("UseTokenLifetime") ?? false;
             options.SkipUnrecognizedRequests = section.GetValue<bool?>("SkipUnrecognizedRequests") ?? true;
-            options.CacheIdpMetadata = section.GetValue<bool?>("CacheIdpMetadata") ?? false;
+            options.CacheIdpMetadata = section.GetValue<bool?>("CacheIdpMetadata") ?? true;
+            options.IdpMetadataCacheDurationInMinutes = section.GetValue<int?>("IdpMetadataCacheDurationInMinutes") ?? 1440;
             options.RandomIdentityProvidersOrder = section.GetValue<bool?>("RandomIdentityProvidersOrder") ?? false;
             options.SecurityLevel = section.GetValue<int?>("SecurityLevel") ?? 2;
             var requestMethodParsed = Enum.TryParse<RequestMethod>(section.GetValue<string?>("RequestMethod"), out var requestMethod);
