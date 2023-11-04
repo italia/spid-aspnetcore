@@ -88,7 +88,7 @@ namespace SPID.AspNetCore.WebApp
                         FileName = "metadata.xml",
                         Certificate = o.Certificate,
                         Id = Guid.NewGuid(),
-                        EntityId = "https://spid.asfweb.it/",
+                        EntityId = "https://spid.aspnetcore.it/",
                         SingleLogoutServiceLocations = new List<SingleLogoutService>() {
                             new SingleLogoutService() {
                                 Location = "https://localhost:5001/signout-spid",
@@ -136,10 +136,10 @@ namespace SPID.AspNetCore.WebApp
                         },
                         OrganizationName = "Organizzazione fittizia per il collaudo",
                         OrganizationDisplayName = "Organizzazione fittizia per il collaudo",
-                        OrganizationURL = "https://www.asfweb.it/",
-                        VatNumber = "IT01261280620",
-                        EmailAddress = "info@asfweb.it",
-                        TelephoneNumber = "+3908241748276",
+                        OrganizationURL = "https://spid.aspnetcore.it/",
+                        VatNumber = "IT01234567890",
+                        EmailAddress = "info@aspid.aspnetcore.it",
+                        TelephoneNumber = "+3901234567890",
                         IPACode = "__aggrsint"
                     },
                     new Authentication.Models.ServiceProviders.ServiceProviderPrivate()
@@ -147,7 +147,7 @@ namespace SPID.AspNetCore.WebApp
                         FileName = "metadata1.xml",
                         Certificate = o.Certificate,
                         Id = Guid.NewGuid(),
-                        EntityId = "https://spid.asfweb.it/",
+                        EntityId = "https://spid.aspnetcore.it/",
                         SingleLogoutServiceLocations = new List<SingleLogoutService>() {
                             new SingleLogoutService() {
                                 Location = "https://localhost:5001/signout-spid",
@@ -195,14 +195,14 @@ namespace SPID.AspNetCore.WebApp
                         },
                         OrganizationName = "Organizzazione fittizia per il collaudo",
                         OrganizationDisplayName = "Organizzazione fittizia per il collaudo",
-                        OrganizationURL = "https://www.test.it/",
-                        VatNumber = "IT01261280620",
+                        OrganizationURL = "https://spid.aspnetcore.it/",
+                        VatNumber = "IT01234567890",
                         Company = "Organizzazione fittizia per il collaudo",
-                        EmailAddress = "info@email.com",
-                        TelephoneNumber = "+3908241748276",
+                        EmailAddress = "info@spid.aspnetcore.it",
+                        TelephoneNumber = "+3901234567890",
                         BillingCompany = "Billing company",
                         BillingEmailAddress = "billing@email.com",
-                        BillingTelephoneNumber = "+3908241748276",
+                        BillingTelephoneNumber = "+3901234567890",
                         CessionarioCommittenteIdCodice = "+390123456789",
                         CessionarioCommittenteIdPaese = "IT",
                         CessionarioCommittenteDenominazione = "Azienda_Destinataria_Fatturazione",
