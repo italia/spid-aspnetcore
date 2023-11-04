@@ -47,7 +47,7 @@ jobs:
     - name: Install spid-sp-test
       run: pip install spid-sp-test --upgrade --no-cache
     - name: Test Requests/Responses with spid-sp-test
-      run: spid_sp_test --metadata-url https://localhost:5001/spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-ag-public-full -tr
+      run: spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata.xml --authn-url https://localhost:5001/home/login?idpname=SpidSpTest --extra --debug ERROR --profile spid-sp-public -tr
     - name: Test Metadata spid-sp-public with spid-sp-test
       run: spid_sp_test --metadata-url https://localhost:5001/metadata-spid/metadata.xml --extra --debug ERROR --profile spid-sp-public
     - name: Test Metadata spid-sp-private with spid-sp-test
