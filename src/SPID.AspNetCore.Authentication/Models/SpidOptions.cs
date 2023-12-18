@@ -135,26 +135,23 @@ namespace SPID.AspNetCore.Authentication.Models
             List<IdentityProvider> result = _identityProviders;
             if (CacheIdpMetadata)
             {
-                if (cachedIdentityProvidersLastCheck < DateTime.UtcNow.AddMinutes(-IdpMetadataCacheDurationInMinutes))
+                await cachedIdentityProvidersSemaphore.WaitAsync();
+                try
                 {
-                    await cachedIdentityProvidersSemaphore.WaitAsync();
-                    try
+                    if (cachedIdentityProvidersLastCheck < DateTime.UtcNow.AddMinutes(-IdpMetadataCacheDurationInMinutes))
                     {
-                        if (cachedIdentityProvidersLastCheck < DateTime.UtcNow.AddMinutes(-IdpMetadataCacheDurationInMinutes))
-                        {
-                            var client = httpClientFactory.CreateClient(nameof(SpidOptions));
-                            cachedIdentityProviders = await FetchIdentityProvidersFromRegistry(client);
-                            cachedIdentityProvidersLastCheck = DateTime.UtcNow;
-                        }
+                        var client = httpClientFactory.CreateClient(nameof(SpidOptions));
+                        cachedIdentityProviders = await FetchIdentityProvidersFromRegistry(client);
+                        cachedIdentityProvidersLastCheck = DateTime.UtcNow;
                     }
-                    finally
-                    {
-                        cachedIdentityProvidersSemaphore.Release();
-                    }
+                    result.AddRange(RandomIdentityProvidersOrder
+                            ? cachedIdentityProviders.OrderBy(x => Guid.NewGuid()).ToList()
+                            : cachedIdentityProviders.ToList());
                 }
-                result.AddRange(RandomIdentityProvidersOrder
-                        ? cachedIdentityProviders.OrderBy(x => Guid.NewGuid())
-                        : cachedIdentityProviders);
+                finally
+                {
+                    cachedIdentityProvidersSemaphore.Release();
+                }
             }
             else
             {
