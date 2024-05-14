@@ -81,6 +81,7 @@ namespace SPID.AspNetCore.Authentication.Saml
                 Version = SamlConst.Version,
                 IssueInstant = now.AddMinutes(nowDelta).ToString(dateTimeFormat),
                 Destination = identityProvider.GetSingleSignOnServiceUrl(requestMethod),
+                ProtocolBinding = requestMethod == RequestMethod.Post ? SamlConst.ProtocolBindingPOST : SamlConst.ProtocolBindingRedirect,
                 ForceAuthn = true,
                 ForceAuthnSpecified = true,
                 Issuer = new NameIDType
