@@ -632,12 +632,20 @@ namespace SPID.AspNetCore.Authentication
                     RelayState = messageGuid,
                     Url = url
                 });
-                await _response.WriteAsync($"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{url}\" method=\"post\">" +
+                string s = $"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{url}\" method=\"post\">" +
                                           $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{base64SignedSerializedMessage}\" />" +
                                           $"<input type=\"hidden\" name=\"RelayState\" value=\"{messageGuid}\" />" +
                                           $"<button id=\"btnLogin\" style=\"display: none;\">Login</button>" +
                                           "<script>document.getElementById('btnLogin').click()</script>" +
-                                          "</form></body></html>");
+                                          "</form></body></html>";
+                
+                byte[] bytes = Encoding.UTF8.GetBytes(s);
+                _response.ContentLength = bytes.Length;
+                _response.ContentType = "text/html;charset=UTF-8";
+                _response.Headers.CacheControl = "no-cache, no-store";
+                _response.Headers.Pragma = "no-cache";
+                _response.Headers.Expires = "Thu, 01 Jan 1970 00:00:00 GMT";
+                await _response.Body.WriteAsync(bytes);
             }
 
             private async Task HandleRedirectRequest(string unsignedSerializedMessage, X509Certificate2 certificate, string url, string messageGuid)
