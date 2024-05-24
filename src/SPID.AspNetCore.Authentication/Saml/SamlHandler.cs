@@ -75,13 +75,12 @@ namespace SPID.AspNetCore.Authentication.Saml
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
 
-            return new AuthnRequestType
+            var authreq = new AuthnRequestType
             {
                 ID = "_" + requestId,
                 Version = SamlConst.Version,
                 IssueInstant = now.AddMinutes(nowDelta).ToString(dateTimeFormat),
                 Destination = identityProvider.GetSingleSignOnServiceUrl(requestMethod),
-                ProtocolBinding = requestMethod == RequestMethod.Post ? SamlConst.ProtocolBindingPOST : SamlConst.ProtocolBindingRedirect,
                 ForceAuthn = true,
                 ForceAuthnSpecified = true,
                 Issuer = new NameIDType
@@ -90,7 +89,6 @@ namespace SPID.AspNetCore.Authentication.Saml
                     Format = SamlConst.IssuerFormat,
                     NameQualifier = entityId
                 },
-                AssertionConsumerServiceURL = assertionConsumerServiceURL,
                 AssertionConsumerServiceIndex = assertionConsumerServiceIndex ?? SamlDefaultSettings.AssertionConsumerServiceIndex,
                 AssertionConsumerServiceIndexSpecified = assertionConsumerServiceIndex.HasValue,
                 AttributeConsumingServiceIndex = attributeConsumingServiceIndex,
@@ -122,6 +120,14 @@ namespace SPID.AspNetCore.Authentication.Saml
                     }
                 }
             };
+
+            if (!string.IsNullOrEmpty(assertionConsumerServiceURL))
+            {
+                authreq.ProtocolBinding = requestMethod == RequestMethod.Post ? SamlConst.ProtocolBindingPOST : SamlConst.ProtocolBindingRedirect;
+                authreq.AssertionConsumerServiceURL = assertionConsumerServiceURL;
+            }
+
+            return authreq;
         }
 
         /// <summary>
