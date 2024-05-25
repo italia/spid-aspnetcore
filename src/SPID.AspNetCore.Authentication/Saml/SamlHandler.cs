@@ -15,7 +15,7 @@ namespace SPID.AspNetCore.Authentication.Saml
 {
     internal static class SamlHandler
     {
-        private static readonly Dictionary<Type, XmlSerializer> serializers = new Dictionary<Type, XmlSerializer>
+        private static readonly Dictionary<Type, XmlSerializer> serializers = new()
         {
             { typeof(AuthnRequestType), new XmlSerializer(typeof(AuthnRequestType)) },
             { typeof(ResponseType), new XmlSerializer(typeof(ResponseType)) },
@@ -25,7 +25,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             { typeof(SP.EntityDescriptorType), new XmlSerializer(typeof(SP.EntityDescriptorType)) },
             { typeof(SPAv29.EntityDescriptorType), new XmlSerializer(typeof(SPAv29.EntityDescriptorType)) },
         };
-        private static readonly List<string> listAuthRefValid = new List<string>
+        private static readonly List<string> listAuthRefValid = new()
         {
             SamlConst.SpidL + "1",
             SamlConst.SpidL + "2",
@@ -110,14 +110,14 @@ namespace SPID.AspNetCore.Authentication.Saml
                 {
                     Comparison = AuthnContextComparisonType.minimum,
                     ComparisonSpecified = true,
-                    Items = new string[1]
-                    {
+                    Items =
+                    [
                         SamlConst.SpidL + securityLevel
-                    },
-                    ItemsElementName = new ItemsChoiceType7[1]
-                    {
+                    ],
+                    ItemsElementName =
+                    [
                         ItemsChoiceType7.AuthnContextClassRef
-                    }
+                    ]
                 }
             };
 

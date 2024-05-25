@@ -9,11 +9,11 @@ namespace SPID.AspNetCore.Authentication
 {
     public class EidasButtonTagHelper : TagHelper
     {
-        private static Dictionary<EidasButtonType, string> _serializedCircleImagesSVG = new Dictionary<EidasButtonType, string>();
-        private static Dictionary<EidasButtonType, string> _serializedCircleImagesPNG = new Dictionary<EidasButtonType, string>();
-        private static object _lockobj = new object();
+        private static readonly Dictionary<EidasButtonType, string> _serializedCircleImagesSVG = new Dictionary<EidasButtonType, string>();
+        private static readonly Dictionary<EidasButtonType, string> _serializedCircleImagesPNG = new Dictionary<EidasButtonType, string>();
+        private static readonly object _lockobj = new object();
 
-        private static Dictionary<EidasButtonSize, (string ShortClassName, string LongClassName)> _classNames = new()
+        private static readonly Dictionary<EidasButtonSize, (string ShortClassName, string LongClassName)> _classNames = new()
         {
             { EidasButtonSize.Small, ("s", "small") },
             { EidasButtonSize.Medium, ("m", "medium") },
@@ -21,7 +21,7 @@ namespace SPID.AspNetCore.Authentication
             { EidasButtonSize.ExtraLarge, ("xl", "xlarge") }
         };
 
-        IUrlHelper _urlHelper;
+        readonly IUrlHelper _urlHelper;
 
         public EidasButtonTagHelper(IUrlHelper urlHelper)
         {

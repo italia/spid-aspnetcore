@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using SPID.AspNetCore.Authentication.Events;
 using SPID.AspNetCore.Authentication.Helpers;
 using SPID.AspNetCore.Authentication.Models.ServiceProviders;
@@ -11,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -172,7 +172,7 @@ namespace SPID.AspNetCore.Authentication.Models
             var json = await client.GetStringAsync(IdPRegistryURL);
             if (!string.IsNullOrWhiteSpace(json))
             {
-                var registryItems = JsonConvert.DeserializeObject<List<IdPRegistryName>>(json);
+                var registryItems = JsonSerializer.Deserialize<List<IdPRegistryName>>(json);
                 return registryItems
                     .Select(s => new IdentityProvider()
                     {
@@ -192,7 +192,7 @@ namespace SPID.AspNetCore.Authentication.Models
                     })
                     .ToList();
             }
-            return new List<IdentityProvider>();
+            return [];
         }
 
         /// <summary>

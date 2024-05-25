@@ -8,7 +8,7 @@ namespace SPID.AspNetCore.Authentication
     public class EidasCSSTagHelper : TagHelper
     {
         private static string _css;
-        private static object _lockobj = new object();
+        private static readonly object _lockobj = new object();
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {

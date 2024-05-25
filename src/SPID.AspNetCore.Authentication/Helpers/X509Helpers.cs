@@ -1,7 +1,6 @@
 ﻿using SPID.AspNetCore.Authentication.Exceptions;
 using SPID.AspNetCore.Authentication.Resources;
 using System;
-using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -83,7 +82,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             return Convert.ToBase64String(rsa.SignHash(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1), Base64FormattingOptions.None);
         }
 
-        public static byte[] ExportPublicKey(this X509Certificate2 cert) 
+        public static byte[] ExportPublicKey(this X509Certificate2 cert)
             => cert.Export(X509ContentType.Cert);
     }
 }

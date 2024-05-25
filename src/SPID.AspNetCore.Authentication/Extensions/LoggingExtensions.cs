@@ -5,12 +5,12 @@ namespace SPID.AspNetCore.Authentication
 {
     internal static class LoggingExtensions
     {
-        private static Action<ILogger, Exception> _exceptionProcessingMessage;
-        private static Action<ILogger, string, Exception> _malformedRedirectUri;
-        private static Action<ILogger, Exception> _remoteSignOutHandledResponse;
-        private static Action<ILogger, Exception> _remoteSignOutFailed;
-        private static Action<ILogger, Exception> _remoteSignOutSkipped;
-        private static Action<ILogger, Exception> _remoteSignOut;
+        private static readonly Action<ILogger, Exception> _exceptionProcessingMessage;
+        private static readonly Action<ILogger, string, Exception> _malformedRedirectUri;
+        private static readonly Action<ILogger, Exception> _remoteSignOutHandledResponse;
+        private static readonly Action<ILogger, Exception> _remoteSignOutFailed;
+        private static readonly Action<ILogger, Exception> _remoteSignOutSkipped;
+        private static readonly Action<ILogger, Exception> _remoteSignOut;
 
         static LoggingExtensions()
         {

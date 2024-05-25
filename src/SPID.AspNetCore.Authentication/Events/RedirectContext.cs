@@ -20,7 +20,7 @@ namespace SPID.AspNetCore.Authentication.Events
             SpidOptions options,
             AuthenticationProperties properties,
             object signedProtocolMessage)
-            : base(context, scheme, options, properties) 
+            : base(context, scheme, options, properties)
         {
             SignedProtocolMessage = signedProtocolMessage;
         }

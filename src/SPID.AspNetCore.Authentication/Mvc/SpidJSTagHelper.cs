@@ -8,7 +8,7 @@ namespace SPID.AspNetCore.Authentication
     public class SpidJSTagHelper : TagHelper
     {
         private static string _js;
-        private static object _lockobj = new object();
+        private static readonly object _lockobj = new object();
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {

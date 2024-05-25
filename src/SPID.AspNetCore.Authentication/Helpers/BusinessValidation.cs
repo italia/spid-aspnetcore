@@ -7,10 +7,12 @@ namespace SPID.AspNetCore.Authentication.Helpers
 {
     internal static class BusinessValidation
     {
-        public static void Argument<T>(T input, string error, [CallerArgumentExpression("input")] string inputName = "") where T : class
+        public static void Argument<T>(T input, string error, [CallerArgumentExpression(nameof(input))] string inputName = "") where T : class
         {
             if (input is string && string.IsNullOrWhiteSpace(input.ToString()) || input == default(T))
+            {
                 throw new SpidException(String.Format(ErrorLocalization.ArgumentNull, inputName), error, SpidErrorCode.ArgumentNull);
+            }
         }
 
         public static void ValidationCondition(Func<bool> condition, SpidException error)
@@ -50,7 +52,8 @@ namespace SPID.AspNetCore.Authentication.Helpers
             }
         }
 
-        public static T ValidationNotNullNotEmpty<T>(T input, SpidException error) where T : class, new()
+        public static T ValidationNotNullNotEmpty<T>(T input, SpidException error)
+            where T : class, new()
         {
             var instance = new T();
             if (input == default(T)) throw error;

@@ -11,25 +11,26 @@ namespace SPID.AspNetCore.Authentication.Helpers
         internal static SpidConfiguration CreateFromConfiguration(IConfiguration configuration)
         {
             var section = configuration.GetSection("Spid");
-            var options = new SpidConfiguration();
-
-            options.IsStagingValidatorEnabled = section.GetValue<bool?>("IsStagingValidatorEnabled") ?? false;
-            options.IsLocalValidatorEnabled = section.GetValue<bool?>("IsLocalValidatorEnabled") ?? false;
-            options.AllowUnsolicitedLogins = section.GetValue<bool?>("AllowUnsolicitedLogins") ?? false;
-            options.AssertionConsumerServiceURL = section.GetValue<string>("AssertionConsumerServiceURL");
-            options.AssertionConsumerServiceIndex = section.GetValue<ushort?>("AssertionConsumerServiceIndex");
-            options.AttributeConsumingServiceIndex = section.GetValue<ushort?>("AttributeConsumingServiceIndex") ?? 0;
-            options.CallbackPath = section.GetValue<string>("CallbackPath");
-            options.IdPRegistryURL = section.GetValue<string>("IdPRegistryURL");
-            options.EntityId = section.GetValue<string>("EntityId");
-            options.RemoteSignOutPath = section.GetValue<string>("RemoteSignOutPath");
-            options.SignOutScheme = section.GetValue<string>("SignOutScheme");
-            options.UseTokenLifetime = section.GetValue<bool?>("UseTokenLifetime") ?? false;
-            options.SkipUnrecognizedRequests = section.GetValue<bool?>("SkipUnrecognizedRequests") ?? true;
-            options.CacheIdpMetadata = section.GetValue<bool?>("CacheIdpMetadata") ?? true;
-            options.IdpMetadataCacheDurationInMinutes = section.GetValue<int?>("IdpMetadataCacheDurationInMinutes") ?? 1440;
-            options.RandomIdentityProvidersOrder = section.GetValue<bool?>("RandomIdentityProvidersOrder") ?? false;
-            options.SecurityLevel = section.GetValue<int?>("SecurityLevel") ?? 2;
+            var options = new SpidConfiguration
+            {
+                IsStagingValidatorEnabled = section.GetValue<bool?>("IsStagingValidatorEnabled") ?? false,
+                IsLocalValidatorEnabled = section.GetValue<bool?>("IsLocalValidatorEnabled") ?? false,
+                AllowUnsolicitedLogins = section.GetValue<bool?>("AllowUnsolicitedLogins") ?? false,
+                AssertionConsumerServiceURL = section.GetValue<string>("AssertionConsumerServiceURL"),
+                AssertionConsumerServiceIndex = section.GetValue<ushort?>("AssertionConsumerServiceIndex"),
+                AttributeConsumingServiceIndex = section.GetValue<ushort?>("AttributeConsumingServiceIndex") ?? 0,
+                CallbackPath = section.GetValue<string>("CallbackPath"),
+                IdPRegistryURL = section.GetValue<string>("IdPRegistryURL"),
+                EntityId = section.GetValue<string>("EntityId"),
+                RemoteSignOutPath = section.GetValue<string>("RemoteSignOutPath"),
+                SignOutScheme = section.GetValue<string>("SignOutScheme"),
+                UseTokenLifetime = section.GetValue<bool?>("UseTokenLifetime") ?? false,
+                SkipUnrecognizedRequests = section.GetValue<bool?>("SkipUnrecognizedRequests") ?? true,
+                CacheIdpMetadata = section.GetValue<bool?>("CacheIdpMetadata") ?? true,
+                IdpMetadataCacheDurationInMinutes = section.GetValue<int?>("IdpMetadataCacheDurationInMinutes") ?? 1440,
+                RandomIdentityProvidersOrder = section.GetValue<bool?>("RandomIdentityProvidersOrder") ?? false,
+                SecurityLevel = section.GetValue<int?>("SecurityLevel") ?? 2
+            };
             var requestMethodParsed = Enum.TryParse<RequestMethod>(section.GetValue<string?>("RequestMethod"), out var requestMethod);
             options.RequestMethod = requestMethodParsed ? requestMethod : RequestMethod.Post;
             options.DefaultLanguage = section.GetValue<string?>("DefaultLanguage") ?? "it";

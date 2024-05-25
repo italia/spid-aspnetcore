@@ -1,8 +1,5 @@
-﻿using SPID.AspNetCore.Authentication.Helpers;
-using SPID.AspNetCore.Authentication.Saml;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
 namespace SPID.AspNetCore.Authentication.Models.ServiceProviders

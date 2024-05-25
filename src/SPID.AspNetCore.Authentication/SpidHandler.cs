@@ -25,24 +25,16 @@ using System.Web;
 
 namespace SPID.AspNetCore.Authentication
 {
-    internal class SpidHandler : RemoteAuthenticationHandler<SpidOptions>, IAuthenticationSignOutHandler
-    {
-        EventsHandler _eventsHandler;
-        RequestHandler _requestGenerator;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogHandler _logHandler;
-
-        public SpidHandler(IOptionsMonitor<SpidOptions> options,
+    internal class SpidHandler(IOptionsMonitor<SpidOptions> options,
             ILoggerFactory logger,
             UrlEncoder encoder,
             ISystemClock clock,
             IHttpClientFactory httpClientFactory,
             ILogHandler logHandler)
-            : base(options, logger, encoder, clock)
-        {
-            _httpClientFactory = httpClientFactory;
-            _logHandler = logHandler;
-        }
+        : RemoteAuthenticationHandler<SpidOptions>(options, logger, encoder, clock), IAuthenticationSignOutHandler
+    {
+        EventsHandler _eventsHandler;
+        RequestHandler _requestGenerator;
 
         protected new SpidEvents Events
         {
@@ -73,7 +65,7 @@ namespace SPID.AspNetCore.Authentication
         public override Task<bool> HandleRequestAsync()
         {
             _eventsHandler = new EventsHandler(Events);
-            _requestGenerator = new RequestHandler(Response, Logger, _logHandler);
+            _requestGenerator = new RequestHandler(Response, Logger, logHandler);
 
             // RemoteSignOutPath and CallbackPath may be the same, fall through if the message doesn't match.
             if (Options.RemoteSignOutPath.HasValue && Options.RemoteSignOutPath == Request.Path)
@@ -100,13 +92,12 @@ namespace SPID.AspNetCore.Authentication
 
             // Select the Identity Provider
             var idpName = Request.Query["idpName"];
-            var idp = (await Options.GetIdentityProviders(_httpClientFactory)).FirstOrDefault(x => x.Name == idpName);
+            var idp = (await Options.GetIdentityProviders(httpClientFactory)).FirstOrDefault(x => x.Name == idpName);
 
 
             var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context,
                 Scheme,
                 Options,
-                idp,
                 properties,
                 authenticationRequestId);
 
@@ -213,12 +204,11 @@ namespace SPID.AspNetCore.Authentication
             var subjectNameId = properties.GetSubjectNameId();
             var sessionIndex = properties.GetSessionIndex();
 
-            var idp = (await Options.GetIdentityProviders(_httpClientFactory)).FirstOrDefault(i => i.Name == idpName);
+            var idp = (await Options.GetIdentityProviders(httpClientFactory)).FirstOrDefault(i => i.Name == idpName);
 
             var securityTokenCreatingContext = await _eventsHandler.HandleSecurityTokenCreatingContext(Context,
                 Scheme,
                 Options,
-                idp,
                 properties,
                 authenticationRequestId);
 
@@ -300,7 +290,7 @@ namespace SPID.AspNetCore.Authentication
                 return HandleRequestResult.Fail("Unsolicited logins are not allowed.");
             }
 
-            var idp = (await Options.GetIdentityProviders(_httpClientFactory)).FirstOrDefault(x => x.Name == idpName);
+            var idp = (await Options.GetIdentityProviders(httpClientFactory)).FirstOrDefault(x => x.Name == idpName);
 
             response.ValidateAuthnResponse(request, idp, serializedResponse);
             return null;
@@ -334,7 +324,7 @@ namespace SPID.AspNetCore.Authentication
             }
         }
 
-        private string GetAttributeValue(ResponseType response, string attributeName)
+        private static string GetAttributeValue(ResponseType response, string attributeName)
             => response.GetAssertion()?
                 .GetAttributeStatement()?
                 .GetAttributes()?
@@ -342,7 +332,7 @@ namespace SPID.AspNetCore.Authentication
                 .GetAttributeValue()?
                 .Trim() ?? string.Empty;
 
-        private string RemoveFiscalNumberPrefix(string fiscalNumber)
+        private static string RemoveFiscalNumberPrefix(string fiscalNumber)
             => fiscalNumber?
                 .Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries)
                 .LastOrDefault() ?? string.Empty;
@@ -351,31 +341,31 @@ namespace SPID.AspNetCore.Authentication
         {
             var claims = new List<Claim>
             {
-                new Claim( SpidClaimTypes.Name.Value, GetAttributeValue(idpAuthnResponse, SamlConst.name)),
-                new Claim( SpidClaimTypes.Email.Value, GetAttributeValue(idpAuthnResponse, SamlConst.email)),
-                new Claim( SpidClaimTypes.FamilyName.Value, GetAttributeValue(idpAuthnResponse, SamlConst.familyName)),
-                new Claim( SpidClaimTypes.FiscalNumber.Value, RemoveFiscalNumberPrefix(GetAttributeValue(idpAuthnResponse, SamlConst.fiscalNumber))),
-                new Claim( SpidClaimTypes.RawFiscalNumber.Value, GetAttributeValue(idpAuthnResponse, SamlConst.fiscalNumber)),
-                new Claim( SpidClaimTypes.Mail.Value, GetAttributeValue(idpAuthnResponse, SamlConst.mail)),
-                new Claim( SpidClaimTypes.Address.Value, GetAttributeValue(idpAuthnResponse, SamlConst.address)),
-                new Claim( SpidClaimTypes.CompanyName.Value, GetAttributeValue(idpAuthnResponse, SamlConst.companyName)),
-                new Claim( SpidClaimTypes.CountyOfBirth.Value, GetAttributeValue(idpAuthnResponse, SamlConst.countyOfBirth)),
-                new Claim( SpidClaimTypes.DateOfBirth.Value, GetAttributeValue(idpAuthnResponse, SamlConst.dateOfBirth)),
-                new Claim( SpidClaimTypes.DigitalAddress.Value, GetAttributeValue(idpAuthnResponse, SamlConst.digitalAddress)),
-                new Claim( SpidClaimTypes.ExpirationDate.Value, GetAttributeValue(idpAuthnResponse, SamlConst.expirationDate)),
-                new Claim( SpidClaimTypes.Gender.Value, GetAttributeValue(idpAuthnResponse, SamlConst.gender)),
-                new Claim( SpidClaimTypes.IdCard.Value, GetAttributeValue(idpAuthnResponse, SamlConst.idCard)),
-                new Claim( SpidClaimTypes.IvaCode.Value, GetAttributeValue(idpAuthnResponse, SamlConst.ivaCode)),
-                new Claim( SpidClaimTypes.MobilePhone.Value, GetAttributeValue(idpAuthnResponse, SamlConst.mobilePhone)),
-                new Claim( SpidClaimTypes.PlaceOfBirth.Value, GetAttributeValue(idpAuthnResponse, SamlConst.placeOfBirth)),
-                new Claim( SpidClaimTypes.RegisteredOffice.Value, GetAttributeValue(idpAuthnResponse, SamlConst.registeredOffice)),
-                new Claim( SpidClaimTypes.SpidCode.Value, GetAttributeValue(idpAuthnResponse, SamlConst.spidCode)),
-                new Claim( SpidClaimTypes.CompanyFiscalNumber.Value, GetAttributeValue(idpAuthnResponse, SamlConst.companyFiscalNumber)),
-                new Claim( SpidClaimTypes.DomicileStreetAddress.Value, GetAttributeValue(idpAuthnResponse, SamlConst.domicileStreetAddress)),
-                new Claim( SpidClaimTypes.DomicilePostalCode.Value, GetAttributeValue(idpAuthnResponse, SamlConst.domicilePostalCode)),
-                new Claim( SpidClaimTypes.DomicileMunicipality.Value, GetAttributeValue(idpAuthnResponse, SamlConst.domicileMunicipality)),
-                new Claim( SpidClaimTypes.DomicileProvince.Value, GetAttributeValue(idpAuthnResponse, SamlConst.domicileProvince)),
-                new Claim( SpidClaimTypes.DomicileNation.Value, GetAttributeValue(idpAuthnResponse, SamlConst.domicileNation)),
+                new Claim(SpidClaimTypes.Name.Value, GetAttributeValue(idpAuthnResponse, SamlConst.name)),
+                new Claim(SpidClaimTypes.Email.Value, GetAttributeValue(idpAuthnResponse, SamlConst.email)),
+                new Claim(SpidClaimTypes.FamilyName.Value, GetAttributeValue(idpAuthnResponse, SamlConst.familyName)),
+                new Claim(SpidClaimTypes.FiscalNumber.Value, RemoveFiscalNumberPrefix(GetAttributeValue(idpAuthnResponse, SamlConst.fiscalNumber))),
+                new Claim(SpidClaimTypes.RawFiscalNumber.Value, GetAttributeValue(idpAuthnResponse, SamlConst.fiscalNumber)),
+                new Claim(SpidClaimTypes.Mail.Value, GetAttributeValue(idpAuthnResponse, SamlConst.mail)),
+                new Claim(SpidClaimTypes.Address.Value, GetAttributeValue(idpAuthnResponse, SamlConst.address)),
+                new Claim(SpidClaimTypes.CompanyName.Value, GetAttributeValue(idpAuthnResponse, SamlConst.companyName)),
+                new Claim(SpidClaimTypes.CountyOfBirth.Value, GetAttributeValue(idpAuthnResponse, SamlConst.countyOfBirth)),
+                new Claim(SpidClaimTypes.DateOfBirth.Value, GetAttributeValue(idpAuthnResponse, SamlConst.dateOfBirth)),
+                new Claim(SpidClaimTypes.DigitalAddress.Value, GetAttributeValue(idpAuthnResponse, SamlConst.digitalAddress)),
+                new Claim(SpidClaimTypes.ExpirationDate.Value, GetAttributeValue(idpAuthnResponse, SamlConst.expirationDate)),
+                new Claim(SpidClaimTypes.Gender.Value, GetAttributeValue(idpAuthnResponse, SamlConst.gender)),
+                new Claim(SpidClaimTypes.IdCard.Value, GetAttributeValue(idpAuthnResponse, SamlConst.idCard)),
+                new Claim(SpidClaimTypes.IvaCode.Value, GetAttributeValue(idpAuthnResponse, SamlConst.ivaCode)),
+                new Claim(SpidClaimTypes.MobilePhone.Value, GetAttributeValue(idpAuthnResponse, SamlConst.mobilePhone)),
+                new Claim(SpidClaimTypes.PlaceOfBirth.Value, GetAttributeValue(idpAuthnResponse, SamlConst.placeOfBirth)),
+                new Claim(SpidClaimTypes.RegisteredOffice.Value, GetAttributeValue(idpAuthnResponse, SamlConst.registeredOffice)),
+                new Claim(SpidClaimTypes.SpidCode.Value, GetAttributeValue(idpAuthnResponse, SamlConst.spidCode)),
+                new Claim(SpidClaimTypes.CompanyFiscalNumber.Value, GetAttributeValue(idpAuthnResponse, SamlConst.companyFiscalNumber)),
+                new Claim(SpidClaimTypes.DomicileStreetAddress.Value, GetAttributeValue(idpAuthnResponse, SamlConst.domicileStreetAddress)),
+                new Claim(SpidClaimTypes.DomicilePostalCode.Value, GetAttributeValue(idpAuthnResponse, SamlConst.domicilePostalCode)),
+                new Claim(SpidClaimTypes.DomicileMunicipality.Value, GetAttributeValue(idpAuthnResponse, SamlConst.domicileMunicipality)),
+                new Claim(SpidClaimTypes.DomicileProvince.Value, GetAttributeValue(idpAuthnResponse, SamlConst.domicileProvince)),
+                new Claim(SpidClaimTypes.DomicileNation.Value, GetAttributeValue(idpAuthnResponse, SamlConst.domicileNation)),
             };
 
             claims.Add(new Claim(ClaimTypes.NameIdentifier, claims.FirstOrDefault(c => c.Type.Equals(Options.PrincipalNameClaimType.Value))?.Value));
@@ -399,7 +389,7 @@ namespace SPID.AspNetCore.Authentication
 
                 var serializedResponse = Encoding.UTF8.GetString(Convert.FromBase64String(form["SAMLResponse"].FirstOrDefault()));
 
-                await _logHandler.LogPostResponse(new PostResponse()
+                await logHandler.LogPostResponse(new PostResponse()
                 {
                     SignedMessage = serializedResponse,
                     SAMLResponse = form["SAMLResponse"].FirstOrDefault(),
@@ -422,7 +412,7 @@ namespace SPID.AspNetCore.Authentication
             {
                 var serializedResponse = DecompressString(Request.Query["SAMLResponse"].FirstOrDefault());
 
-                await _logHandler.LogRedirectResponse(new RedirectResponse()
+                await logHandler.LogRedirectResponse(new RedirectResponse()
                 {
                     SignedMessage = serializedResponse,
                     SAMLResponse = Request.Query["SAMLResponse"].FirstOrDefault(),
@@ -452,7 +442,7 @@ namespace SPID.AspNetCore.Authentication
 
                 var serializedResponse = Encoding.UTF8.GetString(Convert.FromBase64String(form["SAMLResponse"][0]));
 
-                await _logHandler.LogPostResponse(new PostResponse()
+                await logHandler.LogPostResponse(new PostResponse()
                 {
                     SignedMessage = serializedResponse,
                     SAMLResponse = form["SAMLResponse"].FirstOrDefault(),
@@ -473,7 +463,7 @@ namespace SPID.AspNetCore.Authentication
             {
                 var serializedResponse = DecompressString(Request.Query["SAMLResponse"].FirstOrDefault());
 
-                await _logHandler.LogRedirectResponse(new RedirectResponse()
+                await logHandler.LogRedirectResponse(new RedirectResponse()
                 {
                     SignedMessage = serializedResponse,
                     SAMLResponse = Request.Query["SAMLResponse"].FirstOrDefault(),
@@ -522,7 +512,6 @@ namespace SPID.AspNetCore.Authentication
             public async Task<SecurityTokenCreatingContext> HandleSecurityTokenCreatingContext(HttpContext context,
                 AuthenticationScheme scheme,
                 SpidOptions options,
-                IdentityProvider idp,
                 AuthenticationProperties properties,
                 string samlAuthnRequestId)
             {
@@ -632,14 +621,14 @@ namespace SPID.AspNetCore.Authentication
                     RelayState = messageGuid,
                     Url = url
                 });
-                string s = $"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{url}\" method=\"post\">" +
-                                          $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{base64SignedSerializedMessage}\" />" +
-                                          $"<input type=\"hidden\" name=\"RelayState\" value=\"{messageGuid}\" />" +
-                                          $"<button id=\"btnLogin\" style=\"display: none;\">Login</button>" +
-                                          "<script>document.getElementById('btnLogin').click()</script>" +
-                                          "</form></body></html>";
-                
-                byte[] bytes = Encoding.UTF8.GetBytes(s);
+                string htmlContent = $"<html><head><title>Login</title></head><body><form id=\"spidform\" action=\"{url}\" method=\"post\">" +
+                           $"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{base64SignedSerializedMessage}\" />" +
+                           $"<input type=\"hidden\" name=\"RelayState\" value=\"{messageGuid}\" />" +
+                           $"<button id=\"btnLogin\" style=\"display: none;\">Login</button>" +
+                           "<script>document.getElementById('btnLogin').click()</script>" +
+                           "</form></body></html>";
+
+                byte[] bytes = Encoding.UTF8.GetBytes(htmlContent);
                 _response.ContentLength = bytes.Length;
                 _response.ContentType = "text/html;charset=UTF-8";
                 _response.Headers.CacheControl = "no-cache, no-store";
@@ -694,7 +683,7 @@ namespace SPID.AspNetCore.Authentication
                 return redirectUri;
             }
 
-            private string CompressString(string value)
+            private static string CompressString(string value)
             {
                 using MemoryStream output = new MemoryStream();
                 using (DeflateStream stream = new DeflateStream(output, CompressionMode.Compress))
@@ -706,7 +695,7 @@ namespace SPID.AspNetCore.Authentication
                 return Convert.ToBase64String(output.ToArray());
             }
 
-            private string BuildURLParametersString(Dictionary<string, StringValues> parameters)
+            private static string BuildURLParametersString(Dictionary<string, StringValues> parameters)
             {
                 UriBuilder uriBuilder = new UriBuilder();
                 var query = HttpUtility.ParseQueryString(uriBuilder.Query);
@@ -724,36 +713,49 @@ namespace SPID.AspNetCore.Authentication
 
     internal static class AuthenticationPropertiesExtensions
     {
-        public static void SetIdentityProviderName(this AuthenticationProperties properties, string name) => properties.Items["IdentityProviderName"] = name;
-        public static string GetIdentityProviderName(this AuthenticationProperties properties) => properties.Items["IdentityProviderName"];
+        public static void SetIdentityProviderName(this AuthenticationProperties properties, string name)
+            => properties.Items["IdentityProviderName"] = name;
 
-        public static void SetAuthenticationRequest(this AuthenticationProperties properties, AuthnRequestType request) =>
-            properties.Items["AuthenticationRequest"] = SamlHandler.SerializeMessage(request);
-        public static AuthnRequestType GetAuthenticationRequest(this AuthenticationProperties properties) =>
-            SamlHandler.DeserializeMessage<AuthnRequestType>(properties.Items["AuthenticationRequest"]);
+        public static string GetIdentityProviderName(this AuthenticationProperties properties)
+            => properties.Items["IdentityProviderName"];
 
-        public static void SetLogoutRequest(this AuthenticationProperties properties, LogoutRequestType request) =>
-            properties.Items["LogoutRequest"] = SamlHandler.SerializeMessage(request);
-        public static LogoutRequestType GetLogoutRequest(this AuthenticationProperties properties) =>
-            SamlHandler.DeserializeMessage<LogoutRequestType>(properties.Items["LogoutRequest"]);
+        public static void SetAuthenticationRequest(this AuthenticationProperties properties, AuthnRequestType request)
+            => properties.Items["AuthenticationRequest"] = SamlHandler.SerializeMessage(request);
 
-        public static void SetSubjectNameId(this AuthenticationProperties properties, string subjectNameId) => properties.Items["subjectNameId"] = subjectNameId;
-        public static string GetSubjectNameId(this AuthenticationProperties properties) => properties.Items["subjectNameId"];
+        public static AuthnRequestType GetAuthenticationRequest(this AuthenticationProperties properties)
+            => SamlHandler.DeserializeMessage<AuthnRequestType>(properties.Items["AuthenticationRequest"]);
 
-        public static void SetSessionIndex(this AuthenticationProperties properties, string sessionIndex) => properties.Items["SessionIndex"] = sessionIndex;
-        public static string GetSessionIndex(this AuthenticationProperties properties) => properties.Items["SessionIndex"];
+        public static void SetLogoutRequest(this AuthenticationProperties properties, LogoutRequestType request)
+            => properties.Items["LogoutRequest"] = SamlHandler.SerializeMessage(request);
 
-        public static void SetCorrelationProperty(this AuthenticationProperties properties, string correlationProperty) => properties.Items[".xsrf"] = correlationProperty;
-        public static string GetCorrelationProperty(this AuthenticationProperties properties) => properties.Items[".xsrf"];
+        public static LogoutRequestType GetLogoutRequest(this AuthenticationProperties properties)
+            => SamlHandler.DeserializeMessage<LogoutRequestType>(properties.Items["LogoutRequest"]);
+
+        public static void SetSubjectNameId(this AuthenticationProperties properties, string subjectNameId)
+            => properties.Items["subjectNameId"] = subjectNameId;
+
+        public static string GetSubjectNameId(this AuthenticationProperties properties)
+            => properties.Items["subjectNameId"];
+
+        public static void SetSessionIndex(this AuthenticationProperties properties, string sessionIndex)
+            => properties.Items["SessionIndex"] = sessionIndex;
+
+        public static string GetSessionIndex(this AuthenticationProperties properties)
+            => properties.Items["SessionIndex"];
+
+        public static void SetCorrelationProperty(this AuthenticationProperties properties, string correlationProperty)
+            => properties.Items[".xsrf"] = correlationProperty;
+
+        public static string GetCorrelationProperty(this AuthenticationProperties properties)
+            => properties.Items[".xsrf"];
 
         public static void Save(this AuthenticationProperties properties, HttpResponse response, ISecureDataFormat<AuthenticationProperties> encryptor)
-        {
-            response.Cookies.Append(SpidDefaults.CookieName, encryptor.Protect(properties), new CookieOptions()
-            {
-                SameSite = SameSiteMode.None,
-                Secure = true
-            });
-        }
+            => response.Cookies.Append(SpidDefaults.CookieName, encryptor.Protect(properties),
+                new CookieOptions()
+                {
+                    SameSite = SameSiteMode.None,
+                    Secure = true
+                });
 
         public static void Load(this AuthenticationProperties properties, HttpRequest request, ISecureDataFormat<AuthenticationProperties> encryptor)
         {
@@ -775,7 +777,9 @@ namespace SPID.AspNetCore.Authentication
                 properties.Parameters.Add(item);
             }
             if (string.IsNullOrWhiteSpace(properties.RedirectUri))
+            {
                 properties.RedirectUri = cookieProperties.RedirectUri;
+            }
         }
     }
 }
