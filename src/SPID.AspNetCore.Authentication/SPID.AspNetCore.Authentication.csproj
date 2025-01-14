@@ -2,7 +2,6 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
-    <Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<Description>AspNetCore Remote Authenticator for SPID</Description>
 		<Authors>Daniele Giallonardo, Stefano Mostarda</Authors>
