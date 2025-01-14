@@ -44,7 +44,7 @@ jobs:
     - name: Update apt repo
       run: sudo apt update
     - name: Install dependencies
-      run: sudo apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3-pip && pip install cryptography==38.0.4
+      run: sudo apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3.10 && pip install cryptography==38.0.4
     - name: Pip list
       run: pip list
     - name: Install spid-sp-test
