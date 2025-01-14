@@ -29,6 +29,9 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
       working-directory: src
+    - name: Build
+      run: dotnet test --no-build **/*Tests.csproj
+      working-directory: src
     - name: Restore dependencies
       run: dotnet restore
       working-directory: samples/1_SimpleSPWebApp
