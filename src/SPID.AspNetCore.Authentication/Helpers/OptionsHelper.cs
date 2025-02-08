@@ -80,7 +80,7 @@ namespace SPID.AspNetCore.Authentication.Helpers
             options.AddIdentityProviders(identityProviders);
 
             var certificateSection = section.GetSection("Certificate");
-            if (certificateSection != null)
+            if (certificateSection.Exists())
             {
                 var certificateSource = certificateSection.GetValue<string>("Source");
                 if (certificateSource.Equals("Store", System.StringComparison.OrdinalIgnoreCase))
