@@ -22,12 +22,15 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 8.x
+        dotnet-version: 9.x
     - name: Restore dependencies
       run: dotnet restore
       working-directory: src
     - name: Build
       run: dotnet build --no-restore
+      working-directory: src
+    - name: Test
+      run: dotnet test --no-build **/*Tests.csproj
       working-directory: src
     - name: Restore dependencies
       run: dotnet restore
@@ -41,7 +44,7 @@ jobs:
     - name: Update apt repo
       run: sudo apt update
     - name: Install dependencies
-      run: sudo apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3-pip && pip install cryptography==38.0.4
+      run: sudo apt install -y libxml2-dev libxmlsec1-dev libxmlsec1-openssl xmlsec1 python3-pip
     - name: Pip list
       run: pip list
     - name: Install spid-sp-test
