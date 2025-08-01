@@ -91,8 +91,15 @@ namespace SPID.AspNetCore.Authentication.Helpers
 
                 if (identityProvider is not null)
                 {
+                #if NET8_0 || NET7_0 || NET6_0
                     return identityProvider.X509SigningCertificates
                         .Any(certificate => VerifyAllSignatures(signedDocument, signatureNodes, new X509Certificate2(Convert.FromBase64String(certificate))));
+                #endif
+
+                #if NET9_0_OR_GREATER
+                    return identityProvider.X509SigningCertificates
+                        .Any(certificate => VerifyAllSignatures(signedDocument, signatureNodes, X509CertificateLoader.LoadCertificate(Convert.FromBase64String(certificate))));
+                #endif
                 }
                 else
                 {
