@@ -130,18 +130,18 @@ namespace SPID.AspNetCore.Authentication.Models
         /// <value>
         /// The identity providers.
         /// </value>
-        public async Task<IEnumerable<IdentityProvider>> GetIdentityProviders(IHttpClientFactory httpClientFactory)
+        public async Task<IEnumerable<IdentityProvider>> GetIdentityProviders(IHttpClientFactory httpClientFactory, CancellationToken cancellationToken = default)
         {
             List<IdentityProvider> result = _identityProviders;
             if (CacheIdpMetadata)
             {
-                await cachedIdentityProvidersSemaphore.WaitAsync();
+                await cachedIdentityProvidersSemaphore.WaitAsync(cancellationToken);
                 try
                 {
                     if (cachedIdentityProvidersLastCheck < DateTime.UtcNow.AddMinutes(-IdpMetadataCacheDurationInMinutes))
                     {
                         var client = httpClientFactory.CreateClient(nameof(SpidOptions));
-                        cachedIdentityProviders = await FetchIdentityProvidersFromRegistry(client);
+                        cachedIdentityProviders = await FetchIdentityProvidersFromRegistry(client, cancellationToken);
                         cachedIdentityProvidersLastCheck = DateTime.UtcNow;
                     }
                     result.AddRange(RandomIdentityProvidersOrder
@@ -156,7 +156,7 @@ namespace SPID.AspNetCore.Authentication.Models
             else
             {
                 var client = httpClientFactory.CreateClient(nameof(SpidOptions));
-                result.AddRange(await FetchIdentityProvidersFromRegistry(client));
+                result.AddRange(await FetchIdentityProvidersFromRegistry(client, cancellationToken));
             }
 
             if (!IsLocalValidatorEnabled)
@@ -167,9 +167,9 @@ namespace SPID.AspNetCore.Authentication.Models
             return result;
         }
 
-        private async Task<List<IdentityProvider>> FetchIdentityProvidersFromRegistry(HttpClient client)
+        private async Task<List<IdentityProvider>> FetchIdentityProvidersFromRegistry(HttpClient client, CancellationToken cancellationToken)
         {
-            var json = await client.GetStringAsync(IdPRegistryURL);
+            var json = await client.GetStringAsync(IdPRegistryURL, cancellationToken);
             if (!string.IsNullOrWhiteSpace(json))
             {
                 var registryItems = JsonSerializer.Deserialize<List<IdPRegistryName>>(json);
