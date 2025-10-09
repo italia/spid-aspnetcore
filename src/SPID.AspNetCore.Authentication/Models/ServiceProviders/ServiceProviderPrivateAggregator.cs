@@ -128,7 +128,6 @@ namespace SPID.AspNetCore.Authentication.Models.ServiceProviders
                     },
                     new Saml.Aggregated.ContactType(){
                         contactType = Saml.Aggregated.ContactTypeType.billing,
-                        entityType = Saml.Aggregated.EntityTypeType.spidaggregated,
                         Extensions = new Saml.Aggregated.ExtensionsType() { Any = GetBillingElements() },
                         Company = BillingCompany,
                         EmailAddress = BillingEmailAddress,
