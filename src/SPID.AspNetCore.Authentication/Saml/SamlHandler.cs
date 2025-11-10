@@ -393,7 +393,7 @@ namespace SPID.AspNetCore.Authentication.Saml
             BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.NotBefore, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.NotBefore), SpidErrorCode.AssertionConditionNotBeforeMancante));
             DateTimeOffset notBefore = SamlDefaultSettings.ParseExact(response.GetAssertion().Conditions.NotBefore, "Assertion.Conditions.NotBefore");
 
-            BusinessValidation.ValidationCondition(() => notBefore > DateTimeOffset.UtcNow, new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.NotBeforeGreaterThenRequest, SpidErrorCode.AssertionConditionNotBeforeSuccResponse));
+            BusinessValidation.ValidationCondition(() => notBefore > DateTimeOffset.UtcNow.AddSeconds(10), new SpidException(ErrorLocalization.GenericMessage, ErrorLocalization.NotBeforeGreaterThenRequest, SpidErrorCode.AssertionConditionNotBeforeSuccResponse));
 
             BusinessValidation.ValidationCondition(() => response.GetAssertion().Conditions.GetAudienceRestriction() == null, new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, "Assertion.Conditions.AudienceRestriction"), SpidErrorCode.AssertionConditionAudienceRestrictionMancante));
             BusinessValidation.ValidationNotNullNotWhitespace(response.GetAssertion().Conditions.GetAudienceRestriction().Audience?.First(), new SpidException(ErrorLocalization.GenericMessage, string.Format(ErrorLocalization.Missing, ErrorFields.Audience), SpidErrorCode.AssertionAudienceRestrictionAudienceMancante));
